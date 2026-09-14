@@ -1296,6 +1296,7 @@ a { color: inherit; text-decoration: none; }
 .account-legacy-table .status-chip.neutral { color: var(--muted); background: var(--surface-3); }
 .account-runtime-status { outline: none; }
 .account-runtime-status-tooltip { z-index: 1200; max-width: min(320px, calc(100vw - 24px)); }
+.account-runtime-status-tooltip .ant-tooltip-container { white-space: pre-line; overflow-wrap: anywhere; }
 .account-runtime-status-tooltip .ant-tooltip-inner {
   max-width: 320px;
   padding: 9px 11px;
@@ -1387,6 +1388,7 @@ a { color: inherit; text-decoration: none; }
 .account-activity-help { position: relative; display: inline-grid; width: 13px; height: 13px; padding: 0; flex: none; align-self: center; color: var(--accent); background: var(--accent-soft); border: 0; border-radius: 50%; cursor: help; font: 700 8px/1 var(--sans); outline: none; place-items: center; }
 .account-activity-help:focus-visible { box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--accent); }
 .account-activity-cell small { display: block; overflow: hidden; margin-top: 7px; color: var(--faint); font: 8px/1.2 var(--mono); text-overflow: ellipsis; white-space: nowrap; }
+.account-activity-cell .active > small { overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; }
 .account-token-value { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 3px; vertical-align: middle; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .account-token-value > span { display: inline-flex; align-items: baseline; gap: 4px; }
 .account-token-value strong { color: var(--ink); font: 800 15px/1.1 var(--mono); letter-spacing: -.025em; }

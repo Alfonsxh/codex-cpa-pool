@@ -1251,7 +1251,7 @@ function AccountDetailFact({ label, value, note = "", className }: {
     <div className={className}>
       <span>{label}</span>
       {primitive ? <strong title={String(value)}>{value}</strong> : value}
-      {note ? <small className="account-runtime-note" title={note}>{note}</small> : null}
+      {note ? <small className="account-runtime-note" title={note}>{note.replaceAll("\n", " · ")}</small> : null}
     </div>
   );
 }
@@ -2565,16 +2565,17 @@ function AccountStatus({ account }: { account: Account }) {
 function accountRuntimeDetail(account: Account) {
   const runtime = account.runtime;
   const parts = [account.operational_status?.reason?.trim()].filter((value): value is string => Boolean(value));
-  if (!runtime) return parts.join(" · ") || "CPA 原生凭据状态正常";
+  if (!runtime) return parts.join("\n") || "CPA 原生凭据状态正常";
   if (runtime.error_count) {
     parts.push(`近 1h ${runtime.error_count} 次错误${runtime.rate_429_count ? `，其中 429 × ${runtime.rate_429_count}` : ""}`);
   }
   if (runtime.affected_users > 0) parts.push(`影响 ${runtime.affected_users} 位用户`);
   if (runtime.last_error_status > 0) {
-    parts.push(`最近 HTTP ${runtime.last_error_status} · ${formatSiteTimestamp(runtime.last_error_at)}`);
+    parts.push(`最近 HTTP ${runtime.last_error_status}`);
+    parts.push(`最近错误时间：${formatSiteTimestamp(runtime.last_error_at)}`);
   }
   if (runtime.error_log_status === "ok") parts.push(`原生错误文件 ${runtime.error_log_files} 个`);
-  return [...new Set(parts)].join(" · ") || "CPA 原生凭据状态正常";
+  return [...new Set(parts)].join("\n") || "CPA 原生凭据状态正常";
 }
 
 function RebalanceSummary({ result }: { result: RebalanceResponse }) {
