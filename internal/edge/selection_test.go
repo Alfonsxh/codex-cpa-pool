@@ -80,7 +80,9 @@ func TestSelectorWatchesAtomicSelectionReplacement(t *testing.T) {
 		cancel()
 		t.Fatalf("replace selection: %v", err)
 	}
-	deadline := time.Now().Add(time.Second)
+	// The selector refreshes from a timer as well as fsnotify events, but a
+	// heavily loaded machine can starve the run goroutine past a short deadline.
+	deadline := time.Now().Add(5 * time.Second)
 	for time.Now().Before(deadline) && selector.Slot() != Green {
 		time.Sleep(5 * time.Millisecond)
 	}
