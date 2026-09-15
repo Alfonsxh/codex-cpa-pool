@@ -1,3 +1,5 @@
+import "../i18n/usage";
+import { t } from "../i18n";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Alert, Button, Form, Input, Modal, Space, Typography } from "antd";
 import { useMutation } from "@tanstack/react-query";
@@ -8,15 +10,15 @@ import { ApiError } from "../api/client";
 import { changePortalPassword } from "../api/portal";
 
 const passwordSchema = z.object({
-  currentPassword: z.string().min(1, "请输入当前密码").max(128, "密码格式无效"),
-  newPassword: z.string().min(8, "新密码至少需要 8 位").max(128, "密码格式无效"),
-  confirmation: z.string().min(1, "请再次输入新密码")
+  currentPassword: z.string().min(1, t("usage.enter_your_current_password")).max(128, t("common.invalid_password_format")),
+  newPassword: z.string().min(8, t("usage.the_new_password_must_contain_at_least_8_characters")).max(128, t("common.invalid_password_format")),
+  confirmation: z.string().min(1, t("usage.enter_the_new_password_again"))
 }).refine((values) => values.newPassword === values.confirmation, {
   path: ["confirmation"],
-  message: "两次输入的新密码不一致"
+  message: t("usage.the_new_passwords_do_not_match")
 }).refine((values) => values.newPassword !== values.currentPassword, {
   path: ["newPassword"],
-  message: "新密码不能与当前密码相同"
+  message: t("usage.the_new_password_must_differ_from_the_current_password")
 });
 
 type PasswordValues = z.infer<typeof passwordSchema>;
@@ -58,7 +60,7 @@ export function PortalPasswordModal({
   return (
     <Modal
       className="portal-password-modal"
-      title={mandatory ? "首次登录必须修改密码" : "修改个人密码"}
+      title={mandatory ? t("usage.change_your_password_on_first_sign_in") : t("usage.change_personal_password")}
       open={open}
       width={620}
       closable={!mandatory}
@@ -70,14 +72,13 @@ export function PortalPasswordModal({
     >
       <Space orientation="vertical" size={16} className="portal-form-stack">
         <Typography.Paragraph type="secondary">
-          修改后会撤销该用户的其他浏览器会话，当前会话继续有效。
-        </Typography.Paragraph>
+ {t("usage.other_browser_sessions_for_this_user_will_be_revoked_the")} </Typography.Paragraph>
         {change.isError ? (
           <Alert
             type="error"
             showIcon
-            title="密码修改失败"
-            description={change.error instanceof ApiError ? change.error.message : "请稍后重试"}
+            title={t("usage.unable_to_change_password")}
+            description={change.error instanceof ApiError ? change.error.message : t("common.please_try_again_later")}
           />
         ) : null}
         <form
@@ -86,7 +87,7 @@ export function PortalPasswordModal({
           onSubmit={form.handleSubmit(() => change.mutate())}
         >
           <Form.Item
-            label="当前密码"
+            label={t("usage.current_password")}
             htmlFor="portal-current-password"
             validateStatus={form.formState.errors.currentPassword ? "error" : undefined}
             help={form.formState.errors.currentPassword?.message}
@@ -100,7 +101,7 @@ export function PortalPasswordModal({
             />
           </Form.Item>
           <Form.Item
-            label="新密码"
+            label={t("usage.new_password")}
             htmlFor="portal-new-password"
             validateStatus={form.formState.errors.newPassword ? "error" : undefined}
             help={form.formState.errors.newPassword?.message}
@@ -114,7 +115,7 @@ export function PortalPasswordModal({
             />
           </Form.Item>
           <Form.Item
-            label="确认新密码"
+            label={t("usage.confirm_new_password")}
             htmlFor="portal-password-confirmation"
             validateStatus={form.formState.errors.confirmation ? "error" : undefined}
             help={form.formState.errors.confirmation?.message}
@@ -128,8 +129,8 @@ export function PortalPasswordModal({
             />
           </Form.Item>
           <Space className="portal-form-actions">
-            {!mandatory ? <Button tabIndex={-1} onClick={close}>取消</Button> : null}
-            <Button type="primary" htmlType="submit" loading={change.isPending}>保存新密码</Button>
+            {!mandatory ? <Button tabIndex={-1} onClick={close}>{t("common.cancel")}</Button> : null}
+            <Button type="primary" htmlType="submit" loading={change.isPending}>{t("usage.save_new_password")}</Button>
           </Space>
         </form>
       </Space>

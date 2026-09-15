@@ -50,11 +50,11 @@ func TestXLSXUnitsPreserveNumericValuesAcrossWorksheets(t *testing.T) {
 					want = tc.units
 				}
 				for _, cell := range []struct{ sheet, address string }{
-					{"用量总览", "B8"}, {"用量总览", "E8"},
-					{"团队统计", "F8"}, {"团队统计", "G8"}, {"团队统计", "K8"}, {"团队统计", "G9"},
-					{"账号明细", "K8"}, {"账号明细", "L8"}, {"账号明细", "L9"},
-					{"用户使用明细", "J8"}, {"用户使用明细", "K8"}, {"用户使用明细", "K9"},
-					{"每日趋势", "D8"}, {"每日趋势", "E8"}, {"每日趋势", "E15"},
+					{"Usage overview", "B8"}, {"Usage overview", "E8"},
+					{"Team statistics", "F8"}, {"Team statistics", "G8"}, {"Team statistics", "K8"}, {"Team statistics", "G9"},
+					{"Account details", "K8"}, {"Account details", "L8"}, {"Account details", "L9"},
+					{"User usage details", "J8"}, {"User usage details", "K8"}, {"User usage details", "K9"},
+					{"Daily trends", "D8"}, {"Daily trends", "E8"}, {"Daily trends", "E15"},
 				} {
 					if withUnits {
 						styleID, err := file.GetCellStyle(cell.sheet, cell.address)
@@ -80,13 +80,13 @@ func TestXLSXUnitsPreserveNumericValuesAcrossWorksheets(t *testing.T) {
 						t.Fatalf("%s!%s raw value changed: %q %v", cell.sheet, cell.address, raw, err)
 					}
 				}
-				if value, err := file.GetCellValue("用量总览", "L33"); err != nil || value != "2" {
+				if value, err := file.GetCellValue("Usage overview", "L33"); err != nil || value != "2" {
 					t.Fatalf("request count gained Token units: %q %v", value, err)
 				}
-				if err := file.SetCellFormula("用量总览", "B45", "SUM(B8,E8)"); err != nil {
+				if err := file.SetCellFormula("Usage overview", "B45", "SUM(B8,E8)"); err != nil {
 					t.Fatal(err)
 				}
-				if value, err := file.CalcCellValue("用量总览", "B45"); err != nil || value != strconv.FormatInt(2*tc.amount, 10) {
+				if value, err := file.CalcCellValue("Usage overview", "B45"); err != nil || value != strconv.FormatInt(2*tc.amount, 10) {
 					t.Fatalf("numeric sum=%q err=%v", value, err)
 				}
 			})

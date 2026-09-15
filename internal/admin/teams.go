@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/Alfonsxh/codex-cpa-pool/internal/controlplane"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,13 +23,13 @@ func (server *Server) listTeams(c *gin.Context) {
 		server.internalError(c, "list teams", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"teams": teams})
+	httpi18n.JSON(c, http.StatusOK, gin.H{"teams": teams})
 }
 
 func (server *Server) createTeam(c *gin.Context) {
 	var body teamPayload
 	if err := c.ShouldBindJSON(&body); err != nil {
-		writeError(c, http.StatusBadRequest, "团队参数无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_team_parameters"), "invalid_request")
 		return
 	}
 	team, err := server.store.CreateTeam(c.Request.Context(), body.Name, body.Description)
@@ -35,13 +37,13 @@ func (server *Server) createTeam(c *gin.Context) {
 		server.writeControlPlaneError(c, err)
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"message": "团队已创建", "team": team})
+	httpi18n.JSON(c, http.StatusCreated, gin.H{"message": i18n.M("admin.team_created"), "team": team})
 }
 
 func (server *Server) updateTeam(c *gin.Context) {
 	var body teamPayload
 	if err := c.ShouldBindJSON(&body); err != nil || strings.TrimSpace(body.ID) == "" {
-		writeError(c, http.StatusBadRequest, "团队参数无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_team_parameters"), "invalid_request")
 		return
 	}
 	team, err := server.store.UpdateTeam(
@@ -54,13 +56,13 @@ func (server *Server) updateTeam(c *gin.Context) {
 		server.writeControlPlaneError(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "团队已更新", "team": team})
+	httpi18n.JSON(c, http.StatusOK, gin.H{"message": i18n.M("admin.team_updated"), "team": team})
 }
 
 func (server *Server) deleteTeam(c *gin.Context) {
 	teamID := strings.TrimSpace(c.Query("id"))
 	if teamID == "" {
-		writeError(c, http.StatusBadRequest, "团队参数无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_team_parameters"), "invalid_request")
 		return
 	}
 	team, err := server.store.DeleteTeam(c.Request.Context(), teamID)
@@ -68,21 +70,21 @@ func (server *Server) deleteTeam(c *gin.Context) {
 		server.writeControlPlaneError(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "团队已删除", "team": team})
+	httpi18n.JSON(c, http.StatusOK, gin.H{"message": i18n.M("admin.team_deleted"), "team": team})
 }
 
 func (server *Server) writeControlPlaneError(c *gin.Context, err error) {
 	switch {
 	case errors.Is(err, controlplane.ErrInvalidCatalogInput):
-		writeError(c, http.StatusBadRequest, "请求参数无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_request_parameters"), "invalid_request")
 	case errors.Is(err, controlplane.ErrTeamNameExists):
-		writeError(c, http.StatusConflict, "团队名称已存在", "team_name_conflict")
+		writeError(c, http.StatusConflict, i18n.M("admin.team_name_already_exists"), "team_name_conflict")
 	case errors.Is(err, controlplane.ErrTeamNotFound):
-		writeError(c, http.StatusNotFound, "团队不存在", "team_not_found")
+		writeError(c, http.StatusNotFound, i18n.M("admin.team_does_not_exist"), "team_not_found")
 	case errors.Is(err, controlplane.ErrTeamNotEmpty):
-		writeError(c, http.StatusBadRequest, "团队仍有用户，不能删除", "team_not_empty")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.the_team_still_has_users_and_cannot_be_deleted"), "team_not_empty")
 	case errors.Is(err, controlplane.ErrTeamMembershipConflict):
-		writeError(c, http.StatusConflict, "用户团队归属已变化，请刷新后重试", "team_membership_conflict")
+		writeError(c, http.StatusConflict, i18n.M("admin.user_team_membership_changed_refresh_and_try_again"), "team_membership_conflict")
 	default:
 		server.internalError(c, "mutate control-plane catalog", err)
 	}

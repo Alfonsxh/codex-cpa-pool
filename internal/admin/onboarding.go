@@ -7,6 +7,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/sitetime"
 	"github.com/gin-gonic/gin"
 )
@@ -72,18 +74,18 @@ func (server *Server) readOnboarding(c *gin.Context) {
 		server.internalError(c, "read onboarding status", err)
 		return
 	}
-	c.JSON(http.StatusOK, payload)
+	httpi18n.JSON(c, http.StatusOK, payload)
 }
 
 func (server *Server) updateOnboardingPreferences(c *gin.Context) {
 	var body onboardingPreferencesPayload
 	if err := c.ShouldBindJSON(&body); err != nil || body.Confirm != "save" {
-		writeError(c, http.StatusBadRequest, "请确认保存初始化偏好", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.confirm_saving_setup_preferences"), "invalid_request")
 		return
 	}
 	skipped, err := normalizeSkippedRecommended(body.SkippedRecommended)
 	if err != nil {
-		writeError(c, http.StatusBadRequest, err.Error(), "invalid_request")
+		writeError(c, http.StatusBadRequest, err, "invalid_request")
 		return
 	}
 	if err := server.store.UpdateSettings(c.Request.Context(), map[string]any{
@@ -97,7 +99,7 @@ func (server *Server) updateOnboardingPreferences(c *gin.Context) {
 		server.internalError(c, "read updated onboarding status", err)
 		return
 	}
-	c.JSON(http.StatusOK, payload)
+	httpi18n.JSON(c, http.StatusOK, payload)
 }
 
 func (server *Server) onboardingStatus(ctx context.Context) (onboardingStatusResponse, error) {
@@ -125,12 +127,12 @@ func (server *Server) onboardingStatus(ctx context.Context) (onboardingStatusRes
 	required := make([]onboardingStep, 0, 2)
 	emailDomainsComplete := len(values.AllowedEmailDomains) > 0
 	required = append(required, onboardingRequiredStep(
-		"email_domains", emailDomainsComplete, "组织与访问", "配置允许创建和登录用户的邮箱域名。",
-		"/configuration?group=品牌与身份&key=identity.allowed_email_domains", nil,
+		"email_domains", emailDomainsComplete, i18n.Text(i18n.FromContext(ctx), "admin.organization_access"), i18n.Text(i18n.FromContext(ctx), "admin.configure_email_domains_allowed_for_user_creation_and_sign_in"),
+		"/configuration?section=identity&key=identity.allowed_email_domains", nil,
 	))
 	initialPasswordComplete := hasSecretStatus(secretStatuses, portalInitialPasswordSecret)
 	required = append(required, onboardingRequiredStep(
-		"initial_password", initialPasswordComplete, "用户初始密码", "新用户首次登录使用，登录后必须立即修改。",
+		"initial_password", initialPasswordComplete, i18n.Text(i18n.FromContext(ctx), "admin.initial_user_password"), i18n.Text(i18n.FromContext(ctx), "admin.used_for_new_users_first_sign_in_must_be_changed"),
 		"/configuration?section=access", nil,
 	))
 
@@ -143,12 +145,12 @@ func (server *Server) onboardingStatus(ctx context.Context) (onboardingStatusRes
 		"proxy":           settingBool(settings, "cpa.proxy_enabled") && hasSecretStatus(secretStatuses, defaultProxySecretName),
 	}
 	recommendedDefinitions := []onboardingStep{
-		{ID: "public_base_url", Kind: onboardingRecommendedKind, Title: "公开访问地址", Description: "用于通知和客户端配置导出；留空时浏览器仍使用当前来源。", ActionPath: "/configuration?group=品牌与身份&key=branding.public_base_url"},
-		{ID: "quota_timezone", Kind: onboardingRecommendedKind, Title: "系统时区", Description: "统一页面时间、用量统计、自然周额度与通知调度。", ActionPath: "/configuration?group=系统设置&key=system.timezone"},
-		{ID: "weekly_quota", Kind: onboardingRecommendedKind, Title: "默认周额度", Description: "为新用户设置组织级默认 Token 上限；留空表示默认不限额。", ActionPath: "/configuration?group=用户额度&key=user_quota.default_weekly_tokens"},
-		{ID: "notifications", Kind: onboardingRecommendedKind, Title: "企业微信通知", Description: "配置额度报告和异常提醒 Webhook。", ActionPath: "/configuration?group=企业微信通知"},
-		{ID: "branding", Kind: onboardingRecommendedKind, Title: "品牌信息", Description: "按需设置产品名称、环境说明和 Logo。", ActionPath: "/configuration?group=品牌与身份"},
-		{ID: "proxy", Kind: onboardingRecommendedKind, Title: "默认上游代理", Description: "仅在访问上游必须经过代理时配置。", ActionPath: "/configuration?group=CPA%20请求&key=cpa.proxy_url"},
+		{ID: "public_base_url", Kind: onboardingRecommendedKind, Title: i18n.Text(i18n.FromContext(ctx), "admin.public_url"), Description: i18n.Text(i18n.FromContext(ctx), "admin.used_for_notifications_and_client_exports_if_blank_the_browser"), ActionPath: "/configuration?section=brand&key=branding.public_base_url"},
+		{ID: "quota_timezone", Kind: onboardingRecommendedKind, Title: i18n.Text(i18n.FromContext(ctx), "admin.system_timezone"), Description: i18n.Text(i18n.FromContext(ctx), "admin.shared_timezone_for_page_times_usage_calendar_week_quotas_and"), ActionPath: "/configuration?section=general&key=system.timezone"},
+		{ID: "weekly_quota", Kind: onboardingRecommendedKind, Title: i18n.Text(i18n.FromContext(ctx), "admin.default_weekly_quota"), Description: i18n.Text(i18n.FromContext(ctx), "admin.set_an_organization_wide_default_token_limit_for_new_users"), ActionPath: "/configuration?section=quota&key=user_quota.default_weekly_tokens"},
+		{ID: "notifications", Kind: onboardingRecommendedKind, Title: i18n.Text(i18n.FromContext(ctx), "admin.wecom_notifications"), Description: i18n.Text(i18n.FromContext(ctx), "admin.configure_a_webhook_for_quota_reports_and_error_alerts"), ActionPath: "/configuration?section=notifications"},
+		{ID: "branding", Kind: onboardingRecommendedKind, Title: i18n.Text(i18n.FromContext(ctx), "admin.branding"), Description: i18n.Text(i18n.FromContext(ctx), "admin.customize_the_product_name_environment_label_and_logo_as_needed"), ActionPath: "/configuration?section=brand"},
+		{ID: "proxy", Kind: onboardingRecommendedKind, Title: i18n.Text(i18n.FromContext(ctx), "admin.default_upstream_proxy"), Description: i18n.Text(i18n.FromContext(ctx), "admin.configure_only_when_a_proxy_is_required_to_reach_the"), ActionPath: "/configuration?section=requests&key=cpa.proxy_url"},
 	}
 	skippedSet := make(map[string]struct{}, len(skipped))
 	for _, id := range skipped {
@@ -216,7 +218,7 @@ func normalizeSkippedRecommended(values []string) ([]string, error) {
 	for _, raw := range values {
 		id := strings.TrimSpace(raw)
 		if _, found := allowed[id]; !found {
-			return nil, fmt.Errorf("不支持跳过初始化项目：%s", id)
+			return nil, i18n.M("admin.this_setup_step_cannot_be_skipped", i18n.Params{"Value": id})
 		}
 		if _, duplicate := seen[id]; duplicate {
 			continue

@@ -19,6 +19,8 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/identity"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/runtimeops"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/sitetime"
@@ -44,6 +46,7 @@ var (
 type configurationDefinition struct {
 	Key            string
 	Label          string
+	LabelParams    i18n.Params
 	ValueType      string
 	ApplyMode      string
 	Default        any
@@ -153,57 +156,55 @@ func buildConfigurationDefinitions() []configurationDefinition {
 	}
 
 	definitions := []configurationDefinition{
-		text("branding.product_name", "产品名称", defaultProductName, 2, 64, "live", false),
-		text("branding.short_name", "产品简称", "CCPA", 2, 32, "live", false),
-		text("branding.environment_label", "环境说明", "Self-hosted service", 0, 64, "live", true),
-		simple("branding.public_base_url", "公开访问地址", "base_url", "", "live"),
-		simple("identity.allowed_email_domains", "允许的邮箱域名", "domain_list", []string{}, "live"),
-		simple("identity.key_prefix", "新 Key 前缀", "key_prefix", identity.DefaultUserKeyPrefix, "live"),
-		text("portal.provider_name", "客户端 Provider 名称", "Codex CPA Pool", 2, 48, "live", false),
-		simple("portal.api_key_env", "客户端 Key 环境变量", "env_name", "CCPA_API_KEY", "live"),
-		text("portal.default_model", "客户端默认模型", "gpt-5.6-sol", 1, 128, "live", false),
-		simple(sitetime.SettingKey, "系统时区", "timezone", sitetime.DefaultName, "collector"),
-		boolean("cpa.proxy_enabled", "启用默认上游代理", false, "accounts"),
-		simple("cpa.proxy_url", "默认上游代理 URL", "proxy_url_secret", "", "accounts"),
-		integer("cpa.request_retry", "请求重试次数", 2, 0, 10, "accounts"),
-		choice("cpa.disable_image_generation", "图片工具策略", "chat", "accounts", "chat", "true", "false"),
-		integer("cpa.max_retry_credentials", "最大重试凭据数", 1, 1, 10, "accounts"),
-		integer("cpa.max_retry_interval", "最大重试等待", 12, 1, 300, "accounts"),
-		integer("cpa.transient_error_cooldown_seconds", "临时错误冷却", 10, 1, 300, "accounts"),
-		boolean("cpa.session_affinity", "会话亲和", true, "accounts"),
-		simple("cpa.session_affinity_ttl", "会话亲和有效期", "duration", "1h", "accounts"),
-		boolean("cpa.debug", "调试日志", false, "accounts"),
-		boolean("cpa.logging_to_file", "写入 CPA 日志文件", true, "accounts"),
-		integer("cpa.logs_max_total_size_mb", "单 CPA 日志容量上限", 64, 16, 1024, "accounts"),
-		integer("cpa.error_logs_max_files", "单 CPA 错误文件上限", 10, 1, 100, "accounts"),
-		boolean("cpa.usage_statistics_enabled", "官方用量事件", true, "accounts"),
-		integer("cpa.usage_queue_retention_seconds", "用量队列保留时间", 3600, 60, 604800, "accounts"),
-		integer(usage.ActiveUserWindowSettingKey, "活跃用户统计窗口", int64(usage.DefaultActiveUserWindow/time.Second), 60, 86400, "live"),
-		integer("usage.quota_cache_seconds", "官方额度缓存", 60, 30, 3600, "live"),
-		integer("usage.upstream_timeout_seconds", "官方接口超时", 20, 5, 120, "live"),
-		choice("account_failover.mode", "自动切换模式", "active", "live", "off", "active"),
-		integer("account_failover.poll_seconds", "额度检查间隔", 60, 30, 3600, "live"),
-		number("account_failover.reserve_percent", "目标账号安全余量", 5, 0, 50, "live"),
-		integer("account_failover.stale_after_seconds", "额度数据失效时间", 120, 60, 7200, "live"),
-		{Key: "user_quota.default_weekly_tokens", Label: "用户周额度系统默认值", ValueType: "nullable_integer", ApplyMode: "quota", Default: nil, Minimum: 1, Maximum: 1_000_000_000_000, HasMinimum: true, HasMaximum: true},
-		boolean(quotaResetSettingKey, "保留修改后的额度", true, "quota"),
-		integer("user_quota.fail_open_after_seconds", "额度故障放行等待", 300, 30, 3600, "quota"),
+		text("branding.product_name", "admin.product_name", defaultProductName, 2, 64, "live", false),
+		text("branding.short_name", "admin.short_name", "CCPA", 2, 32, "live", false),
+		text("branding.environment_label", "admin.environment_label", "Self-hosted service", 0, 64, "live", true),
+		simple("branding.public_base_url", "admin.public_url", "base_url", "", "live"),
+		simple("identity.allowed_email_domains", "admin.allowed_email_domains", "domain_list", []string{}, "live"),
+		simple("identity.key_prefix", "admin.new_key_prefix", "key_prefix", identity.DefaultUserKeyPrefix, "live"),
+		text("portal.provider_name", "admin.client_provider_name", "Codex CPA Pool", 2, 48, "live", false),
+		simple("portal.api_key_env", "admin.client_key_environment_variable", "env_name", "CCPA_API_KEY", "live"),
+		text("portal.default_model", "admin.default_client_model", "gpt-5.6-sol", 1, 128, "live", false),
+		choice(i18n.SettingKey, "configuration.system_language", "en", "live", "en", "zh-CN"),
+		simple(sitetime.SettingKey, "admin.system_timezone", "timezone", sitetime.DefaultName, "collector"),
+		boolean("cpa.proxy_enabled", "admin.enable_default_upstream_proxy", false, "accounts"),
+		simple("cpa.proxy_url", "admin.default_upstream_proxy_url", "proxy_url_secret", "", "accounts"),
+		integer("cpa.request_retry", "admin.request_retries", 2, 0, 10, "accounts"),
+		choice("cpa.disable_image_generation", "admin.image_tool_policy", "chat", "accounts", "chat", "true", "false"),
+		integer("cpa.max_retry_credentials", "admin.maximum_credential_retries", 1, 1, 10, "accounts"),
+		integer("cpa.max_retry_interval", "admin.maximum_retry_wait", 12, 1, 300, "accounts"),
+		integer("cpa.transient_error_cooldown_seconds", "admin.transient_error_cooldown", 10, 1, 300, "accounts"),
+		boolean("cpa.session_affinity", "admin.session_affinity", true, "accounts"),
+		simple("cpa.session_affinity_ttl", "admin.session_affinity_duration", "duration", "1h", "accounts"),
+		boolean("cpa.debug", "admin.debug_logging", false, "accounts"),
+		boolean("cpa.logging_to_file", "admin.write_cpa_log_files", true, "accounts"),
+		integer("cpa.logs_max_total_size_mb", "admin.log_capacity_per_cpa", 64, 16, 1024, "accounts"),
+		integer("cpa.error_logs_max_files", "admin.error_file_limit_per_cpa", 10, 1, 100, "accounts"),
+		boolean("cpa.usage_statistics_enabled", "admin.official_usage_events", true, "accounts"),
+		integer("cpa.usage_queue_retention_seconds", "admin.usage_queue_retention", 3600, 60, 604800, "accounts"),
+		integer(usage.ActiveUserWindowSettingKey, "admin.active_user_window", int64(usage.DefaultActiveUserWindow/time.Second), 60, 86400, "live"),
+		integer("usage.quota_cache_seconds", "admin.official_quota_cache", 60, 30, 3600, "live"),
+		integer("usage.upstream_timeout_seconds", "admin.official_api_timeout", 20, 5, 120, "live"),
+		choice("account_failover.mode", "admin.automatic_switching_mode", "active", "live", "off", "active"),
+		integer("account_failover.poll_seconds", "admin.quota_check_interval", 60, 30, 3600, "live"),
+		number("account_failover.reserve_percent", "admin.target_account_safety_reserve", 5, 0, 50, "live"),
+		integer("account_failover.stale_after_seconds", "admin.quota_data_expiry", 120, 60, 7200, "live"),
+		{Key: "user_quota.default_weekly_tokens", Label: "admin.default_weekly_quota_per_user", ValueType: "nullable_integer", ApplyMode: "quota", Default: nil, Minimum: 1, Maximum: 1_000_000_000_000, HasMinimum: true, HasMaximum: true},
+		boolean(quotaResetSettingKey, "admin.preserve_personal_quota_changes", true, "quota"),
+		integer("user_quota.fail_open_after_seconds", "admin.quota_failure_grace_period", 300, 30, 3600, "quota"),
 	}
 	for _, model := range usage.ModelMultiplierDefinitions() {
-		label := model.Model
-		if model.Model == "unknown" {
-			label = "其他 / 未匹配模型"
-		}
+
 		definitions = append(definitions, number(
 			usage.ModelMultiplierSettingKey(model.Model),
-			label+" 模型倍率",
+			"configuration.model_multiplier",
 			model.Default, 0.1, 10, "quota",
 		))
 	}
 	for _, effort := range usage.ReasoningMultiplierDefinitions() {
 		definitions = append(definitions, number(
 			usage.ReasoningMultiplierSettingKey(effort.Effort),
-			strings.ToUpper(effort.Effort[:1])+effort.Effort[1:]+" 推理强度倍率",
+			"configuration.reasoning_multiplier",
 			effort.Default, 0.1, 10, "quota",
 		))
 	}
@@ -217,23 +218,23 @@ func buildConfigurationDefinitions() []configurationDefinition {
 	} {
 		definitions = append(definitions, simple(
 			"admin.account_usage.reasoning_effort_color."+effort.name,
-			strings.ToUpper(effort.name[:1])+effort.name[1:]+" 推理强度颜色",
+			"configuration.reasoning_color",
 			"color", effort.fallback, "live",
 		))
 	}
 	definitions = append(definitions,
-		boolean("notification.enabled", "启用企业微信通知", false, "live"),
-		simple("notification.daily_times", "每日发送时间", "time_list", "09:00,14:00,18:00", "live"),
-		integer("notification.schedule_grace_minutes", "定时补发窗口", 15, 0, 120, "live"),
-		boolean("notification.quota_alert_enabled", "启用周额度预警", true, "live"),
-		number("notification.weekly_threshold_percent", "周额度预警阈值", 90, 1, 100, "live"),
-		integer("portal.session_ttl_seconds", "使用中心登录有效期", 43200, 3600, 43200, "live"),
-		number("collector.interval_seconds", "采集轮询间隔", 2, 0.5, 60, "collector"),
-		integer("collector.batch_size", "单批采集数量", 100, 1, 500, "collector"),
-		integer("accounts.port_start", "新账号端口起点", 18319, 1024, 65535, "future"),
-		integer("accounts.port_end", "新账号端口终点", 18999, 1024, 65535, "future"),
-		simple("accounts.listen_address", "业务 CPA 监听地址", "ip", "127.0.0.1", "deployment"),
-		simple("runtime.cliproxy_image", "CLIProxyAPI 镜像", "image", runtimeops.DefaultCPAImageUpdateChannel, "deployment"),
+		boolean("notification.enabled", "admin.enable_wecom_notifications", false, "live"),
+		simple("notification.daily_times", "admin.daily_delivery_times", "time_list", "09:00,14:00,18:00", "live"),
+		integer("notification.schedule_grace_minutes", "admin.missed_delivery_window", 15, 0, 120, "live"),
+		boolean("notification.quota_alert_enabled", "admin.enable_weekly_quota_alerts", true, "live"),
+		number("notification.weekly_threshold_percent", "admin.weekly_quota_alert_threshold", 90, 1, 100, "live"),
+		integer("portal.session_ttl_seconds", "admin.usage_center_session_duration", 43200, 3600, 43200, "live"),
+		number("collector.interval_seconds", "admin.collection_polling_interval", 2, 0.5, 60, "collector"),
+		integer("collector.batch_size", "admin.events_per_batch", 100, 1, 500, "collector"),
+		integer("accounts.port_start", "admin.new_account_port_start", 18319, 1024, 65535, "future"),
+		integer("accounts.port_end", "admin.new_account_port_end", 18999, 1024, 65535, "future"),
+		simple("accounts.listen_address", "admin.cpa_listen_address", "ip", "127.0.0.1", "deployment"),
+		simple("runtime.cliproxy_image", "admin.cliproxyapi_image", "image", runtimeops.DefaultCPAImageUpdateChannel, "deployment"),
 	)
 	return definitions
 }
@@ -241,11 +242,11 @@ func buildConfigurationDefinitions() []configurationDefinition {
 func (server *Server) updateConfiguration(c *gin.Context) {
 	var body configurationUpdateRequest
 	if err := c.ShouldBindJSON(&body); err != nil || body.Confirm != "save" {
-		writeError(c, http.StatusBadRequest, "请确认保存配置", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.confirm_saving_configuration"), "invalid_request")
 		return
 	}
 	if body.Values == nil {
-		writeError(c, http.StatusBadRequest, "配置值必须为对象", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.configuration_values_must_be_an_object"), "invalid_request")
 		return
 	}
 	changes := make(map[string]any, len(body.Values))
@@ -256,12 +257,12 @@ func (server *Server) updateConfiguration(c *gin.Context) {
 	// runtime readers keep their reset flag. Do not persist two opposing flags.
 	if raw, found := changes[quotaRetentionFieldKey]; found {
 		if _, duplicate := changes[quotaResetSettingKey]; duplicate {
-			writeError(c, http.StatusBadRequest, "请只设置保留修改后的额度，不要同时提交旧版恢复默认配置", "invalid_request")
+			writeError(c, http.StatusBadRequest, i18n.M("admin.set_only_the_quota_retention_option_do_not_also_submit"), "invalid_request")
 			return
 		}
 		value, err := normalizeConfigurationValue(configurationDefinitionByKey[quotaResetSettingKey], raw)
 		if err != nil {
-			writeError(c, http.StatusBadRequest, err.Error(), "invalid_request")
+			writeError(c, http.StatusBadRequest, err, "invalid_request")
 			return
 		}
 		changes[quotaResetSettingKey] = !value.(bool)
@@ -273,7 +274,7 @@ func (server *Server) updateConfiguration(c *gin.Context) {
 		delete(changes, "cpa.proxy_url")
 	}
 	if len(changes) == 0 {
-		c.JSON(http.StatusOK, noConfigurationChanges())
+		httpi18n.JSON(c, http.StatusOK, noConfigurationChanges(httpi18n.Locale(c)))
 		return
 	}
 
@@ -295,18 +296,18 @@ func (server *Server) updateConfiguration(c *gin.Context) {
 		}
 		value, normalizeError := normalizeConfigurationValue(definition, raw)
 		if normalizeError != nil {
-			writeError(c, http.StatusBadRequest, normalizeError.Error(), "invalid_request")
+			writeError(c, http.StatusBadRequest, normalizeError, "invalid_request")
 			return
 		}
 		updated[key] = value
 	}
 	if len(unknown) != 0 {
 		sort.Strings(unknown)
-		writeError(c, http.StatusBadRequest, "不支持的配置项："+strings.Join(unknown, ", "), "invalid_request")
+		writeError(c, http.StatusBadRequest, httpi18n.Text(c, "admin.unsupported_setting")+strings.Join(unknown, ", "), "invalid_request")
 		return
 	}
 	if err := validateConfiguration(updated); err != nil {
-		writeError(c, http.StatusBadRequest, err.Error(), "invalid_request")
+		writeError(c, http.StatusBadRequest, err, "invalid_request")
 		return
 	}
 	if enabled, _ := updated["notification.enabled"].(bool); enabled {
@@ -316,14 +317,14 @@ func (server *Server) updateConfiguration(c *gin.Context) {
 			return
 		}
 		if !hasSecretStatus(statuses, "wecom_webhook") {
-			writeError(c, http.StatusBadRequest, "启用企业微信通知前必须先配置 Webhook", "invalid_request")
+			writeError(c, http.StatusBadRequest, i18n.M("admin.configure_a_webhook_before_enabling_wecom_notifications"), "invalid_request")
 			return
 		}
 	}
 
 	changed := changedConfigurationKeys(current, updated, storedBefore, changes)
 	if len(changed) == 0 {
-		c.JSON(http.StatusOK, noConfigurationChanges())
+		httpi18n.JSON(c, http.StatusOK, noConfigurationChanges(httpi18n.Locale(c)))
 		return
 	}
 	storedAfter := cloneConfiguration(storedBefore)
@@ -359,7 +360,7 @@ func (server *Server) updateConfiguration(c *gin.Context) {
 			zapError("apply_error_class", err),
 			zapError("store_rollback_error_class", storeRollbackError),
 			zapError("apply_rollback_error_class", applyRollbackError))
-		writeError(c, http.StatusBadGateway, "配置应用失败，已尝试恢复原配置", "configuration_apply_failed")
+		writeError(c, http.StatusBadGateway, i18n.M("admin.configuration_could_not_be_applied_restoration_of_the_previous_configuration"), "configuration_apply_failed")
 		return
 	}
 
@@ -375,9 +376,9 @@ func (server *Server) updateConfiguration(c *gin.Context) {
 			applied = append(applied, mode)
 		}
 	}
-	message := fmt.Sprintf("已保存 %d 项配置", len(changed))
+	message := i18n.M("admin.saved_settings", i18n.Params{"Count": len(changed)}).Render(httpi18n.Locale(c))
 	if pendingDeployment {
-		message += "；业务 CPA 参数已写入私有 Compose 投影，重建对应账号后生效"
+		message += httpi18n.Text(c, "admin.cpa_parameters_were_written_to_the_private_compose_configuration_and")
 	}
 	responseChanged := append([]string(nil), changed...)
 	if _, retentionRequested := body.Values[quotaRetentionFieldKey]; retentionRequested {
@@ -387,7 +388,7 @@ func (server *Server) updateConfiguration(c *gin.Context) {
 			}
 		}
 	}
-	c.JSON(http.StatusOK, configurationUpdateResponse{
+	httpi18n.JSON(c, http.StatusOK, configurationUpdateResponse{
 		Message: message, Changed: responseChanged, Applied: applied, PendingDeployment: pendingDeployment,
 	})
 }
@@ -426,7 +427,7 @@ func (server *Server) currentConfiguration(
 			continue
 		}
 		if _, found := configurationDefinitionByKey[key]; !found {
-			return nil, nil, "", false, fmt.Errorf("配置中心包含未知参数：%s", key)
+			return nil, nil, "", false, i18n.M("admin.unknown_configuration_parameter", i18n.Params{"Key": key})
 		}
 		if key == "cpa.proxy_url" {
 			legacyProxy = strings.TrimSpace(valueString(value))
@@ -500,32 +501,32 @@ func normalizeConfigurationValue(definition configurationDefinition, raw any) (a
 				return false, nil
 			}
 		}
-		return nil, fmt.Errorf("%s 必须为布尔值", definition.Label)
+		return nil, i18n.M("admin.must_be_a_boolean", i18n.Params{"Field": definition.label()})
 	case "integer", "nullable_integer":
 		if definition.ValueType == "nullable_integer" && (raw == nil || strings.TrimSpace(valueString(raw)) == "") {
 			return nil, nil
 		}
 		value, err := configurationInteger(raw)
 		if err != nil {
-			return nil, fmt.Errorf("%s 必须为整数", definition.Label)
+			return nil, i18n.M("admin.must_be_an_integer", i18n.Params{"Field": definition.label()})
 		}
 		if definition.HasMinimum && float64(value) < definition.Minimum ||
 			definition.HasMaximum && float64(value) > definition.Maximum {
-			return nil, fmt.Errorf("%s 必须在 %s 至 %s 之间", definition.Label, numberLabel(definition.Minimum), numberLabel(definition.Maximum))
+			return nil, i18n.M("admin.must_be_between_and", i18n.Params{"Field": definition.label(), "Minimum": numberLabel(definition.Minimum), "Maximum": numberLabel(definition.Maximum)})
 		}
 		return value, nil
 	case "number":
 		value, err := configurationNumber(raw)
 		if err != nil {
-			return nil, fmt.Errorf("%s 必须为数字", definition.Label)
+			return nil, i18n.M("admin.must_be_a_number", i18n.Params{"Field": definition.label()})
 		}
 		if !math.IsInf(value, 0) && !math.IsNaN(value) {
 			if definition.HasMinimum && value < definition.Minimum || definition.HasMaximum && value > definition.Maximum {
-				return nil, fmt.Errorf("%s 必须在 %s 至 %s 之间", definition.Label, numberLabel(definition.Minimum), numberLabel(definition.Maximum))
+				return nil, i18n.M("admin.must_be_between_and", i18n.Params{"Field": definition.label(), "Minimum": numberLabel(definition.Minimum), "Maximum": numberLabel(definition.Maximum)})
 			}
 			return value, nil
 		}
-		return nil, fmt.Errorf("%s 必须为有限数字", definition.Label)
+		return nil, i18n.M("admin.must_be_a_finite_number", i18n.Params{"Field": definition.label()})
 	}
 
 	value := strings.TrimSpace(valueString(raw))
@@ -535,18 +536,18 @@ func normalizeConfigurationValue(definition configurationDefinition, raw any) (a
 	switch definition.ValueType {
 	case "text", "optional_text":
 		if definition.ValueType == "text" && value == "" {
-			return nil, fmt.Errorf("%s不能为空", definition.Label)
+			return nil, i18n.M("admin.is_required", i18n.Params{"Field": definition.label()})
 		}
 		length := utf8.RuneCountInString(value)
 		if length < definition.MinimumLength {
-			return nil, fmt.Errorf("%s至少需要 %d 个字符", definition.Label, definition.MinimumLength)
+			return nil, i18n.M("admin.must_contain_at_least_characters", i18n.Params{"Field": definition.label(), "Minimum": definition.MinimumLength})
 		}
 		if definition.MaximumLength > 0 && length > definition.MaximumLength {
-			return nil, fmt.Errorf("%s不能超过 %d 个字符", definition.Label, definition.MaximumLength)
+			return nil, i18n.M("admin.must_not_exceed_characters", i18n.Params{"Field": definition.label(), "Maximum": definition.MaximumLength})
 		}
 		for _, character := range value {
 			if unicode.IsControl(character) {
-				return nil, fmt.Errorf("%s不能包含控制字符", definition.Label)
+				return nil, i18n.M("admin.must_not_contain_control_characters", i18n.Params{"Field": definition.label()})
 			}
 		}
 		return value, nil
@@ -568,12 +569,12 @@ func normalizeConfigurationValue(definition configurationDefinition, raw any) (a
 	case "key_prefix":
 		value = strings.ToLower(value)
 		if !keyPrefixPattern.MatchString(value) {
-			return nil, fmt.Errorf("%s必须为 3-32 位小写字母、数字或下划线，并以下划线结尾", definition.Label)
+			return nil, i18n.M("admin.must_contain_3_32_lowercase_letters_digits_or_underscores_and", i18n.Params{"Field": definition.label()})
 		}
 		return value, nil
 	case "env_name":
 		if !envNamePattern.MatchString(value) {
-			return nil, fmt.Errorf("%s必须为有效的大写环境变量名", definition.Label)
+			return nil, i18n.M("admin.must_be_a_valid_uppercase_environment_variable_name", i18n.Params{"Field": definition.label()})
 		}
 		return value, nil
 	case "choice":
@@ -583,12 +584,12 @@ func normalizeConfigurationValue(definition configurationDefinition, raw any) (a
 				allowed = append(allowed, choice)
 			}
 			sort.Strings(allowed)
-			return nil, fmt.Errorf("%s 必须选择以下值之一：%s", definition.Label, strings.Join(allowed, ", "))
+			return nil, i18n.M("admin.must_be_one_of", i18n.Params{"Field": definition.label(), "Choices": strings.Join(allowed, ", ")})
 		}
 		return value, nil
 	case "color":
 		if !configurationColorPattern.MatchString(value) {
-			return nil, fmt.Errorf("%s 必须使用 #RRGGBB 颜色格式", definition.Label)
+			return nil, i18n.M("admin.must_use_the_rrggbb_color_format", i18n.Params{"Field": definition.label()})
 		}
 		return strings.ToLower(value), nil
 	case "base_url", "proxy_url_secret":
@@ -596,21 +597,21 @@ func normalizeConfigurationValue(definition configurationDefinition, raw any) (a
 	case "duration":
 		match := configurationDurationPattern.FindStringSubmatch(strings.ToLower(value))
 		if match == nil {
-			return nil, errors.New("时间窗口格式应为 30s、5m、1h 或 7d")
+			return nil, i18n.M("admin.use_a_duration_such_as_30s_5m_1h_or_7d")
 		}
 		amount, _ := strconv.ParseInt(match[1], 10, 64)
 		scale := map[string]int64{"s": 1, "m": 60, "h": 3600, "d": 86400}[match[2]]
 		seconds := amount * scale
 		if amount <= 0 || seconds < 30 || seconds > 30*24*60*60 {
-			return nil, fmt.Errorf("%s 必须在 30 秒至 30 天之间", definition.Label)
+			return nil, i18n.M("admin.must_be_between_30_seconds_and_30_days", i18n.Params{"Field": definition.label()})
 		}
 		return strings.ToLower(value), nil
 	case "timezone":
 		if value == "" || len(value) > 64 {
-			return nil, fmt.Errorf("%s 必须为有效 IANA 时区", definition.Label)
+			return nil, i18n.M("admin.must_be_a_valid_iana_timezone", i18n.Params{"Field": definition.label()})
 		}
 		if _, err := sitetime.Validate(value); err != nil {
-			return nil, fmt.Errorf("%s 必须为有效 IANA 时区", definition.Label)
+			return nil, i18n.M("admin.must_be_a_valid_iana_timezone", i18n.Params{"Field": definition.label()})
 		}
 		return value, nil
 	case "time_list":
@@ -620,20 +621,20 @@ func normalizeConfigurationValue(definition configurationDefinition, raw any) (a
 			return "", nil
 		}
 		if value == "" || len(value) > 255 || !configurationImagePattern.MatchString(value) {
-			return nil, fmt.Errorf("%s 的镜像名称无效", definition.Label)
+			return nil, i18n.M("admin.has_an_invalid_image_name", i18n.Params{"Field": definition.label()})
 		}
 		if definition.DigestRequired && !configurationDigestImage.MatchString(value) {
-			return nil, fmt.Errorf("%s 必须使用 name:tag@sha256:digest 固定镜像", definition.Label)
+			return nil, i18n.M("admin.must_pin_the_image_using_name_tag_sha256_digest", i18n.Params{"Field": definition.label()})
 		}
 		return value, nil
 	case "ip":
 		address := net.ParseIP(value)
 		if address == nil || address.To4() == nil {
-			return nil, fmt.Errorf("%s 必须为有效 IPv4 地址", definition.Label)
+			return nil, i18n.M("admin.must_be_a_valid_ipv4_address", i18n.Params{"Field": definition.label()})
 		}
 		return address.To4().String(), nil
 	default:
-		return nil, fmt.Errorf("未知配置类型：%s (%s)", definition.ValueType, definition.Key)
+		return nil, i18n.M("admin.unknown_configuration_type", i18n.Params{"Key": definition.ValueType, "Type": definition.Key})
 	}
 }
 
@@ -643,12 +644,12 @@ func normalizeConfigurationURL(definition configurationDefinition, value string)
 	}
 	for _, character := range value {
 		if unicode.IsSpace(character) || unicode.IsControl(character) {
-			return "", fmt.Errorf("%s 不得包含空白或控制字符", definition.Label)
+			return "", i18n.M("admin.must_not_contain_whitespace_or_control_characters", i18n.Params{"Field": definition.label()})
 		}
 	}
 	parsed, err := url.Parse(value)
 	if err != nil || parsed.Hostname() == "" {
-		return "", fmt.Errorf("%s 必须为有效的 HTTP(S) URL", definition.Label)
+		return "", i18n.M("admin.must_be_a_valid_http_s_url", i18n.Params{"Field": definition.label()})
 	}
 	scheme := strings.ToLower(parsed.Scheme)
 	allowed := scheme == "http" || scheme == "https"
@@ -656,19 +657,19 @@ func normalizeConfigurationURL(definition configurationDefinition, value string)
 		allowed = allowed || scheme == "socks5"
 	}
 	if !allowed {
-		return "", fmt.Errorf("%s 必须为有效的 HTTP(S) URL", definition.Label)
+		return "", i18n.M("admin.must_be_a_valid_http_s_url", i18n.Params{"Field": definition.label()})
 	}
 	if definition.ValueType != "proxy_url_secret" && parsed.User != nil {
-		return "", fmt.Errorf("%s 不得包含账号或密码", definition.Label)
+		return "", i18n.M("admin.must_not_contain_a_username_or_password", i18n.Params{"Field": definition.label()})
 	}
 	if port := parsed.Port(); port != "" {
 		value, parseError := strconv.Atoi(port)
 		if parseError != nil || value < 1 || value > 65535 {
-			return "", fmt.Errorf("%s 包含无效端口", definition.Label)
+			return "", i18n.M("admin.contains_an_invalid_port", i18n.Params{"Field": definition.label()})
 		}
 	}
 	if parsed.Path != "" && parsed.Path != "/" || parsed.RawQuery != "" || parsed.Fragment != "" {
-		return "", fmt.Errorf("%s 不得包含查询参数或片段", definition.Label)
+		return "", i18n.M("admin.must_not_contain_a_query_or_fragment", i18n.Params{"Field": definition.label()})
 	}
 	return strings.TrimRight(value, "/"), nil
 }
@@ -678,18 +679,18 @@ func normalizeConfigurationTimes(definition configurationDefinition, value strin
 		return character == ',' || character == '，' || unicode.IsSpace(character)
 	})
 	if len(parts) == 0 || len(parts) > 12 {
-		return "", fmt.Errorf("%s 必须包含 1 至 12 个时间", definition.Label)
+		return "", i18n.M("admin.must_contain_1_12_times", i18n.Params{"Field": definition.label()})
 	}
 	times := make(map[string]struct{}, len(parts))
 	for _, part := range parts {
 		match := configurationTimePattern.FindStringSubmatch(part)
 		if match == nil {
-			return "", fmt.Errorf("%s 必须使用 HH:MM 格式", definition.Label)
+			return "", i18n.M("admin.must_use_the_hh_mm_format", i18n.Params{"Field": definition.label()})
 		}
 		hour, _ := strconv.Atoi(match[1])
 		minute, _ := strconv.Atoi(match[2])
 		if hour > 23 || minute > 59 {
-			return "", fmt.Errorf("%s 包含无效时间", definition.Label)
+			return "", i18n.M("admin.contains_an_invalid_time", i18n.Params{"Field": definition.label()})
 		}
 		times[fmt.Sprintf("%02d:%02d", hour, minute)] = struct{}{}
 	}
@@ -706,19 +707,19 @@ func validateConfiguration(values map[string]any) error {
 		address, _ := values[key].(string)
 		parsed := net.ParseIP(address)
 		if parsed == nil || !parsed.IsLoopback() {
-			return errors.New("业务 CPA 监听地址必须使用宿主机回环地址")
+			return i18n.M("admin.the_cpa_listen_address_must_be_a_host_loopback_address")
 		}
 	}
 	portStart := values["accounts.port_start"].(int64)
 	portEnd := values["accounts.port_end"].(int64)
 	if portStart > portEnd {
-		return errors.New("新账号端口起点不能大于终点")
+		return i18n.M("admin.the_start_port_must_not_exceed_the_end_port")
 	}
 	if values["account_failover.stale_after_seconds"].(int64) < values["account_failover.poll_seconds"].(int64) {
-		return errors.New("账号自动切换额度数据失效时间不能小于检查间隔")
+		return i18n.M("admin.quota_data_expiry_must_not_be_shorter_than_the_automatic")
 	}
 	if values["cpa.proxy_enabled"].(bool) && strings.TrimSpace(values["cpa.proxy_url"].(string)) == "" {
-		return errors.New("启用默认上游代理前必须配置默认代理 URL")
+		return i18n.M("admin.configure_a_default_proxy_url_before_enabling_the_default_upstream")
 	}
 	return nil
 }
@@ -755,9 +756,9 @@ func configurationModes(changed []string) []string {
 	return result
 }
 
-func noConfigurationChanges() configurationUpdateResponse {
+func noConfigurationChanges(languages ...i18n.Language) configurationUpdateResponse {
 	return configurationUpdateResponse{
-		Message: "配置没有变化", Changed: []string{}, Applied: []string{}, PendingDeployment: false,
+		Message: i18n.Text(i18n.Selected(languages), "admin.no_configuration_changes"), Changed: []string{}, Applied: []string{}, PendingDeployment: false,
 	}
 }
 
@@ -856,3 +857,24 @@ func zapError(field string, err error) zap.Field {
 }
 
 var _ sync.Locker = (*sync.Mutex)(nil)
+
+func (definition configurationDefinition) label() *i18n.Message {
+	params := definition.LabelParams
+	switch definition.Label {
+	case "configuration.model_multiplier":
+		model := strings.TrimPrefix(definition.Key, "user_quota.model_multiplier.")
+		// The setting prefix comes from the usage contract.
+		model = strings.TrimPrefix(definition.Key, usage.ModelMultiplierSettingKey(""))
+		var value any = model
+		if model == "unknown" {
+			value = i18n.Ref("admin.other_unmatched_models")
+		}
+		params = i18n.Params{"Model": value}
+	case "configuration.reasoning_multiplier":
+		effort := strings.TrimPrefix(definition.Key, usage.ReasoningMultiplierSettingKey(""))
+		params = i18n.Params{"Effort": effort}
+	case "configuration.reasoning_color":
+		params = i18n.Params{"Effort": strings.TrimPrefix(definition.Key, "admin.account_usage.reasoning_effort_color.")}
+	}
+	return i18n.M(definition.Label, params)
+}

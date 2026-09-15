@@ -65,7 +65,7 @@ func TestRuntimeJobAPIsRequireExactConfirmationAndKeepLegacyAliases(t *testing.T
 		"action": "up", "target": "alpha",
 	}, headers, nil)
 	if response.Code != http.StatusAccepted || jobs.action != "up" ||
-		strings.Contains(response.Body.String(), `"action":`) ||
+		!strings.Contains(response.Body.String(), `"action":"restart"`) ||
 		!strings.Contains(response.Body.String(), `"output":["first","second"]`) ||
 		!strings.Contains(response.Body.String(), `"exit_code":null`) {
 		t.Fatalf("legacy operation alias = %d %s", response.Code, response.Body.String())
@@ -88,7 +88,7 @@ func TestRuntimeJobAPIsRequireExactConfirmationAndKeepLegacyAliases(t *testing.T
 			"action": action, "target": "all",
 		}, headers, nil)
 		if response.Code != http.StatusAccepted || jobs.action != action || jobs.target != "all" ||
-			strings.Contains(response.Body.String(), `"action":`) {
+			!strings.Contains(response.Body.String(), `"action":"restart"`) {
 			t.Fatalf("legacy diagnostic %s = %d %s, jobs=%#v", action, response.Code, response.Body.String(), jobs)
 		}
 	}
@@ -101,7 +101,7 @@ func TestRuntimeJobAPIsRequireExactConfirmationAndKeepLegacyAliases(t *testing.T
 		t.Fatalf("runtime job list = %d %s", response.Code, response.Body.String())
 	}
 	response = performAdminRequest(server, http.MethodGet, "/admin/api/jobs?limit=1", nil, headers, nil)
-	if response.Code != http.StatusOK || strings.Contains(response.Body.String(), `"action":`) ||
+	if response.Code != http.StatusOK || !strings.Contains(response.Body.String(), `"action":"restart"`) ||
 		strings.Contains(response.Body.String(), `"output":`) ||
 		!strings.Contains(response.Body.String(), `"started_at":null`) ||
 		!strings.Contains(response.Body.String(), `"exit_code":null`) {
@@ -109,7 +109,7 @@ func TestRuntimeJobAPIsRequireExactConfirmationAndKeepLegacyAliases(t *testing.T
 	}
 	response = performAdminRequest(server, http.MethodGet, "/admin/api/jobs/job-1", nil, headers, nil)
 	if response.Code != http.StatusOK || jobs.getID != "job-1" ||
-		strings.Contains(response.Body.String(), `"action":`) ||
+		!strings.Contains(response.Body.String(), `"action":"restart"`) ||
 		!strings.Contains(response.Body.String(), `"output":["first","second"]`) {
 		t.Fatalf("legacy job read = %d %s", response.Code, response.Body.String())
 	}
@@ -119,7 +119,7 @@ func TestRuntimeJobAPIsRequireExactConfirmationAndKeepLegacyAliases(t *testing.T
 	}
 	response = performAdminRequest(server, http.MethodPost, "/admin/api/jobs/cancel", map[string]any{"id": "job-1"}, headers, nil)
 	if response.Code != http.StatusOK || jobs.cancelID != "job-1" ||
-		strings.Contains(response.Body.String(), `"action":`) ||
+		!strings.Contains(response.Body.String(), `"action":"restart"`) ||
 		!strings.Contains(response.Body.String(), `"output":["first","second"]`) {
 		t.Fatalf("legacy cancel = %d %s", response.Code, response.Body.String())
 	}

@@ -1,3 +1,4 @@
+import { initializeLanguage } from "./i18n";
 import { SiteTimezoneSync } from "./ui/SiteTimezoneSync";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -8,6 +9,8 @@ import { PortalApp } from "./ui/PortalApp";
 import { ThemeProvider } from "./ui/ThemeProvider";
 import "./ui/theme.css";
 import "./ui/portal-styles.css";
+
+initializeLanguage();
 
 const queryClient = new QueryClient({
   defaultOptions: {

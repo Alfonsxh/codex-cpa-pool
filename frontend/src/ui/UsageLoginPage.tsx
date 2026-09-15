@@ -1,3 +1,5 @@
+import { LanguageSelect } from "./LanguageSelect";
+import { t } from "../i18n";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Controller, useForm } from "react-hook-form";
@@ -17,8 +19,8 @@ import { LegacyEnhancedSelect } from "./components/LegacyEnhancedSelect";
 import { LegacyPasswordInput } from "./components/LegacyPasswordInput";
 
 const loginSchema = z.object({
-  email: z.string().trim().min(1, "请输入邮箱用户名"),
-  password: z.string().min(1, "请输入密码").max(128, "密码格式无效")
+  email: z.string().trim().min(1, t("common.enter_your_email_username")),
+  password: z.string().min(1, t("common.enter_your_password")).max(128, t("common.invalid_password_format"))
 });
 
 type LoginValues = z.infer<typeof loginSchema>;
@@ -71,12 +73,12 @@ export function UsageLoginPage({ overlay = false }: { overlay?: boolean }) {
     if (retrySeconds > 0 || login.isPending || !domainsReady) return;
     const parsed = parseFullEmail(values.email);
     if (values.email.includes("@") && !parsed) {
-      form.setError("email", { type: "validate", message: "邮箱后缀不匹配，请仅输入用户名并选择已配置的后缀。" }, { shouldFocus: true });
+      form.setError("email", { type: "validate", message: t("common.the_email_domain_does_not_match_enter_only_the_username") }, { shouldFocus: true });
       return;
     }
     const address = `${parsed?.localPart ?? values.email}@${parsed?.domain ?? selectedDomain}`;
     if (!z.string().email().safeParse(address).success) {
-      form.setError("email", { type: "validate", message: "请输入有效的企业邮箱" }, { shouldFocus: true });
+      form.setError("email", { type: "validate", message: t("common.enter_a_valid_organization_email") }, { shouldFocus: true });
       return;
     }
     login.mutate({ email: address, password: values.password });
@@ -98,7 +100,7 @@ export function UsageLoginPage({ overlay = false }: { overlay?: boolean }) {
         onSubmit={form.handleSubmit(submit)}
       >
         {!overlay ? <div className="login-card-toolbar">
-          <a href={applicationHref("portal")} aria-label="返回 Codex CPA 首页">
+          <a href={applicationHref("portal")} aria-label={t("common.back_to_codex_cpa_home")}>
             <img
               className="auth-brand-logo"
               src={`/portal/assets/codex-cpa-pool-logo${theme === "dark" ? "-dark" : ""}.svg`}
@@ -107,23 +109,24 @@ export function UsageLoginPage({ overlay = false }: { overlay?: boolean }) {
           </a>
           <ThemeToggle />
         </div> : null}
+        <div className="auth-language"><LanguageSelect /></div>
         <div className="login-card-heading">
           <span className="eyebrow">USER</span>
-          <h1>登录使用中心</h1>
-          <p>使用企业邮箱与个人密码登录，查看 API Key、当前 CPA 和个人 Token 用量。</p>
+          <h1>{t("common.sign_in_to_usage_center")}</h1>
+          <p>{t("common.sign_in_with_your_organization_email_and_personal_password_to")}</p>
         </div>
           <div className="field">
-            <span id="usage-login-email-label">用户邮箱</span>
+            <span id="usage-login-email-label">{t("common.user_email")}</span>
             <div className="usage-login-email-fields" role="group" aria-labelledby="usage-login-email-label">
               <input
                 type="text"
                 inputMode="email"
-                aria-label="邮箱用户名"
+                aria-label={t("common.email_username")}
                 autoComplete="username"
                 autoCapitalize="none"
                 autoCorrect="off"
                 spellCheck={false}
-                placeholder="输入用户名"
+                placeholder={t("common.enter_username")}
                 disabled={login.isPending}
                 aria-invalid={Boolean(form.formState.errors.email)}
                 aria-describedby={form.formState.errors.email ? "usage-login-email-error" : undefined}
@@ -142,11 +145,11 @@ export function UsageLoginPage({ overlay = false }: { overlay?: boolean }) {
               />
               <LegacyEnhancedSelect
                 id="usage-login-email-domain"
-                label="邮箱后缀"
+                label={t("common.email_domain")}
                 value={selectedDomain}
                 options={emailDomains.length
                   ? emailDomains.map((domain) => ({ value: domain, label: `@${domain}` }))
-                  : [{ value: "", label: domainsLoading ? "正在加载后缀…" : "暂无可用后缀" }]}
+                  : [{ value: "", label: domainsLoading ? t("common.loading_domains") : t("common.no_available_domains") }]}
                 disabled={login.isPending || !domainsReady}
                 onChange={(domain) => {
                   const parts = form.getValues("email").trim().split("@");
@@ -157,13 +160,13 @@ export function UsageLoginPage({ overlay = false }: { overlay?: boolean }) {
               />
             </div>
             {form.formState.errors.email ? <small className="field-error" id="usage-login-email-error" role="alert">{form.formState.errors.email.message}</small> : null}
-            {domainsLoading ? <small className="field-hint" role="status">正在读取企业邮箱后缀…</small>
-              : siteConfiguration.isError ? <small className="field-error" role="alert">邮箱后缀加载失败。<button className="usage-email-retry" type="button" onClick={() => { void siteConfiguration.refetch(); }}>重试</button></small>
-                : !emailDomains.length ? <small className="field-error" role="alert">尚未配置企业邮箱后缀，请联系管理员设置。</small>
+            {domainsLoading ? <small className="field-hint" role="status">{t("common.loading_organization_email_domains")}</small>
+              : siteConfiguration.isError ? <small className="field-error" role="alert">{t("common.unable_to_load_email_domains")}<button className="usage-email-retry" type="button" onClick={() => { void siteConfiguration.refetch(); }}>{t("common.retry")}</button></small>
+                : !emailDomains.length ? <small className="field-error" role="alert">{t("common.no_organization_email_domain_is_configured_contact_your_administrator")}</small>
                   : null}
           </div>
           <div className="field">
-            <span>密码</span>
+            <span>{t("common.password")}</span>
             <Controller
               control={form.control}
               name="password"
@@ -175,7 +178,7 @@ export function UsageLoginPage({ overlay = false }: { overlay?: boolean }) {
                   inputRef={field.ref}
                   onBlur={field.onBlur}
                   onValueChange={field.onChange}
-                  ariaLabel="密码"
+                  ariaLabel={t("common.password")}
                   ariaInvalid={Boolean(form.formState.errors.password)}
                   disabled={login.isPending}
                   autoComplete="current-password"
@@ -187,21 +190,21 @@ export function UsageLoginPage({ overlay = false }: { overlay?: boolean }) {
           {login.isError ? (
             <div className="inline-alert" role="alert">
               {retrySeconds > 0
-                ? `登录尝试过于频繁，请 ${retrySeconds} 秒后重试`
+                ? t("common.too_many_sign_in_attempts_try_again_in_seconds", [retrySeconds])
                 : login.error.message}
             </div>
           ) : null}
           <button className="button button-primary button-block" type="submit" disabled={login.isPending || retrySeconds > 0 || !domainsReady}>
-            {retrySeconds > 0 ? `${retrySeconds} 秒后重试` : login.isPending ? "正在验证…" : "登录"}
+            {retrySeconds > 0 ? t("common.retry_in_seconds", [retrySeconds]) : login.isPending ? t("common.verifying") : t("common.sign_in")}
           </button>
-        <a className="quiet-link" href={applicationHref("portal")}>返回服务入口 →</a>
+        <a className="quiet-link" href={applicationHref("portal")}>{t("common.back_to_portal_2")}</a>
       </form>
   );
 
   if (overlay) {
     return (
       <div className="usage-login-backdrop">
-        <section className="usage-login-dialog" role="dialog" aria-modal="true" aria-label="登录使用中心">
+        <section className="usage-login-dialog" role="dialog" aria-modal="true" aria-label={t("common.sign_in_to_usage_center")}>
           {formCard}
         </section>
       </div>

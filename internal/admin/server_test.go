@@ -19,6 +19,7 @@ import (
 	"github.com/Alfonsxh/codex-cpa-pool/internal/accountstatus"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/controlplane"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/failover"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/identity"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/notifications"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/quota"
@@ -1941,8 +1942,8 @@ func TestAccountCatalogPreservesLegacyContainerRuntimeAndOperationalStatusFacts(
 		account.ProxySource != "direct" || account.ProxyDisplay != "direct" ||
 		account.AuthFiles != 1 || account.AuthState != "configured" ||
 		account.Runtime.ErrorCount != 1 || account.Runtime.ErrorLogFiles != 2 ||
-		account.OperationalStatus.Code != "degraded" || account.OperationalStatus.Label != "近期异常" ||
-		account.OperationalStatus.Reason != "账号近期出现请求异常" || !account.OperationalStatus.Selectable {
+		account.OperationalStatus.Code != "degraded" || account.OperationalStatus.Label != "Recent errors" ||
+		account.OperationalStatus.Reason != "This account has recent request errors" || !account.OperationalStatus.Selectable {
 		t.Fatalf("legacy account facts = %#v", account)
 	}
 }
@@ -2259,7 +2260,7 @@ func TestNotificationSettingsWebhookAndManualSendContract(t *testing.T) {
 		t.Fatalf("manual notification = %d, %s", response.Code, response.Body.String())
 	}
 	if len(sender.contents) != 1 || !strings.Contains(sender.contents[0], "55% | 2 | 2") ||
-		!strings.Contains(sender.contents[0], "# CCPA · 账号额度报告") {
+		!strings.Contains(sender.contents[0], "# CCPA · Account quota report") {
 		t.Fatalf("manual notification content = %#v", sender.contents)
 	}
 	state, found, err := notifications.ReadRuntimeState(context.Background(), store)
@@ -2267,11 +2268,11 @@ func TestNotificationSettingsWebhookAndManualSendContract(t *testing.T) {
 		t.Fatalf("manual notification state = (%#v, %v, %v)", state, found, err)
 	}
 	response = performAdminRequest(server, http.MethodPost, "/admin/api/notifications/test", map[string]any{}, headers, nil)
-	if response.Code != http.StatusOK || !strings.Contains(response.Body.String(), "测试消息已发送") {
+	if response.Code != http.StatusOK || !strings.Contains(response.Body.String(), "Test message sent") {
 		t.Fatalf("test notification = %d, %s", response.Code, response.Body.String())
 	}
-	if len(sender.contents) != 2 || !strings.Contains(sender.contents[1], "# ✅ CCPA · 通知测试") ||
-		!strings.Contains(sender.contents[1], "企业微信通知通道连接正常") ||
+	if len(sender.contents) != 2 || !strings.Contains(sender.contents[1], "# ✅ CCPA · Notification test") ||
+		!strings.Contains(sender.contents[1], "WeCom notification channel connected successfully") ||
 		strings.Contains(sender.contents[1], "账号额度报告") || strings.Contains(sender.contents[1], "55%") {
 		t.Fatalf("test notification content = %#v", sender.contents)
 	}
@@ -2281,6 +2282,21 @@ func TestNotificationSettingsWebhookAndManualSendContract(t *testing.T) {
 	assertAdminError(t, response, http.StatusBadGateway, "notification_send_failed")
 	if strings.Contains(response.Body.String(), "test-send-placeholder") || !strings.Contains(response.Body.String(), "[REDACTED]") {
 		t.Fatalf("manual notification error was not redacted: %s", response.Body.String())
+	}
+
+	sender.sendError = i18n.M("notifications.wecom_message_delivery_failed_invalid_response")
+	localizedHeaders := map[string]string{"X-Management-Key": "test-management-key", "Accept-Language": "zh-CN"}
+	response = performAdminRequest(server, http.MethodPost, "/admin/api/notifications/test", map[string]any{}, localizedHeaders, nil)
+	assertAdminError(t, response, http.StatusBadGateway, "notification_send_failed")
+	if !strings.Contains(response.Body.String(), "企业微信消息发送失败：响应无效") {
+		t.Fatalf("authored delivery failure did not follow the request language: %s", response.Body.String())
+	}
+
+	response = performAdminRequest(server, http.MethodGet, "/admin/api/settings/notifications", nil, localizedHeaders, nil)
+	var localizedStatus notificationSettingsResponse
+	decodeAdminResponse(t, response, &localizedStatus)
+	if localizedStatus.Notifications.LastError != "企业微信消息发送失败：响应无效" {
+		t.Fatalf("persisted failure did not follow the request language: %q", localizedStatus.Notifications.LastError)
 	}
 
 	response = performAdminRequest(server, http.MethodPost, "/admin/api/settings/notification-webhook/clear", map[string]any{
@@ -2305,7 +2321,7 @@ func TestDefaultNotificationSenderRejectsEnableWithoutWebhook(t *testing.T) {
 		"confirm": "save", "values": map[string]any{"enabled": true},
 	}, headers, nil)
 	assertAdminError(t, response, http.StatusBadRequest, "invalid_request")
-	if !strings.Contains(response.Body.String(), "Webhook") {
+	if !strings.Contains(response.Body.String(), "webhook") {
 		t.Fatalf("missing webhook response = %s", response.Body.String())
 	}
 }

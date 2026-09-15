@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { Button, Result, Skeleton } from "antd";
 
 export type PageStateProps = {
@@ -11,15 +12,15 @@ export type PageStateProps = {
 
 export function PageState({
   kind,
-  title = "页面加载失败",
-  detail = "请稍后重试",
-  actionLabel = "重新加载",
+  title = t("common.unable_to_load_page"),
+  detail = t("common.please_try_again_later"),
+  actionLabel = t("common.reload"),
   onAction,
   rows = 8
 }: PageStateProps) {
   if (kind === "loading") {
     return (
-      <div className="admin-page-state" aria-label={title || "正在加载页面"}>
+      <div className="admin-page-state" aria-label={title || t("common.loading_page_2")}>
         <Skeleton active paragraph={{ rows }} />
       </div>
     );

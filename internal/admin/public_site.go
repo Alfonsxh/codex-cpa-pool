@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/sitetime"
 	"github.com/gin-gonic/gin"
 )
@@ -82,7 +83,7 @@ func (server *Server) publicSiteConfiguration(c *gin.Context) {
 		}
 	}
 	c.Header("Cache-Control", "no-store")
-	c.JSON(http.StatusOK, publicSiteConfiguration{
+	httpi18n.JSON(c, http.StatusOK, publicSiteConfiguration{
 		Version: generalSettingsVersion, Timezone: timezone, ProductName: values.ProductName,
 		ShortName: values.ShortName, EnvironmentLabel: values.EnvironmentLabel,
 		PublicBaseURL: values.PublicBaseURL, AllowedEmailDomains: values.AllowedEmailDomains,
@@ -159,7 +160,7 @@ func (server *Server) nativeAccounts(c *gin.Context) {
 		result = append(result, item)
 	}
 	c.Header("Cache-Control", "no-store")
-	c.JSON(http.StatusOK, nativeAccountCatalog{Accounts: result})
+	httpi18n.JSON(c, http.StatusOK, nativeAccountCatalog{Accounts: result})
 }
 
 func accountListenAddress(settings map[string]any) (string, error) {

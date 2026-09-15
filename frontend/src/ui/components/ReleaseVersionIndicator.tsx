@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { useQuery } from "@tanstack/react-query";
 import { Tooltip } from "antd";
 
@@ -18,15 +19,15 @@ export function ReleaseVersionIndicator({ className = "" }: { className?: string
   const latestVersion = status?.latest_version?.trim() || "";
   const updateAvailable = !release.isError && status?.status === "ok"
     && stableVersionPattern.test(latestVersion) && status.available;
-  const versionLabel = currentVersion || (release.isPending ? "读取版本…" : "版本未知");
+  const versionLabel = currentVersion || (release.isPending ? t("common.reading_version") : t("common.unknown_version"));
   const indicatorClass = ["release-version-indicator", className].filter(Boolean).join(" ");
 
   return (
     <Tooltip
       title={updateAvailable ? (
         <div className="release-version-comparison">
-          <span>当前版本</span><strong>{versionLabel}</strong>
-          <span>最新版本</span><strong>{latestVersion}</strong>
+          <span>{t("common.current_version")}</span><strong>{versionLabel}</strong>
+          <span>{t("common.latest_version")}</span><strong>{latestVersion}</strong>
         </div>
       ) : null}
       classNames={{ root: "release-version-tooltip" }}
@@ -37,7 +38,7 @@ export function ReleaseVersionIndicator({ className = "" }: { className?: string
     >
       <span className={indicatorClass} data-update={updateAvailable ? "true" : "false"}
         tabIndex={updateAvailable ? 0 : undefined}
-        aria-label={`当前版本 ${versionLabel}${updateAvailable ? "，有版本更新" : ""}`}>
+        aria-label={t("common.current_version_2", [versionLabel, updateAvailable ? t("common.update_available") : ""])}>
         {updateAvailable ? <span className="release-version-heartbeat" aria-hidden="true" /> : null}
         <span className="release-version-number">{versionLabel}</span>
       </span>

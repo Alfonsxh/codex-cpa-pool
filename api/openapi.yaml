@@ -4,6 +4,9 @@ info:
   version: 2.0.0-dev
   description: >-
     Contract for the Go Admin, self-service and public configuration APIs.
+    Authored response text uses Accept-Language (en or zh-CN), defaults to en, and
+    declares Content-Language and Vary: Accept-Language. Codes, IDs and stored values
+    are language independent. Clients must not parse display messages for control flow.
 servers:
   - url: /
 tags:
@@ -2103,6 +2106,8 @@ components:
       properties:
         code:
           type: string
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         message:
           type: string
         type:
@@ -2112,6 +2117,8 @@ components:
       additionalProperties: false
       required: [message]
       properties:
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         message:
           type: string
     LoggedOutResponse:
@@ -2560,6 +2567,8 @@ components:
         upstream_status: { type: integer }
         code: { type: string }
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
     AccountCatalog:
       type: object
       additionalProperties: false
@@ -2646,6 +2655,8 @@ components:
       required: [message, account]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         account: { $ref: "#/components/schemas/AccountCreateResult" }
     AccountUpdateRequest:
       type: object
@@ -2689,6 +2700,8 @@ components:
       required: [message, account]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         account: { $ref: "#/components/schemas/AccountUpdateResult" }
     AccountProxyRepairRequest:
       type: object
@@ -2728,6 +2741,8 @@ components:
       required: [message, account]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         account: { $ref: "#/components/schemas/AccountClearAuthResult" }
     AccountDeleteRequest:
       type: object
@@ -2767,6 +2782,8 @@ components:
       required: [message, account]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         account: { $ref: "#/components/schemas/AccountDeleteResult" }
     NativeAccount:
       type: object
@@ -2824,6 +2841,8 @@ components:
       required: [message, rebalance]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         rebalance: { $ref: "#/components/schemas/RebalanceResult" }
     RuntimeService:
       type: object
@@ -2915,6 +2934,8 @@ components:
       required: [message, job, reused]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         job: { $ref: "#/components/schemas/RuntimeJob" }
         reused: { type: boolean }
     RuntimeJobCancelResponse:
@@ -2923,12 +2944,15 @@ components:
       required: [message, job]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         job: { $ref: "#/components/schemas/RuntimeJob" }
     LegacyRuntimeJob:
       type: object
       additionalProperties: false
       required: [id, name, target, status, created_at, started_at, finished_at, exit_code]
       properties:
+        action: { type: string, description: Stable operation identifier }
         id: { type: string }
         name: { type: string }
         target: { type: string }
@@ -2963,6 +2987,8 @@ components:
       required: [message, job, reused]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         job: { $ref: "#/components/schemas/LegacyRuntimeJob" }
         reused: { type: boolean }
     LegacyRuntimeJobCancelResponse:
@@ -2971,6 +2997,8 @@ components:
       required: [message, job]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         job: { $ref: "#/components/schemas/LegacyRuntimeJob" }
     Team:
       type: object
@@ -3025,6 +3053,8 @@ components:
       required: [message, team]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         team: { $ref: "#/components/schemas/Team" }
     UserSummary:
       type: object
@@ -3201,6 +3231,8 @@ components:
       required: [message, keys, initial_password, team_id]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         keys:
           type: array
           minItems: 1
@@ -3225,6 +3257,8 @@ components:
       required: [message, keys]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         keys:
           type: array
           minItems: 1
@@ -3235,6 +3269,8 @@ components:
       required: [message, user, initial_password, password_change_required]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         user: { type: string, format: email }
         initial_password: { type: string }
         password_change_required: { type: boolean }
@@ -3359,6 +3395,8 @@ components:
           type: array
           items: { $ref: "#/components/schemas/UserQuotaAdjustment" }
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
     GeneralSettingsValues:
       type: object
       additionalProperties: false
@@ -3423,6 +3461,8 @@ components:
       required: [message, settings]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         settings: { $ref: "#/components/schemas/GeneralSettings" }
     SettingsWorkspaceStorage:
       type: object
@@ -3475,6 +3515,8 @@ components:
       required: [message, configured]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         configured: { type: boolean, const: true }
     NotificationStatus:
       type: object
@@ -3546,6 +3588,8 @@ components:
           required: [message]
           properties:
             message: { type: string }
+            message_key: { type: string, description: Stable authored message identifier }
+            message_params: { type: object, additionalProperties: true }
     NotificationWebhookRequest:
       type: object
       additionalProperties: false
@@ -3565,6 +3609,8 @@ components:
       required: [message, notifications]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         notifications: { $ref: "#/components/schemas/NotificationStatus" }
     SendNotificationResponse:
       type: object
@@ -3572,6 +3618,8 @@ components:
       required: [message, format]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         format: { type: string, const: markdown_v2 }
     UsageWindow:
       type: string
@@ -3880,6 +3928,8 @@ components:
       required: [message, password_change_required]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         password_change_required: { type: boolean, const: false }
     PortalRouteRequest:
       type: object
@@ -3893,6 +3943,8 @@ components:
       required: [message, current_group, changed]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         current_group: { type: string }
         changed: { type: boolean }
         snapshot_generation: { type: string }
@@ -3908,6 +3960,8 @@ components:
       required: [message, api_key, snapshot_generation]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         api_key: { type: string }
         snapshot_generation: { type: string }
     TokenSeries:
@@ -4085,6 +4139,8 @@ components:
       required: [message, rebalance]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         rebalance: { $ref: "#/components/schemas/RebalanceEvacuationResult" }
     ResetAccountQuotaRequest:
       type: object
@@ -4141,6 +4197,8 @@ components:
       required: [message, account, windows, windows_reset, code, credit]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         account: { type: string }
         windows:
           type: array
@@ -4458,6 +4516,8 @@ components:
         created_at: { type: integer, format: int64 }
         changed_policies: { type: integer, format: int64 }
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         quota_operations: { $ref: "#/components/schemas/UserQuotaOperationSummary" }
     BrandingLogoUpdateRequest:
       type: object
@@ -4489,6 +4549,8 @@ components:
       required: [message, logo]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         logo: { $ref: "#/components/schemas/BrandingLogoState" }
     ConfigurationValue:
       anyOf:
@@ -4525,6 +4587,7 @@ components:
           type: string
           enum: [live, accounts, collector, future, deployment, quota]
         editable: { type: boolean, const: true }
+        unit_code: { type: string, description: Stable unit identifier independent of the localized label }
         unit: { type: string }
         min: { type: number, format: double }
         max: { type: number, format: double }
@@ -4540,6 +4603,7 @@ components:
       additionalProperties: false
       required: [name, description, fields]
       properties:
+        id: { type: string, description: Stable language-independent group identifier }
         name: { type: string }
         description: { type: string }
         fields:
@@ -4551,7 +4615,7 @@ components:
       additionalProperties: false
       required: [version, generated_at, field_count, groups]
       properties:
-        version: { type: integer, const: 1 }
+        version: { type: integer, minimum: 1 }
         generated_at: { type: integer, format: int64 }
         field_count: { type: integer, minimum: 1 }
         groups:
@@ -4574,6 +4638,8 @@ components:
       required: [message, changed, applied, pending_deployment]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         changed:
           type: array
           items: { type: string }
@@ -4601,6 +4667,8 @@ components:
       required: [message, result]
       properties:
         message: { type: string }
+        message_key: { type: string, description: Stable authored message identifier }
+        message_params: { type: object, additionalProperties: true }
         result: { $ref: "#/components/schemas/ManagementKeyRotationResult" }
     LegacyRuntimeJobRequest:
       type: object

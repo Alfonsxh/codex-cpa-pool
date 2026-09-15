@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/quota"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/sitetime"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/usage"
@@ -58,12 +60,12 @@ type accountUsageResponse struct {
 
 func (server *Server) userUsageBreakdown(c *gin.Context) {
 	if server.usage == nil {
-		writeError(c, http.StatusServiceUnavailable, "用量查询服务尚未就绪", "usage_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.usage_query_service_is_not_ready"), "usage_not_ready")
 		return
 	}
 	user := strings.ToLower(strings.TrimSpace(c.Query("email")))
 	if user == "" {
-		writeError(c, http.StatusBadRequest, "用户不能为空", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.user_is_required"), "invalid_request")
 		return
 	}
 	found, err := server.store.UserExists(c.Request.Context(), user)
@@ -72,7 +74,7 @@ func (server *Server) userUsageBreakdown(c *gin.Context) {
 		return
 	}
 	if !found {
-		writeError(c, http.StatusNotFound, "用户不存在", "user_not_found")
+		writeError(c, http.StatusNotFound, i18n.M("admin.user_does_not_exist"), "user_not_found")
 		return
 	}
 	account := strings.ToLower(strings.TrimSpace(c.Query("account")))
@@ -82,7 +84,7 @@ func (server *Server) userUsageBreakdown(c *gin.Context) {
 			return
 		}
 		if !found {
-			writeError(c, http.StatusNotFound, "CPA 账号不存在", "account_not_found")
+			writeError(c, http.StatusNotFound, i18n.M("admin.cpa_account_does_not_exist"), "account_not_found")
 			return
 		}
 	}
@@ -102,7 +104,7 @@ func (server *Server) userUsageBreakdown(c *gin.Context) {
 	if account != "" {
 		selectedAccount = &account
 	}
-	c.JSON(http.StatusOK, userUsageResponse{
+	httpi18n.JSON(c, http.StatusOK, userUsageResponse{
 		usageWindowContext: window,
 		User:               user,
 		Account:            selectedAccount,
@@ -113,12 +115,12 @@ func (server *Server) userUsageBreakdown(c *gin.Context) {
 
 func (server *Server) accountUsageBreakdown(c *gin.Context) {
 	if server.usage == nil {
-		writeError(c, http.StatusServiceUnavailable, "用量查询服务尚未就绪", "usage_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.usage_query_service_is_not_ready"), "usage_not_ready")
 		return
 	}
 	account := strings.ToLower(strings.TrimSpace(c.Query("account")))
 	if account == "" {
-		writeError(c, http.StatusBadRequest, "CPA 账号不能为空", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.cpa_account_is_required"), "invalid_request")
 		return
 	}
 	found, err := server.accountExists(c, account)
@@ -126,7 +128,7 @@ func (server *Server) accountUsageBreakdown(c *gin.Context) {
 		return
 	}
 	if !found {
-		writeError(c, http.StatusNotFound, "CPA 账号不存在", "account_not_found")
+		writeError(c, http.StatusNotFound, i18n.M("admin.cpa_account_does_not_exist"), "account_not_found")
 		return
 	}
 	window, err := server.parseUsageWindow(c, true)
@@ -141,7 +143,7 @@ func (server *Server) accountUsageBreakdown(c *gin.Context) {
 		server.internalError(c, "query account usage breakdown", err)
 		return
 	}
-	c.JSON(http.StatusOK, accountUsageResponse{
+	httpi18n.JSON(c, http.StatusOK, accountUsageResponse{
 		usageWindowContext: window,
 		Account:            account,
 		Definition:         "account_model_reasoning_effort_tokens",
@@ -151,7 +153,7 @@ func (server *Server) accountUsageBreakdown(c *gin.Context) {
 
 func (server *Server) accountExists(c *gin.Context, accountID string) (bool, error) {
 	if server.accounts == nil {
-		writeError(c, http.StatusServiceUnavailable, "账号目录服务尚未就绪", "accounts_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.account_directory_service_is_not_ready"), "accounts_not_ready")
 		return false, errors.New("account catalog is unavailable")
 	}
 	accounts, err := server.accounts.ReadAccounts(c.Request.Context())
@@ -168,12 +170,13 @@ func (server *Server) accountExists(c *gin.Context, accountID string) (bool, err
 }
 
 type usageWindowError struct {
-	message string
+	message *i18n.Message
 	code    string
 	status  int
 }
 
-func (value *usageWindowError) Error() string { return value.message }
+func (value *usageWindowError) Error() string { return value.message.Error() }
+func (value *usageWindowError) Unwrap() error { return value.message }
 
 func (server *Server) parseUsageWindow(c *gin.Context, allowSinceReset bool) (usageWindowContext, error) {
 	now := server.now()
@@ -193,7 +196,7 @@ func (server *Server) parseUsageWindow(c *gin.Context, allowSinceReset bool) (us
 		}
 		if !found {
 			return usageWindowContext{}, &usageWindowError{
-				message: "未获得该 CPA 的额度周期边界，请刷新额度后重试",
+				message: i18n.M("admin.this_cpa_has_no_quota_period_boundaries_refresh_its_quota"),
 				code:    "usage_window_unavailable", status: http.StatusConflict,
 			}
 		}
@@ -209,7 +212,7 @@ func (server *Server) parseUsageWindow(c *gin.Context, allowSinceReset bool) (us
 		endAt, endError := strconv.ParseInt(strings.TrimSpace(c.Query("end_at")), 10, 64)
 		if startError != nil || endError != nil || startAt < 0 || endAt <= startAt || endAt > generatedAt+60 {
 			return usageWindowContext{}, &usageWindowError{
-				message: "自定义统计范围无效", code: "invalid_request", status: http.StatusBadRequest,
+				message: i18n.M("admin.invalid_custom_reporting_range"), code: "invalid_request", status: http.StatusBadRequest,
 			}
 		}
 		seconds := endAt - startAt
@@ -302,7 +305,7 @@ func (server *Server) usageTimezone(c *gin.Context) (*time.Location, string, err
 
 func invalidUsageWindow() *usageWindowError {
 	return &usageWindowError{
-		message: "统计范围无效", code: "invalid_request", status: http.StatusBadRequest,
+		message: i18n.M("admin.invalid_reporting_range"), code: "invalid_request", status: http.StatusBadRequest,
 	}
 }
 

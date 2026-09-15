@@ -1,14 +1,16 @@
+import "../i18n/admin";
+import { t } from "../i18n";
 const configurationSections = [
-  { to: "/configuration", index: "01", label: "运行配置", description: "路由、配额与账号参数" },
-  { to: "/settings", index: "02", label: "通用设置", description: "品牌、身份与安全" },
-  { to: "/notifications", index: "03", label: "通知设置", description: "企业微信与预警规则" }
+  { to: "/configuration", index: "01", label: t("admin.runtime_configuration"), description: t("admin.routing_quotas_account_parameters") },
+  { to: "/settings", index: "02", label: t("admin.general_settings"), description: t("admin.brand_identity_security") },
+  { to: "/notifications", index: "03", label: t("admin.notifications_2"), description: t("admin.wecom_alert_rules") }
 ] as const;
 
 export function ConfigurationSectionNav() {
   const pathname = window.location.pathname;
 
   return (
-    <nav className="configuration-section-nav" aria-label="配置中心页面">
+    <nav className="configuration-section-nav" aria-label={t("admin.configuration_center_page")}>
       {configurationSections.map((section) => {
         const active = pathname.startsWith(`/admin${section.to}`) || pathname.startsWith(section.to);
         return (

@@ -1,0 +1,2699 @@
+[
+  {
+    "id": "accountstatus.account_runtime_status_cannot_be_confirmed",
+    "other": "Account runtime status cannot be confirmed"
+  },
+  {
+    "id": "accountstatus.account_weekly_quota_is_exhausted",
+    "other": "Account weekly quota is exhausted"
+  },
+  {
+    "id": "accountstatus.an_upstream_request_failed_temporarily_the_cpa_is_waiting_for",
+    "other": "An upstream request failed temporarily. The CPA is waiting for credential cooldown."
+  },
+  {
+    "id": "accountstatus.available",
+    "other": "Available"
+  },
+  {
+    "id": "accountstatus.cpa_native_status_cannot_be_queried",
+    "other": "CPA native status cannot be queried"
+  },
+  {
+    "id": "accountstatus.cpa_service_is_not_running",
+    "other": "CPA service is not running"
+  },
+  {
+    "id": "accountstatus.credentials_unavailable",
+    "other": "Credentials unavailable"
+  },
+  {
+    "id": "accountstatus.disabled",
+    "other": "Disabled"
+  },
+  {
+    "id": "accountstatus.live_account_status_cannot_be_confirmed",
+    "other": "Live account status cannot be confirmed"
+  },
+  {
+    "id": "accountstatus.low_quota",
+    "other": "Low quota"
+  },
+  {
+    "id": "accountstatus.oauth_authorization_is_incomplete",
+    "other": "OAuth authorization is incomplete"
+  },
+  {
+    "id": "accountstatus.oauth_credentials_expired_authorize_again",
+    "other": "OAuth credentials expired. Authorize again."
+  },
+  {
+    "id": "accountstatus.quota_exhausted",
+    "other": "Quota exhausted"
+  },
+  {
+    "id": "accountstatus.quota_reserve",
+    "other": "Quota reserve"
+  },
+  {
+    "id": "accountstatus.quota_status_cannot_be_confirmed",
+    "other": "Quota status cannot be confirmed"
+  },
+  {
+    "id": "accountstatus.rate_limited",
+    "other": "Rate limited"
+  },
+  {
+    "id": "accountstatus.recent_errors",
+    "other": "Recent errors"
+  },
+  {
+    "id": "accountstatus.stopped",
+    "other": "Stopped"
+  },
+  {
+    "id": "accountstatus.temporary_cooldown",
+    "other": "Temporary cooldown"
+  },
+  {
+    "id": "accountstatus.the_account_has_reached_its_quota_reserve",
+    "other": "The account has reached its quota reserve"
+  },
+  {
+    "id": "accountstatus.this_account_has_recent_request_errors",
+    "other": "This account has recent request errors"
+  },
+  {
+    "id": "accountstatus.this_account_is_available",
+    "other": "This account is available"
+  },
+  {
+    "id": "accountstatus.this_account_recently_returned_429_it_can_still_be_selected",
+    "other": "This account recently returned 429. It can still be selected; retry later."
+  },
+  {
+    "id": "accountstatus.this_account_was_disabled_by_an_administrator",
+    "other": "This account was disabled by an administrator"
+  },
+  {
+    "id": "accountstatus.unauthorized",
+    "other": "Unauthorized"
+  },
+  {
+    "id": "accountstatus.unknown_quota",
+    "other": "Unknown quota"
+  },
+  {
+    "id": "accountstatus.unknown_status",
+    "other": "Unknown status"
+  },
+  {
+    "id": "accountstatus.weekly_quota_remaining_is_10_or_less",
+    "other": "Weekly quota remaining is 10% or less"
+  },
+  {
+    "id": "admin.a_conflicting_runtime_task_already_exists",
+    "other": "A conflicting runtime task already exists"
+  },
+  {
+    "id": "admin.account_availability_updated",
+    "other": "Account availability updated"
+  },
+  {
+    "id": "admin.account_directory_service_is_not_ready",
+    "other": "Account directory service is not ready"
+  },
+  {
+    "id": "admin.account_lifecycle_service_is_not_ready",
+    "other": "Account lifecycle service is not ready"
+  },
+  {
+    "id": "admin.account_load_balancing_completed",
+    "other": "Account load balancing completed; "
+  },
+  {
+    "id": "admin.account_load_balancing_completed_but",
+    "other": "Account load balancing completed, but "
+  },
+  {
+    "id": "admin.account_provisioning",
+    "other": "Account provisioning"
+  },
+  {
+    "id": "admin.account_quota_report",
+    "other": " · Account quota report"
+  },
+  {
+    "id": "admin.account_quota_status_is_unavailable_and_is_shown_as_unknown",
+    "other": "Account quota status is unavailable and is shown as unknown"
+  },
+  {
+    "id": "admin.account_report_sent_to_the_wecom_group",
+    "other": "Account report sent to the WeCom group"
+  },
+  {
+    "id": "admin.account_requests_and_tokens_for_this_range_are_unavailable",
+    "other": "Account requests and tokens for this range are unavailable"
+  },
+  {
+    "id": "admin.account_state_changed_or_safe_runtime_resources_are_unavailable_no",
+    "other": "Account state changed or safe runtime resources are unavailable. No switch was performed."
+  },
+  {
+    "id": "admin.accounts_already_match_the_target_distribution_no_migration_is_needed",
+    "other": "Accounts already match the target distribution. No migration is needed."
+  },
+  {
+    "id": "admin.accounts_at_or_below_this_remaining_quota_do_not_receive",
+    "other": "Accounts at or below this remaining quota do not receive users."
+  },
+  {
+    "id": "admin.accounts_releases",
+    "other": "Accounts & releases"
+  },
+  {
+    "id": "admin.active_user_count_is_unavailable",
+    "other": "Active user count is unavailable"
+  },
+  {
+    "id": "admin.active_user_counts_refreshed",
+    "other": "Active user counts refreshed"
+  },
+  {
+    "id": "admin.active_user_window",
+    "other": "Active user window"
+  },
+  {
+    "id": "admin.activity_unavailable",
+    "other": "Active user counts ({{.Window}}) are unavailable."
+  },
+  {
+    "id": "admin.added_weekly_bonus_quota_for_users_effective_after_the_next",
+    "other": "Added weekly bonus quota for {{.Count}} users; effective after the next collection",
+    "one": "Added weekly bonus quota for {{.Count}} user; effective after the next collection"
+  },
+  {
+    "id": "admin.admin_audit_log",
+    "other": "Admin audit log"
+  },
+  {
+    "id": "admin.affects_only_sessions_created_after_saving",
+    "other": "Affects only sessions created after saving."
+  },
+  {
+    "id": "admin.alert_when_account_weekly_usage_reaches_this_percentage",
+    "other": "Alert when account weekly usage reaches this percentage."
+  },
+  {
+    "id": "admin.all_account_users_were_safely_migrated",
+    "other": "All account users were safely migrated; "
+  },
+  {
+    "id": "admin.all_account_users_were_safely_migrated_but",
+    "other": "All account users were safely migrated, but "
+  },
+  {
+    "id": "admin.allow_requests_and_alert_after_a_prolonged_collection_failure",
+    "other": "Allow requests and alert after a prolonged collection failure."
+  },
+  {
+    "id": "admin.allowed_email_domains",
+    "other": "Allowed email domains"
+  },
+  {
+    "id": "admin.an_identical_task_already_exists_and_has_been_opened",
+    "other": "An identical task already exists and has been opened"
+  },
+  {
+    "id": "admin.another_weekly_report_is_being_generated_please_try_again_later",
+    "other": "Another weekly report is being generated. Please try again later."
+  },
+  {
+    "id": "admin.applies_to_all_users_when_off_this_week_s_quota",
+    "other": "Applies to all users. When off, this week's quota stays unchanged and the organization default resumes next Monday at 00:00 in the system timezone. When on, personal quotas persist. Weekly usage still resets and temporary bonuses still expire at rollover."
+  },
+  {
+    "id": "admin.associated_user_counts_are_unavailable",
+    "other": "Associated user counts are unavailable"
+  },
+  {
+    "id": "admin.automatic",
+    "other": "Automatic"
+  },
+  {
+    "id": "admin.automatic_account_switching",
+    "other": "Automatic account switching"
+  },
+  {
+    "id": "admin.automatic_migration_when_quota_is_low",
+    "other": "Automatic migration when quota is low."
+  },
+  {
+    "id": "admin.automatic_switching_mode",
+    "other": "Automatic switching mode"
+  },
+  {
+    "id": "admin.automatically_move_users_when_official_weekly_quota_is_exhausted",
+    "other": "Automatically move users when official weekly quota is exhausted."
+  },
+  {
+    "id": "admin.brand_domains_and_client_configuration",
+    "other": "Brand, domains and client configuration."
+  },
+  {
+    "id": "admin.brand_identity",
+    "other": "Brand & identity"
+  },
+  {
+    "id": "admin.branding",
+    "other": "Branding"
+  },
+  {
+    "id": "admin.client_key_environment_variable",
+    "other": "Client key environment variable"
+  },
+  {
+    "id": "admin.client_provider_name",
+    "other": "Client provider name"
+  },
+  {
+    "id": "admin.client_provider_name_2",
+    "other": "Client provider name."
+  },
+  {
+    "id": "admin.cliproxyapi_image",
+    "other": "CLIProxyAPI image"
+  },
+  {
+    "id": "admin.close",
+    "other": "Close"
+  },
+  {
+    "id": "admin.collection_polling_interval",
+    "other": "Collection polling interval"
+  },
+  {
+    "id": "admin.collection_polling_interval_2",
+    "other": "Collection polling interval."
+  },
+  {
+    "id": "admin.configuration_center_runtime_directory_is_unavailable",
+    "other": "Configuration Center runtime directory is unavailable"
+  },
+  {
+    "id": "admin.configuration_could_not_be_applied_restoration_of_the_previous_configuration",
+    "other": "Configuration could not be applied. Restoration of the previous configuration was attempted."
+  },
+  {
+    "id": "admin.configuration_values_must_be_an_object",
+    "other": "Configuration values must be an object"
+  },
+  {
+    "id": "admin.configure_a_default_proxy_url_before_enabling_the_default_upstream",
+    "other": "Configure a default proxy URL before enabling the default upstream proxy"
+  },
+  {
+    "id": "admin.configure_a_webhook_before_enabling_wecom_notifications",
+    "other": "Configure a webhook before enabling WeCom notifications"
+  },
+  {
+    "id": "admin.configure_a_webhook_for_quota_reports_and_error_alerts",
+    "other": "Configure a webhook for quota reports and error alerts."
+  },
+  {
+    "id": "admin.configure_email_domains_allowed_for_user_creation_and_sign_in",
+    "other": "Configure email domains allowed for user creation and sign-in."
+  },
+  {
+    "id": "admin.configure_only_when_a_proxy_is_required_to_reach_the",
+    "other": "Configure only when a proxy is required to reach the upstream."
+  },
+  {
+    "id": "admin.configure_the_initial_usage_center_password_first",
+    "other": "Configure the initial Usage Center password first"
+  },
+  {
+    "id": "admin.confirm_api_key_rotation",
+    "other": "Confirm API key rotation"
+  },
+  {
+    "id": "admin.confirm_balancing_users_across_all_accounts",
+    "other": "Confirm balancing users across all accounts"
+  },
+  {
+    "id": "admin.confirm_clearing_the_wecom_webhook",
+    "other": "Confirm clearing the WeCom webhook"
+  },
+  {
+    "id": "admin.confirm_disabling_the_user_s_api_key",
+    "other": "Confirm disabling the user's API key"
+  },
+  {
+    "id": "admin.confirm_resetting_the_usage_center_password",
+    "other": "Confirm resetting the Usage Center password"
+  },
+  {
+    "id": "admin.confirm_restoring_the_default_logo",
+    "other": "Confirm restoring the default logo"
+  },
+  {
+    "id": "admin.confirm_saving_configuration",
+    "other": "Confirm saving configuration"
+  },
+  {
+    "id": "admin.confirm_saving_general_settings",
+    "other": "Confirm saving general settings"
+  },
+  {
+    "id": "admin.confirm_saving_notification_settings",
+    "other": "Confirm saving notification settings"
+  },
+  {
+    "id": "admin.confirm_saving_setup_preferences",
+    "other": "Confirm saving setup preferences"
+  },
+  {
+    "id": "admin.confirm_saving_the_wecom_webhook",
+    "other": "Confirm saving the WeCom webhook"
+  },
+  {
+    "id": "admin.confirm_the_quota_action",
+    "other": "Confirm the quota action"
+  },
+  {
+    "id": "admin.confirm_the_runtime_operation_and_target",
+    "other": "Confirm the runtime operation and target"
+  },
+  {
+    "id": "admin.confirmation_must_exactly_match_the_cpa_id",
+    "other": "Confirmation must exactly match the CPA ID"
+  },
+  {
+    "id": "admin.confirmation_must_exactly_match_the_user_s_email",
+    "other": "Confirmation must exactly match the user's email"
+  },
+  {
+    "id": "admin.contains_an_invalid_port",
+    "other": "{{.Field}} contains an invalid port"
+  },
+  {
+    "id": "admin.contains_an_invalid_time",
+    "other": "{{.Field}} contains an invalid time"
+  },
+  {
+    "id": "admin.control_plane_database",
+    "other": "Control plane database"
+  },
+  {
+    "id": "admin.control_plane_encryption_key",
+    "other": "Control plane encryption key"
+  },
+  {
+    "id": "admin.control_plane_ownership_changed_the_operation_stopped",
+    "other": "Control plane ownership changed. The operation stopped."
+  },
+  {
+    "id": "admin.control_plane_ownership_changed_the_operation_stopped_and_was_rolled",
+    "other": "Control plane ownership changed. The operation stopped and was rolled back."
+  },
+  {
+    "id": "admin.cooldown_after_transient_errors",
+    "other": "Cooldown after transient errors."
+  },
+  {
+    "id": "admin.cpa_account_created_and_runtime_probes_passed",
+    "other": "CPA account created and runtime probes passed"
+  },
+  {
+    "id": "admin.cpa_account_deleted_configuration_authorization_and_logs_were_safely_archived",
+    "other": "CPA account deleted. Configuration, authorization and logs were safely archived."
+  },
+  {
+    "id": "admin.cpa_account_does_not_exist",
+    "other": "CPA account does not exist"
+  },
+  {
+    "id": "admin.cpa_account_is_required",
+    "other": "CPA account is required"
+  },
+  {
+    "id": "admin.cpa_account_updated_and_runtime_probes_passed",
+    "other": "CPA account updated and runtime probes passed"
+  },
+  {
+    "id": "admin.cpa_container_status_is_unavailable",
+    "other": "CPA container status is unavailable"
+  },
+  {
+    "id": "admin.cpa_listen_address",
+    "other": "CPA listen address"
+  },
+  {
+    "id": "admin.cpa_listen_address_and_update_image",
+    "other": "CPA listen address and update image."
+  },
+  {
+    "id": "admin.cpa_parameters_were_written_to_the_private_compose_configuration_and",
+    "other": "; CPA parameters were written to the private Compose configuration and take effect when the accounts are recreated"
+  },
+  {
+    "id": "admin.cpa_renamed_and_recreated_runtime_probes_passed",
+    "other": "CPA renamed and recreated; runtime probes passed"
+  },
+  {
+    "id": "admin.cpa_request_and_proxy_settings",
+    "other": "CPA request and proxy settings."
+  },
+  {
+    "id": "admin.cpa_requests",
+    "other": "CPA requests"
+  },
+  {
+    "id": "admin.cpas_have_no_quota_period_boundaries_usage_for_this_period",
+    "other": "{{.Count}} CPAs have no quota period boundaries; usage for this period is unavailable",
+    "one": "{{.Count}} CPA has no quota period boundaries; usage for this period is unavailable"
+  },
+  {
+    "id": "admin.credential_reuse_duration_such_as_30s",
+    "other": "Credential reuse duration, such as 30s."
+  },
+  {
+    "id": "admin.current_users_with_no_assigned_team",
+    "other": "Current users with no assigned team"
+  },
+  {
+    "id": "admin.customize_the_product_name_environment_label_and_logo_as_needed",
+    "other": "Customize the product name, environment label and logo as needed."
+  },
+  {
+    "id": "admin.daily_delivery_times",
+    "other": "Daily delivery times"
+  },
+  {
+    "id": "admin.debug_logging",
+    "other": "Debug logging"
+  },
+  {
+    "id": "admin.default_client_model",
+    "other": "Default client model"
+  },
+  {
+    "id": "admin.default_client_model_2",
+    "other": "Default client model."
+  },
+  {
+    "id": "admin.default_logo_restored",
+    "other": "Default logo restored"
+  },
+  {
+    "id": "admin.default_proxy_url_http_https_socks5",
+    "other": "Default proxy URL (HTTP/HTTPS/SOCKS5)."
+  },
+  {
+    "id": "admin.default_upstream_proxy",
+    "other": "Default upstream proxy"
+  },
+  {
+    "id": "admin.default_upstream_proxy_url",
+    "other": "Default upstream proxy URL"
+  },
+  {
+    "id": "admin.default_weekly_quota",
+    "other": "Default weekly quota"
+  },
+  {
+    "id": "admin.default_weekly_quota_per_user",
+    "other": "Default weekly quota per user"
+  },
+  {
+    "id": "admin.disable_all",
+    "other": "Disable all"
+  },
+  {
+    "id": "admin.disable_in_regular_chats_only_recommended",
+    "other": "Disable in regular chats only (recommended)"
+  },
+  {
+    "id": "admin.disabling_stops_collection_of_new_token_usage",
+    "other": "Disabling stops collection of new token usage."
+  },
+  {
+    "id": "admin.display_color_in_account_details",
+    "other": "Display color in account details."
+  },
+  {
+    "id": "admin.docker_runtime_is_unavailable",
+    "other": "Docker runtime is unavailable"
+  },
+  {
+    "id": "admin.enable_all",
+    "other": "Enable all"
+  },
+  {
+    "id": "admin.enable_default_upstream_proxy",
+    "other": "Enable default upstream proxy"
+  },
+  {
+    "id": "admin.enable_for_troubleshooting_increases_log_volume",
+    "other": "Enable for troubleshooting; increases log volume."
+  },
+  {
+    "id": "admin.enable_wecom_notifications",
+    "other": "Enable WeCom notifications"
+  },
+  {
+    "id": "admin.enable_weekly_quota_alerts",
+    "other": "Enable weekly quota alerts"
+  },
+  {
+    "id": "admin.end_port_for_new_cpas_must_not_be_below_the",
+    "other": "End port for new CPAs; must not be below the start port."
+  },
+  {
+    "id": "admin.endpoint_not_found",
+    "other": "Endpoint not found"
+  },
+  {
+    "id": "admin.environment_label",
+    "other": "Environment label"
+  },
+  {
+    "id": "admin.error_file_limit_per_cpa",
+    "other": "Error file limit per CPA"
+  },
+  {
+    "id": "admin.event_retention_during_interruptions",
+    "other": "Event retention during interruptions."
+  },
+  {
+    "id": "admin.events_per_batch",
+    "other": "Events per batch"
+  },
+  {
+    "id": "admin.general_settings_saved_and_effective_immediately",
+    "other": "General settings saved and effective immediately"
+  },
+  {
+    "id": "admin.has_an_invalid_image_name",
+    "other": "{{.Field}} has an invalid image name"
+  },
+  {
+    "id": "admin.hh_mm_format_separate_multiple_times_with_commas",
+    "other": "HH:MM format; separate multiple times with commas."
+  },
+  {
+    "id": "admin.how_long_a_missed_scheduled_notification_may_still_be_sent",
+    "other": "How long a missed scheduled notification may still be sent."
+  },
+  {
+    "id": "admin.image_query_service_is_not_ready",
+    "other": "Image query service is not ready"
+  },
+  {
+    "id": "admin.image_tool_availability_policy",
+    "other": "Image tool availability policy."
+  },
+  {
+    "id": "admin.image_tool_policy",
+    "other": "Image tool policy"
+  },
+  {
+    "id": "admin.initial_user_password",
+    "other": "Initial user password"
+  },
+  {
+    "id": "admin.initial_user_password_saved_securely_existing_passwords_are_unchanged",
+    "other": "Initial user password saved securely. Existing passwords are unchanged."
+  },
+  {
+    "id": "admin.internal_service_error",
+    "other": "Internal service error"
+  },
+  {
+    "id": "admin.invalid_account_creation_parameters",
+    "other": "Invalid account creation parameters"
+  },
+  {
+    "id": "admin.invalid_account_migration_parameters",
+    "other": "Invalid account migration parameters"
+  },
+  {
+    "id": "admin.invalid_account_parameters_check_the_id_email_proxy_and_confirmation",
+    "other": "Invalid account parameters. Check the ID, email, proxy and confirmation fields."
+  },
+  {
+    "id": "admin.invalid_account_update_parameters",
+    "other": "Invalid account update parameters"
+  },
+  {
+    "id": "admin.invalid_allowed_email_domain",
+    "other": "Invalid allowed email domain: {{.Value}}"
+  },
+  {
+    "id": "admin.invalid_api_key_rotation_parameters",
+    "other": "Invalid API key rotation parameters"
+  },
+  {
+    "id": "admin.invalid_custom_reporting_range",
+    "other": "Invalid custom reporting range"
+  },
+  {
+    "id": "admin.invalid_data_type_for_setting",
+    "other": "Invalid data type for setting {{.Value}}"
+  },
+  {
+    "id": "admin.invalid_logo_file",
+    "other": "Invalid logo file"
+  },
+  {
+    "id": "admin.invalid_logo_file_encoding",
+    "other": "Invalid logo file encoding"
+  },
+  {
+    "id": "admin.invalid_logo_parameters",
+    "other": "Invalid logo parameters"
+  },
+  {
+    "id": "admin.invalid_management_key",
+    "other": "Invalid management key"
+  },
+  {
+    "id": "admin.invalid_management_key_format",
+    "other": "Invalid management key format"
+  },
+  {
+    "id": "admin.invalid_notification_timezone",
+    "other": "Invalid notification timezone"
+  },
+  {
+    "id": "admin.invalid_password_format",
+    "other": "Invalid password format"
+  },
+  {
+    "id": "admin.invalid_proxy_recovery_parameters",
+    "other": "Invalid proxy recovery parameters"
+  },
+  {
+    "id": "admin.invalid_quota_action_parameters",
+    "other": "Invalid quota action parameters"
+  },
+  {
+    "id": "admin.invalid_quota_action_parameters_or_target_state",
+    "other": "Invalid quota action parameters or target state"
+  },
+  {
+    "id": "admin.invalid_quota_mode_or_custom_weekly_quota",
+    "other": "Invalid quota mode or custom weekly quota"
+  },
+  {
+    "id": "admin.invalid_reporting_range",
+    "other": "Invalid reporting range"
+  },
+  {
+    "id": "admin.invalid_request_parameters",
+    "other": "Invalid request parameters"
+  },
+  {
+    "id": "admin.invalid_runtime_operation_or_target",
+    "other": "Invalid runtime operation or target"
+  },
+  {
+    "id": "admin.invalid_runtime_operation_request",
+    "other": "Invalid runtime operation request"
+  },
+  {
+    "id": "admin.invalid_sort_direction",
+    "other": "Invalid sort direction"
+  },
+  {
+    "id": "admin.invalid_sort_field",
+    "other": "Invalid sort field"
+  },
+  {
+    "id": "admin.invalid_task_cancellation_request",
+    "other": "Invalid task cancellation request"
+  },
+  {
+    "id": "admin.invalid_task_count_range",
+    "other": "Invalid task count range"
+  },
+  {
+    "id": "admin.invalid_team_parameters",
+    "other": "Invalid team parameters"
+  },
+  {
+    "id": "admin.invalid_token_accounting_metric",
+    "other": "Invalid token accounting metric"
+  },
+  {
+    "id": "admin.invalid_token_activity_filter",
+    "other": "Invalid token activity filter"
+  },
+  {
+    "id": "admin.invalid_trend_time_range",
+    "other": "Invalid trend time range"
+  },
+  {
+    "id": "admin.invalid_user_directory_view",
+    "other": "Invalid user directory view"
+  },
+  {
+    "id": "admin.invalid_user_pagination_parameters",
+    "other": "Invalid user pagination parameters"
+  },
+  {
+    "id": "admin.invalid_user_parameters",
+    "other": "Invalid user parameters"
+  },
+  {
+    "id": "admin.invalid_user_team_parameters",
+    "other": "Invalid user team parameters"
+  },
+  {
+    "id": "admin.invalid_user_trend_count",
+    "other": "Invalid user trend count"
+  },
+  {
+    "id": "admin.invalid_user_weekly_quota_parameters",
+    "other": "Invalid user weekly quota parameters"
+  },
+  {
+    "id": "admin.invalid_weekly_limit_reset_parameters",
+    "other": "Invalid weekly limit reset parameters"
+  },
+  {
+    "id": "admin.is_required",
+    "other": "{{.Field}} is required"
+  },
+  {
+    "id": "admin.items",
+    "other": "items"
+  },
+  {
+    "id": "admin.keep_at_least_one_cpa_the_last_account_cannot_be",
+    "other": "Keep at least one CPA. The last account cannot be deleted."
+  },
+  {
+    "id": "admin.label",
+    "other": "×"
+  },
+  {
+    "id": "admin.last_hours",
+    "other": "Last {{.Count}} hours",
+    "one": "Last {{.Count}} hour"
+  },
+  {
+    "id": "admin.last_minutes",
+    "other": "Last {{.Count}} minutes",
+    "one": "Last {{.Count}} minute"
+  },
+  {
+    "id": "admin.load_balancing_service_is_not_ready",
+    "other": "Load balancing service is not ready"
+  },
+  {
+    "id": "admin.log_capacity_per_cpa",
+    "other": "Log capacity per CPA"
+  },
+  {
+    "id": "admin.logo_updated",
+    "other": "Logo updated"
+  },
+  {
+    "id": "admin.maintenance_service_is_not_ready",
+    "other": "Maintenance service is not ready"
+  },
+  {
+    "id": "admin.management_key_requests_do_not_need_session_renewal",
+    "other": "Management key requests do not need session renewal"
+  },
+  {
+    "id": "admin.management_key_updated_sign_in_using_the_new_key",
+    "other": "Management key updated. Sign in using the new key."
+  },
+  {
+    "id": "admin.management_session_not_found_enter_the_management_key_again",
+    "other": "Management session not found. Enter the management key again."
+  },
+  {
+    "id": "admin.management_session_validation_failed",
+    "other": "Management session validation failed"
+  },
+  {
+    "id": "admin.maximum_credential_retries",
+    "other": "Maximum credential retries"
+  },
+  {
+    "id": "admin.maximum_credential_switches_per_attempt",
+    "other": "Maximum credential switches per attempt."
+  },
+  {
+    "id": "admin.maximum_error_log_files_per_cpa",
+    "other": "Maximum error log files per CPA."
+  },
+  {
+    "id": "admin.maximum_events_collected_per_cpa_in_each_batch",
+    "other": "Maximum events collected per CPA in each batch."
+  },
+  {
+    "id": "admin.maximum_retry_wait",
+    "other": "Maximum retry wait"
+  },
+  {
+    "id": "admin.maximum_wait_for_credentials_in_cooldown",
+    "other": "Maximum wait for credentials in cooldown."
+  },
+  {
+    "id": "admin.migration_activity_refreshed",
+    "other": "All account users were safely migrated; active user counts ({{.Window}}) were refreshed."
+  },
+  {
+    "id": "admin.migration_activity_unavailable",
+    "other": "All account users were safely migrated, but active user counts ({{.Window}}) could not be refreshed."
+  },
+  {
+    "id": "admin.minutes",
+    "other": "minutes"
+  },
+  {
+    "id": "admin.missed_delivery_window",
+    "other": "Missed delivery window"
+  },
+  {
+    "id": "admin.model_and_reasoning_effort_together_determine_the_user_quota_token",
+    "other": "Model and reasoning effort together determine the user quota token multiplier. Colors affect display only."
+  },
+  {
+    "id": "admin.model_multiplier",
+    "other": " model multiplier"
+  },
+  {
+    "id": "admin.model_testing_is_unavailable_please_try_again_later",
+    "other": "Model testing is unavailable. Please try again later."
+  },
+  {
+    "id": "admin.model_testing_service_is_not_ready",
+    "other": "Model testing service is not ready"
+  },
+  {
+    "id": "admin.model_token_multiplier_for_newly_collected_events",
+    "other": "Model token multiplier for newly collected events."
+  },
+  {
+    "id": "admin.must_be_a_boolean",
+    "other": "{{.Field}} must be a boolean"
+  },
+  {
+    "id": "admin.must_be_a_finite_number",
+    "other": "{{.Field}} must be a finite number"
+  },
+  {
+    "id": "admin.must_be_a_number",
+    "other": "{{.Field}} must be a number"
+  },
+  {
+    "id": "admin.must_be_a_valid_http_s_url",
+    "other": "{{.Field}} must be a valid HTTP(S) URL"
+  },
+  {
+    "id": "admin.must_be_a_valid_iana_timezone",
+    "other": "{{.Field}} must be a valid IANA timezone"
+  },
+  {
+    "id": "admin.must_be_a_valid_ipv4_address",
+    "other": "{{.Field}} must be a valid IPv4 address"
+  },
+  {
+    "id": "admin.must_be_a_valid_uppercase_environment_variable_name",
+    "other": "{{.Field}} must be a valid uppercase environment variable name"
+  },
+  {
+    "id": "admin.must_be_an_integer",
+    "other": "{{.Field}} must be an integer"
+  },
+  {
+    "id": "admin.must_be_between_30_seconds_and_30_days",
+    "other": "{{.Field}} must be between 30 seconds and 30 days"
+  },
+  {
+    "id": "admin.must_be_between_and",
+    "other": "{{.Field}} must be between {{.Minimum}} and {{.Maximum}}"
+  },
+  {
+    "id": "admin.must_be_one_of",
+    "other": "{{.Field}} must be one of: {{.Choices}}"
+  },
+  {
+    "id": "admin.must_contain_1_12_times",
+    "other": "{{.Field}} must contain 1–12 times"
+  },
+  {
+    "id": "admin.must_contain_3_32_lowercase_letters_digits_or_underscores_and",
+    "other": "{{.Field}} must contain 3–32 lowercase letters, digits or underscores and end with an underscore"
+  },
+  {
+    "id": "admin.must_contain_at_least_characters",
+    "other": "{{.Field}} must contain at least {{.Minimum}} characters"
+  },
+  {
+    "id": "admin.must_not_contain_a_query_or_fragment",
+    "other": "{{.Field}} must not contain a query or fragment"
+  },
+  {
+    "id": "admin.must_not_contain_a_username_or_password",
+    "other": "{{.Field}} must not contain a username or password"
+  },
+  {
+    "id": "admin.must_not_contain_control_characters",
+    "other": "{{.Field}} must not contain control characters"
+  },
+  {
+    "id": "admin.must_not_contain_whitespace_or_control_characters",
+    "other": "{{.Field}} must not contain whitespace or control characters"
+  },
+  {
+    "id": "admin.must_not_exceed_characters",
+    "other": "{{.Field}} must not exceed {{.Maximum}} characters"
+  },
+  {
+    "id": "admin.must_pin_the_image_using_name_tag_sha256_digest",
+    "other": "{{.Field}} must pin the image using name:tag@sha256:digest"
+  },
+  {
+    "id": "admin.must_use_the_hh_mm_format",
+    "other": "{{.Field}} must use the HH:MM format"
+  },
+  {
+    "id": "admin.must_use_the_rrggbb_color_format",
+    "other": "{{.Field}} must use the #RRGGBB color format"
+  },
+  {
+    "id": "admin.new_account_port_end",
+    "other": "New account port end"
+  },
+  {
+    "id": "admin.new_account_port_start",
+    "other": "New account port start"
+  },
+  {
+    "id": "admin.new_key_prefix",
+    "other": "New key prefix"
+  },
+  {
+    "id": "admin.no_configuration_changes",
+    "other": "No configuration changes"
+  },
+  {
+    "id": "admin.no_custom_logo_configured",
+    "other": "No custom logo configured"
+  },
+  {
+    "id": "admin.no_exhausted_weekly_limit_is_eligible_for_reset_wait_for",
+    "other": "No exhausted weekly limit is eligible for reset. Wait for exhaustion or refresh the list."
+  },
+  {
+    "id": "admin.no_management_key_configured",
+    "other": "No management key configured"
+  },
+  {
+    "id": "admin.no_wecom_webhook_configured",
+    "other": "No WeCom webhook configured"
+  },
+  {
+    "id": "admin.notification_timezone_is_required",
+    "other": "Notification timezone is required"
+  },
+  {
+    "id": "admin.notifications_use_the_system_timezone_change_it_in_configuration_center",
+    "other": "Notifications use the system timezone. Change it in Configuration Center."
+  },
+  {
+    "id": "admin.oauth_authorization_cleared_original_files_were_safely_archived",
+    "other": "OAuth authorization cleared. Original files were safely archived."
+  },
+  {
+    "id": "admin.official_api_request_timeout",
+    "other": "Official API request timeout."
+  },
+  {
+    "id": "admin.official_api_timeout",
+    "other": "Official API timeout"
+  },
+  {
+    "id": "admin.official_quota_cache",
+    "other": "Official quota cache"
+  },
+  {
+    "id": "admin.official_quota_cache_duration",
+    "other": "Official quota cache duration."
+  },
+  {
+    "id": "admin.official_quota_check_interval",
+    "other": "Official quota check interval."
+  },
+  {
+    "id": "admin.official_usage_events",
+    "other": "Official usage events"
+  },
+  {
+    "id": "admin.only_host_loopback_addresses_are_allowed",
+    "other": "Only host loopback addresses are allowed."
+  },
+  {
+    "id": "admin.only_stop_operation_impact_queries_are_supported",
+    "other": "Only stop-operation impact queries are supported"
+  },
+  {
+    "id": "admin.organization_access",
+    "other": "Organization & access"
+  },
+  {
+    "id": "admin.organization_weekly_quota_default_restored_the_quota_collector_will_publish",
+    "other": "Organization weekly quota default restored. The quota collector will publish it to the Gateway."
+  },
+  {
+    "id": "admin.other_unmatched_models",
+    "other": "Other / unmatched models"
+  },
+  {
+    "id": "admin.overview_filter_directory_service_is_not_ready",
+    "other": "Overview filter directory service is not ready"
+  },
+  {
+    "id": "admin.overview_runtime_status_service_is_not_ready",
+    "other": "Overview runtime status service is not ready"
+  },
+  {
+    "id": "admin.page_size_must_be_25_50_or_100",
+    "other": "Page size must be 25, 50 or 100"
+  },
+  {
+    "id": "admin.per_cpa_limit_oldest_logs_are_deleted_when_exceeded",
+    "other": "Per-CPA limit. Oldest logs are deleted when exceeded."
+  },
+  {
+    "id": "admin.port_range_for_new_cpas",
+    "other": "Port range for new CPAs."
+  },
+  {
+    "id": "admin.portal_environment_label_may_be_left_blank",
+    "other": "Portal environment label; may be left blank."
+  },
+  {
+    "id": "admin.prefix_for_new_keys_ending_with_an_underscore",
+    "other": "Prefix for new keys, ending with an underscore."
+  },
+  {
+    "id": "admin.preserve_personal_quota_changes",
+    "other": "Preserve personal quota changes"
+  },
+  {
+    "id": "admin.product_name",
+    "other": "Product name"
+  },
+  {
+    "id": "admin.product_name_shown_on_pages",
+    "other": "Product name shown on pages."
+  },
+  {
+    "id": "admin.provide_at_least_one_notification_setting",
+    "other": "Provide at least one notification setting"
+  },
+  {
+    "id": "admin.proxy_recovery_confirmation_must_exactly_match_the_cpa_id",
+    "other": "Proxy recovery confirmation must exactly match the CPA ID"
+  },
+  {
+    "id": "admin.public_url",
+    "other": "Public URL"
+  },
+  {
+    "id": "admin.pull_and_verify_updates_in_accounts",
+    "other": "Pull and verify updates in Accounts."
+  },
+  {
+    "id": "admin.quota_check_interval",
+    "other": "Quota check interval"
+  },
+  {
+    "id": "admin.quota_data_expiry",
+    "other": "Quota data expiry"
+  },
+  {
+    "id": "admin.quota_data_expiry_must_not_be_shorter_than_the_automatic",
+    "other": "Quota data expiry must not be shorter than the automatic switching check interval"
+  },
+  {
+    "id": "admin.quota_failure_grace_period",
+    "other": "Quota failure grace period"
+  },
+  {
+    "id": "admin.quota_reports_and_alerts",
+    "other": "Quota reports and alerts."
+  },
+  {
+    "id": "admin.quotas_and_usage_collection",
+    "other": "Quotas and usage collection."
+  },
+  {
+    "id": "admin.reasoning_effort_color",
+    "other": " reasoning effort color"
+  },
+  {
+    "id": "admin.reasoning_effort_multiplier",
+    "other": " reasoning effort multiplier"
+  },
+  {
+    "id": "admin.reasoning_effort_policy",
+    "other": "Reasoning effort policy"
+  },
+  {
+    "id": "admin.rebalance_activity_refreshed",
+    "other": "Account load balancing completed; active user counts ({{.Window}}) were refreshed."
+  },
+  {
+    "id": "admin.rebalance_activity_unavailable",
+    "other": "Account load balancing completed, but active user counts ({{.Window}}) could not be refreshed."
+  },
+  {
+    "id": "admin.rename_confirmation_must_exactly_match_the_current_cpa_id",
+    "other": "Rename confirmation must exactly match the current CPA ID"
+  },
+  {
+    "id": "admin.request_retries",
+    "other": "Request retries"
+  },
+  {
+    "id": "admin.reset_weekly_usage_for_users_effective_after_the_next_collection",
+    "other": "Reset weekly usage for {{.Count}} users; effective after the next collection",
+    "one": "Reset weekly usage for {{.Count}} user; effective after the next collection"
+  },
+  {
+    "id": "admin.restored_the_organization_quota_default_for_users",
+    "other": "Restored the organization quota default for {{.Count}} users",
+    "one": "Restored the organization quota default for {{.Count}} user"
+  },
+  {
+    "id": "admin.retries_after_upstream_failures",
+    "other": "Retries after upstream failures."
+  },
+  {
+    "id": "admin.reuse_session_credentials",
+    "other": "Reuse session credentials."
+  },
+  {
+    "id": "admin.rolling_window_for_counting_unique_active_users_per_account",
+    "other": "Rolling window for counting unique active users per account."
+  },
+  {
+    "id": "admin.runtime_task_does_not_exist",
+    "other": "Runtime task does not exist"
+  },
+  {
+    "id": "admin.runtime_task_has_already_finished",
+    "other": "Runtime task has already finished"
+  },
+  {
+    "id": "admin.runtime_task_queue_is_full",
+    "other": "Runtime task queue is full"
+  },
+  {
+    "id": "admin.runtime_task_service_is_shutting_down",
+    "other": "Runtime task service is shutting down"
+  },
+  {
+    "id": "admin.safe_account_migration_and_recovery_service_is_not_ready",
+    "other": "Safe account migration and recovery service is not ready"
+  },
+  {
+    "id": "admin.save_cpa_logs_to_files",
+    "other": "Save CPA logs to files."
+  },
+  {
+    "id": "admin.saved_settings",
+    "other": "Saved {{.Count}} settings",
+    "one": "Saved {{.Count}} setting"
+  },
+  {
+    "id": "admin.sec",
+    "other": "sec"
+  },
+  {
+    "id": "admin.select_a_reset_credit",
+    "other": "Select a reset credit"
+  },
+  {
+    "id": "admin.select_an_account_and_model",
+    "other": "Select an account and model"
+  },
+  {
+    "id": "admin.select_another_enabled_cpa_as_a_safe_migration_target",
+    "other": "Select another enabled CPA as a safe migration target"
+  },
+  {
+    "id": "admin.select_between_1_and_500_users",
+    "other": "Select between 1 and 500 users"
+  },
+  {
+    "id": "admin.select_the_cpa_whose_weekly_limit_should_be_reset",
+    "other": "Select the CPA whose weekly limit should be reset"
+  },
+  {
+    "id": "admin.send_wecom_notifications",
+    "other": "Send WeCom notifications."
+  },
+  {
+    "id": "admin.send_weekly_quota_alerts",
+    "other": "Send weekly quota alerts."
+  },
+  {
+    "id": "admin.separate_with_commas_configure_at_least_one_domain_before_creating",
+    "other": "Separate with commas. Configure at least one domain before creating users."
+  },
+  {
+    "id": "admin.session_affinity",
+    "other": "Session affinity"
+  },
+  {
+    "id": "admin.session_affinity_duration",
+    "other": "Session affinity duration"
+  },
+  {
+    "id": "admin.session_and_collection_settings",
+    "other": "Session and collection settings."
+  },
+  {
+    "id": "admin.sessions_collection",
+    "other": "Sessions & collection"
+  },
+  {
+    "id": "admin.set_an_organization_wide_default_token_limit_for_new_users",
+    "other": "Set an organization-wide default token limit for new users. Blank means unlimited."
+  },
+  {
+    "id": "admin.set_only_the_quota_retention_option_do_not_also_submit",
+    "other": "Set only the quota retention option; do not also submit the legacy reset-to-default option"
+  },
+  {
+    "id": "admin.shared_time_and_date_boundaries_across_the_site",
+    "other": "Shared time and date boundaries across the site."
+  },
+  {
+    "id": "admin.shared_timezone_for_page_times_usage_calendar_week_quotas_and",
+    "other": "Shared timezone for page times, usage, calendar-week quotas and notification scheduling."
+  },
+  {
+    "id": "admin.shell_variable_for_the_key",
+    "other": "Shell variable for the key."
+  },
+  {
+    "id": "admin.short_name",
+    "other": "Short name"
+  },
+  {
+    "id": "admin.short_name_displayed_in_clients",
+    "other": "Short name displayed in clients."
+  },
+  {
+    "id": "admin.skipped_users_whose_current_usage_is_zero",
+    "other": "; skipped {{.Count}} users whose current usage is zero",
+    "one": "; skipped {{.Count}} user whose current usage is zero"
+  },
+  {
+    "id": "admin.specify_the_user_key_to_rotate",
+    "other": "Specify the user key to rotate"
+  },
+  {
+    "id": "admin.specify_the_user_s_email",
+    "other": "Specify the user's email"
+  },
+  {
+    "id": "admin.start_port_for_new_cpas",
+    "other": "Start port for new CPAs."
+  },
+  {
+    "id": "admin.statistics_for_the_last_5_minutes_are_unavailable",
+    "other": "Statistics for the last 5 minutes are unavailable"
+  },
+  {
+    "id": "admin.stop_migration_when_quota_data_expires",
+    "other": "Stop migration when quota data expires."
+  },
+  {
+    "id": "admin.system_settings",
+    "other": "System settings"
+  },
+  {
+    "id": "admin.system_timezone",
+    "other": "System timezone"
+  },
+  {
+    "id": "admin.target_account_safety_reserve",
+    "other": "Target account safety reserve"
+  },
+  {
+    "id": "admin.task_cancellation_requested",
+    "other": "Task cancellation requested"
+  },
+  {
+    "id": "admin.task_submitted",
+    "other": "Task submitted"
+  },
+  {
+    "id": "admin.team_created",
+    "other": "Team created"
+  },
+  {
+    "id": "admin.team_deleted",
+    "other": "Team deleted"
+  },
+  {
+    "id": "admin.team_does_not_exist",
+    "other": "Team does not exist"
+  },
+  {
+    "id": "admin.team_name_already_exists",
+    "other": "Team name already exists"
+  },
+  {
+    "id": "admin.team_updated",
+    "other": "Team updated"
+  },
+  {
+    "id": "admin.test_message_sent_to_the_wecom_group",
+    "other": "Test message sent to the WeCom group"
+  },
+  {
+    "id": "admin.the_bonus_must_be_a_positive_integer",
+    "other": "The bonus must be a positive integer"
+  },
+  {
+    "id": "admin.the_client_key_environment_variable_must_be_a_valid_uppercase",
+    "other": "The client key environment variable must be a valid uppercase name"
+  },
+  {
+    "id": "admin.the_cpa_id_email_or_port_is_already_in_use",
+    "other": "The CPA ID, email or port is already in use"
+  },
+  {
+    "id": "admin.the_cpa_listen_address_must_be_a_host_loopback_address",
+    "other": "The CPA listen address must be a host loopback address"
+  },
+  {
+    "id": "admin.the_current_state_does_not_meet_restricted_proxy_recovery_conditions",
+    "other": "The current state does not meet restricted proxy recovery conditions. Use normal account maintenance."
+  },
+  {
+    "id": "admin.the_default_logo_is_already_in_use",
+    "other": "The default logo is already in use"
+  },
+  {
+    "id": "admin.the_initial_password_must_contain_8_128_characters",
+    "other": "The initial password must contain 8–128 characters"
+  },
+  {
+    "id": "admin.the_initial_passwords_do_not_match",
+    "other": "The initial passwords do not match"
+  },
+  {
+    "id": "admin.the_management_key_changed_enter_it_again",
+    "other": "The management key changed. Enter it again."
+  },
+  {
+    "id": "admin.the_management_key_must_contain_12_128_characters",
+    "other": "The management key must contain 12–128 characters"
+  },
+  {
+    "id": "admin.the_management_key_must_not_contain_whitespace_or_control_characters",
+    "other": "The management key must not contain whitespace or control characters"
+  },
+  {
+    "id": "admin.the_management_keys_do_not_match",
+    "other": "The management keys do not match"
+  },
+  {
+    "id": "admin.the_missed_delivery_window_must_be_between_0_and_120",
+    "other": "The missed delivery window must be between 0 and 120 minutes"
+  },
+  {
+    "id": "admin.the_new_key_prefix_must_contain_3_32_lowercase_letters",
+    "other": "The new key prefix must contain 3–32 lowercase letters, digits or underscores and end with an underscore"
+  },
+  {
+    "id": "admin.the_new_management_key_must_differ_from_the_current_key",
+    "other": "The new management key must differ from the current key"
+  },
+  {
+    "id": "admin.the_public_url_contains_an_invalid_port",
+    "other": "The public URL contains an invalid port"
+  },
+  {
+    "id": "admin.the_public_url_must_be_a_valid_http_s_url",
+    "other": "The public URL must be a valid HTTP(S) URL"
+  },
+  {
+    "id": "admin.the_public_url_must_not_contain_a_username_or_password",
+    "other": "The public URL must not contain a username or password"
+  },
+  {
+    "id": "admin.the_public_url_must_not_contain_whitespace_or_control_characters",
+    "other": "The public URL must not contain whitespace or control characters"
+  },
+  {
+    "id": "admin.the_public_url_must_use_the_root_path_without_a",
+    "other": "The public URL must use the root path without a query or fragment"
+  },
+  {
+    "id": "admin.the_reset_request_was_processed_refresh_to_confirm_the_latest",
+    "other": "The reset request was processed. Refresh to confirm the latest weekly limit."
+  },
+  {
+    "id": "admin.the_selected_reset_credit_was_used_expired_or_is_unavailable",
+    "other": "The selected reset credit was used, expired or is unavailable. Refresh the list and select again."
+  },
+  {
+    "id": "admin.the_start_port_must_not_exceed_the_end_port",
+    "other": "The start port must not exceed the end port"
+  },
+  {
+    "id": "admin.the_team_still_has_users_and_cannot_be_deleted",
+    "other": "The team still has users and cannot be deleted"
+  },
+  {
+    "id": "admin.the_unavailable_cpa_s_proxy_configuration_was_restored_future_maintenance",
+    "other": "The unavailable CPA's proxy configuration was restored. Future maintenance will continue to use safe migration and request draining."
+  },
+  {
+    "id": "admin.the_upstream_rejected_this_weekly_reset_refresh_the_quota_and",
+    "other": "The upstream rejected this weekly reset. Refresh the quota and try again."
+  },
+  {
+    "id": "admin.the_user_already_has_an_active_api_key",
+    "other": "The user already has an active API key"
+  },
+  {
+    "id": "admin.the_user_s_email_domain_is_not_allowed",
+    "other": "The user's email domain is not allowed"
+  },
+  {
+    "id": "admin.the_user_still_has_active_api_keys_confirm_disabling_them",
+    "other": "The user still has active API keys. Confirm disabling them before deletion."
+  },
+  {
+    "id": "admin.the_weekly_quota_alert_threshold_must_be_between_1_and",
+    "other": "The weekly quota alert threshold must be between 1% and 100%"
+  },
+  {
+    "id": "admin.this_account_has_no_users_to_migrate",
+    "other": "This account has no users to migrate"
+  },
+  {
+    "id": "admin.this_cpa_has_no_quota_period_boundaries_refresh_its_quota",
+    "other": "This CPA has no quota period boundaries. Refresh its quota and try again."
+  },
+  {
+    "id": "admin.this_cpa_has_not_completed_oauth_authorization",
+    "other": "This CPA has not completed OAuth authorization"
+  },
+  {
+    "id": "admin.this_cpa_still_has_active_codex_requests_it_was_not",
+    "other": "This CPA still has active Codex requests. It was not recreated or deleted. Please try again later."
+  },
+  {
+    "id": "admin.this_cpa_still_has_exclusive_active_keys_confirm_their_deactivation",
+    "other": "This CPA still has exclusive active keys. Confirm their deactivation before deleting it."
+  },
+  {
+    "id": "admin.this_retired_default_password_cannot_be_used",
+    "other": "This retired default password cannot be used"
+  },
+  {
+    "id": "admin.this_setup_step_cannot_be_skipped",
+    "other": "This setup step cannot be skipped: {{.Value}}"
+  },
+  {
+    "id": "admin.this_week_s_details_exceed_the_export_limit_a_complete",
+    "other": "This week's details exceed the export limit. A complete report cannot be generated."
+  },
+  {
+    "id": "admin.token_multiplier_for_newly_collected_events",
+    "other": "Token multiplier for newly collected events."
+  },
+  {
+    "id": "admin.token_multiplier_for_newly_collected_events_with_an_unmatched_model",
+    "other": "Token multiplier for newly collected events with an unmatched model."
+  },
+  {
+    "id": "admin.transient_error_cooldown",
+    "other": "Transient error cooldown"
+  },
+  {
+    "id": "admin.unable_to_reach_the_upstream_to_reset_the_weekly_limit",
+    "other": "Unable to reach the upstream to reset the weekly limit. Please try again later."
+  },
+  {
+    "id": "admin.unable_to_read_account_weekly_quotas",
+    "other": "Unable to read account weekly quotas"
+  },
+  {
+    "id": "admin.unable_to_read_statistics_for_the_last_5_minutes",
+    "other": "Unable to read statistics for the last 5 minutes"
+  },
+  {
+    "id": "admin.unable_to_read_upstream_weekly_reset_details_please_try_again",
+    "other": "Unable to read upstream weekly reset details. Please try again later."
+  },
+  {
+    "id": "admin.unable_to_refresh_active_user_counts",
+    "other": "Unable to refresh active user counts"
+  },
+  {
+    "id": "admin.unable_to_verify_the_wecom_webhook_configuration",
+    "other": "Unable to verify the WeCom webhook configuration"
+  },
+  {
+    "id": "admin.ungrouped",
+    "other": "Ungrouped"
+  },
+  {
+    "id": "admin.unified_user_key_disabled",
+    "other": "Unified user key disabled"
+  },
+  {
+    "id": "admin.unified_user_key_rotated_the_new_key_is_shown_only",
+    "other": "Unified user key rotated. The new key is shown only once."
+  },
+  {
+    "id": "admin.unknown_configuration_parameter",
+    "other": "Unknown configuration parameter: {{.Key}}"
+  },
+  {
+    "id": "admin.unknown_configuration_type",
+    "other": "Unknown configuration type: {{.Key}} ({{.Type}})"
+  },
+  {
+    "id": "admin.unknown_operation_target",
+    "other": "Unknown operation target"
+  },
+  {
+    "id": "admin.unsupported_setting",
+    "other": "Unsupported setting: "
+  },
+  {
+    "id": "admin.updated_team_membership_for_users_team_usage_is_calculated_using",
+    "other": "Updated team membership for {{.Count}} users. Team usage is calculated using current membership.",
+    "one": "Updated team membership for {{.Count}} user. Team usage is calculated using current membership."
+  },
+  {
+    "id": "admin.upstream_oauth_authorization_expired_authorize_again_and_retry",
+    "other": "Upstream OAuth authorization expired. Authorize again and retry."
+  },
+  {
+    "id": "admin.url_used_in_notifications_and_exports_leave_blank_to_use",
+    "other": "URL used in notifications and exports; leave blank to use the current site."
+  },
+  {
+    "id": "admin.usage_center_session_duration",
+    "other": "Usage Center session duration"
+  },
+  {
+    "id": "admin.usage_collector_status_is_unavailable",
+    "other": "Usage collector status is unavailable"
+  },
+  {
+    "id": "admin.usage_export_service_is_not_ready",
+    "other": "Usage export service is not ready"
+  },
+  {
+    "id": "admin.usage_identity_synchronization_service_is_not_ready",
+    "other": "Usage identity synchronization service is not ready"
+  },
+  {
+    "id": "admin.usage_query_service_is_not_ready",
+    "other": "Usage query service is not ready"
+  },
+  {
+    "id": "admin.usage_queue_retention",
+    "other": "Usage queue retention"
+  },
+  {
+    "id": "admin.usage_quotas",
+    "other": "Usage & quotas"
+  },
+  {
+    "id": "admin.use_a_duration_such_as_30s_5m_1h_or_7d",
+    "other": "Use a duration such as 30s, 5m, 1h or 7d"
+  },
+  {
+    "id": "admin.used_for_new_users_first_sign_in_must_be_changed",
+    "other": "Used for new users' first sign-in; must be changed immediately afterward."
+  },
+  {
+    "id": "admin.used_for_notifications_and_client_exports_if_blank_the_browser",
+    "other": "Used for notifications and client exports. If blank, the browser uses the current origin."
+  },
+  {
+    "id": "admin.used_for_page_times_daily_usage_calendar_week_quotas_and",
+    "other": "Used for page times, daily usage, calendar-week quotas and notification scheduling. Changing it recalculates this week's usage."
+  },
+  {
+    "id": "admin.used_only_by_cpas_that_inherit_the_default_proxy",
+    "other": "Used only by CPAs that inherit the default proxy."
+  },
+  {
+    "id": "admin.user_created_the_api_key_is_shown_only_once_usage",
+    "other": "User created. The API key is shown only once. Usage Center uses the initial password, which must be changed on first sign-in."
+  },
+  {
+    "id": "admin.user_detail_service_is_not_ready",
+    "other": "User detail service is not ready"
+  },
+  {
+    "id": "admin.user_does_not_exist",
+    "other": "User does not exist"
+  },
+  {
+    "id": "admin.user_does_not_exist_2",
+    "other": "User does not exist: "
+  },
+  {
+    "id": "admin.user_does_not_exist_or_has_no_active_api_key",
+    "other": "User does not exist or has no active API key"
+  },
+  {
+    "id": "admin.user_is_required",
+    "other": "User is required"
+  },
+  {
+    "id": "admin.user_lifecycle_service_is_not_ready",
+    "other": "User lifecycle service is not ready"
+  },
+  {
+    "id": "admin.user_or_account_state_does_not_meet_safe_migration_conditions",
+    "other": "User or account state does not meet safe migration conditions. No users were moved."
+  },
+  {
+    "id": "admin.user_or_api_key_state_is_unsafe_the_operation_was",
+    "other": "User or API key state is unsafe. The operation was rejected."
+  },
+  {
+    "id": "admin.user_password_reset_to_the_initial_password_existing_sessions_ended",
+    "other": "User password reset to the initial password. Existing sessions ended. Change it on the next sign-in."
+  },
+  {
+    "id": "admin.user_quotas",
+    "other": "User quotas"
+  },
+  {
+    "id": "admin.user_quotas_and_failure_policies",
+    "other": "User quotas and failure policies."
+  },
+  {
+    "id": "admin.user_routes_login_credentials_and_current_quota_policy_deleted_historical",
+    "other": "User, routes, login credentials and current quota policy deleted. Historical usage is retained."
+  },
+  {
+    "id": "admin.user_search_text_is_too_long",
+    "other": "User search text is too long"
+  },
+  {
+    "id": "admin.user_state_changed_refresh_and_try_again",
+    "other": "User state changed. Refresh and try again."
+  },
+  {
+    "id": "admin.user_team_membership_changed_refresh_and_try_again",
+    "other": "User team membership changed. Refresh and try again."
+  },
+  {
+    "id": "admin.user_usage_database",
+    "other": "User usage database"
+  },
+  {
+    "id": "admin.user_usage_directory_service_is_not_ready",
+    "other": "User usage directory service is not ready"
+  },
+  {
+    "id": "admin.user_weekly_quota_policy_saved_the_quota_collector_will_publish",
+    "other": "User weekly quota policy saved. The quota collector will publish it to the Gateway."
+  },
+  {
+    "id": "admin.wecom_notification_settings_saved",
+    "other": "WeCom notification settings saved"
+  },
+  {
+    "id": "admin.wecom_notifications",
+    "other": "WeCom notifications"
+  },
+  {
+    "id": "admin.wecom_webhook_cleared_notifications_are_disabled",
+    "other": "WeCom webhook cleared. Notifications are disabled."
+  },
+  {
+    "id": "admin.wecom_webhook_saved",
+    "other": "WeCom webhook saved"
+  },
+  {
+    "id": "admin.weekly_limit_refresh_status_is_unavailable",
+    "other": "Weekly limit refresh status is unavailable"
+  },
+  {
+    "id": "admin.weekly_limit_reset_detail_service_is_not_ready",
+    "other": "Weekly limit reset detail service is not ready"
+  },
+  {
+    "id": "admin.weekly_limit_reset_service_is_not_ready",
+    "other": "Weekly limit reset service is not ready"
+  },
+  {
+    "id": "admin.weekly_limit_reset_status_is_unavailable",
+    "other": "Weekly limit reset status is unavailable"
+  },
+  {
+    "id": "admin.weekly_limit_reset_windows_refreshed",
+    "other": "Weekly limit reset; {{.Count}} windows refreshed",
+    "one": "Weekly limit reset; {{.Count}} window refreshed"
+  },
+  {
+    "id": "admin.weekly_quota_alert_threshold",
+    "other": "Weekly quota alert threshold"
+  },
+  {
+    "id": "admin.weekly_report_generation_timed_out_or_was_cancelled_please_try",
+    "other": "Weekly report generation timed out or was cancelled. Please try again later."
+  },
+  {
+    "id": "admin.weighted_limit_per_user_per_calendar_week_blank_means_unlimited",
+    "other": "Weighted limit per user per calendar week. Blank means unlimited; personal policies take priority."
+  },
+  {
+    "id": "admin.with_units_must_be_true_or_false",
+    "other": "with_units must be true or false"
+  },
+  {
+    "id": "admin.write_cpa_log_files",
+    "other": "Write CPA log files"
+  },
+  {
+    "id": "admin.your_management_session_ended_enter_the_management_key_again",
+    "other": "Your management session ended. Enter the management key again."
+  },
+  {
+    "id": "admin.your_management_session_expired_enter_the_management_key_again",
+    "other": "Your management session expired. Enter the management key again."
+  },
+  {
+    "id": "configuration.language_chinese",
+    "other": "Simplified Chinese"
+  },
+  {
+    "id": "configuration.language_english",
+    "other": "English"
+  },
+  {
+    "id": "configuration.model_multiplier",
+    "other": "{{.Model}} model multiplier"
+  },
+  {
+    "id": "configuration.reasoning_color",
+    "other": "{{.Effort}} reasoning color"
+  },
+  {
+    "id": "configuration.reasoning_multiplier",
+    "other": "{{.Effort}} reasoning multiplier"
+  },
+  {
+    "id": "configuration.system_language",
+    "other": "Notification language"
+  },
+  {
+    "id": "configuration.system_language_description",
+    "other": "Language for scheduled notifications. Browser and report language follows the language selector."
+  },
+  {
+    "id": "notifications.account_change_weekly_quota_used",
+    "other": "| Account | Change | Weekly quota used ↑ | "
+  },
+  {
+    "id": "notifications.account_quota_changed",
+    "other": " · Account quota changed"
+  },
+  {
+    "id": "notifications.account_weekly_quota_used",
+    "other": "| Account | Weekly quota used ↑ | "
+  },
+  {
+    "id": "notifications.affected_accounts",
+    "other": "> Affected accounts: **{{.Count}}**",
+    "one": "> Affected accounts: **{{.Count}}**"
+  },
+  {
+    "id": "notifications.application_url",
+    "other": "> Application URL: [{{.Value1}}]({{.Value2}})"
+  },
+  {
+    "id": "notifications.application_url_not_configured",
+    "other": "> Application URL: Not configured"
+  },
+  {
+    "id": "notifications.at_least_one_notification_time_is_required",
+    "other": "At least one notification time is required"
+  },
+  {
+    "id": "notifications.invalid_notification_timezone",
+    "other": "Invalid notification timezone: {{.Detail}}"
+  },
+  {
+    "id": "notifications.invalid_wecom_webhook_configuration",
+    "other": "Invalid WeCom Webhook configuration"
+  },
+  {
+    "id": "notifications.no_matching_accounts",
+    "other": "| No matching accounts | — | — | — | — | — |"
+  },
+  {
+    "id": "notifications.no_matching_accounts_2",
+    "other": "| No matching accounts | — | — | — | — |"
+  },
+  {
+    "id": "notifications.notification_test",
+    "other": " · Notification test"
+  },
+  {
+    "id": "notifications.notification_times_must_use_hh_mm",
+    "other": "Notification times must use HH:MM"
+  },
+  {
+    "id": "notifications.notification_type_status_channel_test_wecom_notification_channel_connected_successfully",
+    "other": "| Notification type | Status |\n| :--- | :--- |\n| Channel test | WeCom notification channel connected successfully. |"
+  },
+  {
+    "id": "notifications.quota_exhausted",
+    "other": "🔴 Quota exhausted"
+  },
+  {
+    "id": "notifications.quota_recovered",
+    "other": "🟢 Quota recovered"
+  },
+  {
+    "id": "notifications.quota_recovered_2",
+    "other": " · Quota recovered"
+  },
+  {
+    "id": "notifications.quota_recovered_still_within_the_warning_range",
+    "other": "🟠 Quota recovered, still within the warning range"
+  },
+  {
+    "id": "notifications.quota_recovered_still_within_the_warning_range_2",
+    "other": " · Quota recovered, still within the warning range"
+  },
+  {
+    "id": "notifications.read_wecom_webhook",
+    "other": "Read WeCom Webhook: {{.Detail}}"
+  },
+  {
+    "id": "notifications.report_time",
+    "other": "> Report time: "
+  },
+  {
+    "id": "notifications.total_accounts_active_accounts_healthy_quota_warning_exhausted_unavailable",
+    "other": "> **Total accounts {{.Value1}}**  Active accounts ({{.Value2}}) {{.Value3}}\n> 🟢 Healthy quota {{.Value4}}  🟠 Warning {{.Value5}}  🔴 Exhausted {{.Value6}}  ⚪ Unavailable {{.Value7}}"
+  },
+  {
+    "id": "notifications.users_resets_remaining_next_period_reset",
+    "other": " users | Resets remaining | Next period reset |"
+  },
+  {
+    "id": "notifications.waiting_for_quota_update",
+    "other": "Waiting for quota update"
+  },
+  {
+    "id": "notifications.warning_threshold",
+    "other": "> Warning threshold: {{.Value}}"
+  },
+  {
+    "id": "notifications.warning_threshold_reached",
+    "other": "🟠 Warning threshold reached"
+  },
+  {
+    "id": "notifications.webhook_url_must_be_a_wecom_message_delivery_https_url",
+    "other": "Webhook URL must be a WeCom message delivery HTTPS URL"
+  },
+  {
+    "id": "notifications.wecom_markdown_v2_content_exceeds_4096_bytes",
+    "other": "WeCom markdown_v2 content exceeds 4096 bytes"
+  },
+  {
+    "id": "notifications.wecom_message_delivery_failed",
+    "other": "WeCom message delivery failed: {{.Value}}"
+  },
+  {
+    "id": "notifications.wecom_message_delivery_failed_http",
+    "other": "WeCom message delivery failed: HTTP {{.Status}}"
+  },
+  {
+    "id": "notifications.wecom_message_delivery_failed_invalid_response",
+    "other": "WeCom message delivery failed: Invalid response"
+  },
+  {
+    "id": "notifications.wecom_sender_requires_a_secret_store",
+    "other": "WeCom sender requires a secret store"
+  },
+  {
+    "id": "notifications.weekly_limit",
+    "other": "Weekly limit"
+  },
+  {
+    "id": "notifications.weekly_quota_exhausted",
+    "other": " · Weekly quota exhausted"
+  },
+  {
+    "id": "notifications.weekly_quota_reset",
+    "other": "🔄 Weekly quota reset"
+  },
+  {
+    "id": "notifications.weekly_quota_reset_2",
+    "other": " · Weekly quota reset"
+  },
+  {
+    "id": "notifications.weekly_quota_warning",
+    "other": " · Weekly quota warning"
+  },
+  {
+    "id": "portal.account_assignment_state_changed_please_try_again",
+    "other": "Account assignment state changed. Please try again."
+  },
+  {
+    "id": "portal.account_does_not_exist",
+    "other": "Account does not exist"
+  },
+  {
+    "id": "portal.account_quota_status_service_is_not_ready",
+    "other": "Account quota status service is not ready"
+  },
+  {
+    "id": "portal.account_weekly_quota_service_is_not_ready",
+    "other": "Account weekly quota service is not ready"
+  },
+  {
+    "id": "portal.api_key_refresh_service_is_not_ready",
+    "other": "API key refresh service is not ready"
+  },
+  {
+    "id": "portal.api_key_refreshed_the_old_key_expired_update_your_client",
+    "other": "API key refreshed. The old key expired. Update your client configuration."
+  },
+  {
+    "id": "portal.api_key_state_changed_refresh_and_try_again",
+    "other": "API key state changed. Refresh and try again."
+  },
+  {
+    "id": "portal.change_the_initial_password_before_continuing",
+    "other": "Change the initial password before continuing"
+  },
+  {
+    "id": "portal.confirm_refreshing_the_api_key",
+    "other": "Confirm refreshing the API key"
+  },
+  {
+    "id": "portal.current_account_assigned_automatically",
+    "other": "Current account assigned automatically"
+  },
+  {
+    "id": "portal.current_account_switched",
+    "other": "Current account switched"
+  },
+  {
+    "id": "portal.includes_only_business_requests_persisted_by_the_collector_grouped_by",
+    "other": "Includes only business requests persisted by the Collector, grouped by calendar day in the configured timezone. Weighted tokens use multipliers fixed when each event was recorded."
+  },
+  {
+    "id": "portal.includes_only_business_requests_persisted_by_the_collector_weighted_tokens",
+    "other": "Includes only business requests persisted by the Collector. Weighted tokens use multipliers fixed when each event was recorded."
+  },
+  {
+    "id": "portal.incorrect_current_password",
+    "other": "Incorrect current password"
+  },
+  {
+    "id": "portal.incorrect_email_or_password",
+    "other": "Incorrect email or password"
+  },
+  {
+    "id": "portal.invalid_email_or_password_format",
+    "other": "Invalid email or password format"
+  },
+  {
+    "id": "portal.invalid_trend_dimension",
+    "other": "Invalid trend dimension"
+  },
+  {
+    "id": "portal.invalid_trend_reporting_range",
+    "other": "Invalid trend reporting range"
+  },
+  {
+    "id": "portal.invalid_usage_timezone_configuration",
+    "other": "Invalid usage timezone configuration"
+  },
+  {
+    "id": "portal.no_available_account_has_reliable_quota_status",
+    "other": "No available account has reliable quota status"
+  },
+  {
+    "id": "portal.password_changed",
+    "other": "Password changed"
+  },
+  {
+    "id": "portal.personal_trends_do_not_accept_a_user_parameter",
+    "other": "Personal trends do not accept a user parameter"
+  },
+  {
+    "id": "portal.personal_weekly_quota_service_is_not_ready",
+    "other": "Personal weekly quota service is not ready"
+  },
+  {
+    "id": "portal.public_usage_service_is_not_ready",
+    "other": "Public usage service is not ready"
+  },
+  {
+    "id": "portal.quota_refresh_service_is_not_ready",
+    "other": "Quota refresh service is not ready"
+  },
+  {
+    "id": "portal.quota_refresh_status_is_unavailable",
+    "other": "Quota refresh status is unavailable"
+  },
+  {
+    "id": "portal.route_switching_service_is_not_ready",
+    "other": "Route switching service is not ready"
+  },
+  {
+    "id": "portal.target_account_does_not_exist",
+    "other": "Target account does not exist"
+  },
+  {
+    "id": "portal.target_account_is_required",
+    "other": "Target account is required"
+  },
+  {
+    "id": "portal.the_new_password_must_contain_at_least_characters",
+    "other": "The new password must contain at least {{.Count}} characters",
+    "one": "The new password must contain at least {{.Count}} character"
+  },
+  {
+    "id": "portal.the_new_password_must_differ_from_the_initial_password",
+    "other": "The new password must differ from the initial password"
+  },
+  {
+    "id": "portal.the_target_account_cannot_currently_be_selected",
+    "other": "The target account cannot currently be selected"
+  },
+  {
+    "id": "portal.the_user_already_has_an_account",
+    "other": "The user already has an account"
+  },
+  {
+    "id": "portal.the_user_is_disabled_deleted_or_its_key_is_being",
+    "other": "The user is disabled, deleted or its key is being migrated"
+  },
+  {
+    "id": "portal.the_user_or_target_account_does_not_meet_safe_assignment",
+    "other": "The user or target account does not meet safe assignment conditions"
+  },
+  {
+    "id": "portal.the_user_or_target_account_does_not_meet_safe_switching",
+    "other": "The user or target account does not meet safe switching conditions"
+  },
+  {
+    "id": "portal.this_account_is_already_selected",
+    "other": "This account is already selected"
+  },
+  {
+    "id": "portal.too_many_sign_in_attempts_please_try_again_later",
+    "other": "Too many sign-in attempts. Please try again later."
+  },
+  {
+    "id": "portal.unable_to_read_the_usage_timezone",
+    "other": "Unable to read the usage timezone"
+  },
+  {
+    "id": "portal.user_credentials_are_uninitialized_or_invalid",
+    "other": "User credentials are uninitialized or invalid"
+  },
+  {
+    "id": "portal.your_current_account_changed_refresh_and_try_again",
+    "other": "Your current account changed. Refresh and try again."
+  },
+  {
+    "id": "portal.your_session_expired",
+    "other": "Your session expired"
+  },
+  {
+    "id": "quota.additional_weekly_limit",
+    "other": "Additional weekly limit "
+  },
+  {
+    "id": "runtimeops.a_model_test_is_already_running_please_try_again_later",
+    "other": "A model test is already running. Please try again later."
+  },
+  {
+    "id": "runtimeops.account_authorization_failed_check_oauth_status",
+    "other": "Account authorization failed. Check OAuth status."
+  },
+  {
+    "id": "runtimeops.account_quota_is_insufficient_or_requests_are_limited_check_the",
+    "other": "Account quota is insufficient or requests are limited. Check the quota and retry."
+  },
+  {
+    "id": "runtimeops.cannot_read_test_credentials_right_now",
+    "other": "Cannot read test credentials right now"
+  },
+  {
+    "id": "runtimeops.cannot_read_the_account_catalog_right_now",
+    "other": "Cannot read the account catalog right now"
+  },
+  {
+    "id": "runtimeops.cannot_read_the_account_runtime_status_right_now",
+    "other": "Cannot read the account runtime status right now"
+  },
+  {
+    "id": "runtimeops.cannot_read_this_account_s_model_list_check_the_container",
+    "other": "Cannot read this account's model list. Check the container and authorization status, then retry."
+  },
+  {
+    "id": "runtimeops.cpa_account_is_disabled_and_cannot_be_updated",
+    "other": "{{.Detail}}: CPA account is disabled and cannot be updated: {{.Value2}}"
+  },
+  {
+    "id": "runtimeops.cpa_image_update_completed",
+    "other": "CPA image update completed: {{.Count}}\n",
+    "one": "CPA image update completed: {{.Count}}\n"
+  },
+  {
+    "id": "runtimeops.health_check",
+    "other": "Health check"
+  },
+  {
+    "id": "runtimeops.image_has_no_recognizable_version",
+    "other": "Image has no recognizable version"
+  },
+  {
+    "id": "runtimeops.image_ready",
+    "other": "Image ready: {{.Value1}} · {{.Value2}} ({{.Value3}})\n"
+  },
+  {
+    "id": "runtimeops.image_update_failed_restoring_processed_cpas",
+    "other": "Image update failed; restoring processed CPAs: {{.Value}}\n"
+  },
+  {
+    "id": "runtimeops.invalid_account_id",
+    "other": "Invalid account ID"
+  },
+  {
+    "id": "runtimeops.maintenance",
+    "other": "Maintenance"
+  },
+  {
+    "id": "runtimeops.model_connection_failed_or_the_response_was_incomplete_check_the",
+    "other": "Model connection failed or the response was incomplete. Check the account network and logs."
+  },
+  {
+    "id": "runtimeops.no_internal_credentials_are_available_create_a_user_first_binding",
+    "other": "No internal credentials are available. Create a user first; binding to this account is unnecessary."
+  },
+  {
+    "id": "runtimeops.no_running_cpas_the_applied_version_was_not_changed",
+    "other": "No running CPAs; the applied version was not changed"
+  },
+  {
+    "id": "runtimeops.oauth_authorization",
+    "other": "OAuth authorization"
+  },
+  {
+    "id": "runtimeops.oauth_authorization_did_not_complete_no_new_or_updated_authentication",
+    "other": "OAuth authorization did not complete: No new or updated authentication file was detected"
+  },
+  {
+    "id": "runtimeops.output_truncated",
+    "other": "\n[Output truncated]\n"
+  },
+  {
+    "id": "runtimeops.pull_cpa_image",
+    "other": "Pull CPA image"
+  },
+  {
+    "id": "runtimeops.pulling_cpa_image",
+    "other": "Pulling CPA image: {{.Value}}\n"
+  },
+  {
+    "id": "runtimeops.render_and_validate_configuration",
+    "other": "Render and validate configuration"
+  },
+  {
+    "id": "runtimeops.restart_service",
+    "other": "Restart service"
+  },
+  {
+    "id": "runtimeops.restored",
+    "other": "Restored {{.Value}}\n"
+  },
+  {
+    "id": "runtimeops.running_cpas_verified_the_target_version_is_pinned",
+    "other": "Running CPAs verified; the target version is pinned"
+  },
+  {
+    "id": "runtimeops.select_a_valid_model",
+    "other": "Select a valid model"
+  },
+  {
+    "id": "runtimeops.select_all_or_a_valid_cpa_account_for_the_image",
+    "other": "{{.Detail}}: Select all or a valid CPA account for the image update"
+  },
+  {
+    "id": "runtimeops.skipping_already_running_the_target_image",
+    "other": "Skipping {{.Value}}: Already running the target image\n"
+  },
+  {
+    "id": "runtimeops.skipping_cpa_is_disabled",
+    "other": "Skipping {{.Value}}: CPA is disabled\n"
+  },
+  {
+    "id": "runtimeops.skipping_cpa_is_stopped_the_next_start_will_use_the",
+    "other": "Skipping {{.Value}}: CPA is stopped; the next start will use the target image\n"
+  },
+  {
+    "id": "runtimeops.some_cpa_rollbacks_failed",
+    "other": "Some CPA rollbacks failed: {{.Detail}}"
+  },
+  {
+    "id": "runtimeops.start_service",
+    "other": "Start service"
+  },
+  {
+    "id": "runtimeops.stop_service",
+    "other": "Stop service"
+  },
+  {
+    "id": "runtimeops.the_account_container_is_stopped_start_it_first",
+    "other": "The account container is stopped. Start it first."
+  },
+  {
+    "id": "runtimeops.the_account_returned_an_invalid_model_list",
+    "other": "The account returned an invalid model list"
+  },
+  {
+    "id": "runtimeops.the_model_completed_generation_and_returned_text",
+    "other": "The model completed generation and returned text"
+  },
+  {
+    "id": "runtimeops.the_model_did_not_complete_generation_check_the_account_logs",
+    "other": "The model did not complete generation. Check the account logs."
+  },
+  {
+    "id": "runtimeops.the_model_service_is_unavailable_retry_later_or_check_the",
+    "other": "The model service is unavailable. Retry later or check the account logs."
+  },
+  {
+    "id": "runtimeops.the_model_test_timed_out_after_25_seconds_please_try",
+    "other": "The model test timed out after 25 seconds. Please try again later."
+  },
+  {
+    "id": "runtimeops.the_target_image_has_no_applicable_immutable_identifier",
+    "other": "The target image has no applicable immutable identifier"
+  },
+  {
+    "id": "runtimeops.the_target_image_has_not_been_pulled_run_pull_image",
+    "other": "The target image has not been pulled. Run Pull image first."
+  },
+  {
+    "id": "runtimeops.this_account_cannot_use_the_selected_model_or_test_parameters",
+    "other": "This account cannot use the selected model or test parameters"
+  },
+  {
+    "id": "runtimeops.unknown_digest",
+    "other": "Unknown digest"
+  },
+  {
+    "id": "runtimeops.update_all_cpa_images",
+    "other": "Update all CPA images"
+  },
+  {
+    "id": "runtimeops.update_cpa_image",
+    "other": "Update CPA image"
+  },
+  {
+    "id": "runtimeops.updating",
+    "other": "Updating {{.Value1}}: {{.Value2}} -> {{.Value3}}\n"
+  },
+  {
+    "id": "runtimeops.verified_runtime_probe",
+    "other": "{{.Field}} verified: Runtime probe\n"
+  },
+  {
+    "id": "runtimeops.verify_routes",
+    "other": "Verify routes"
+  },
+  {
+    "id": "sitetime.select_a_valid_iana_timezone",
+    "other": "Select a valid IANA timezone"
+  },
+  {
+    "id": "sitetime.select_a_valid_iana_timezone_2",
+    "other": "Select a valid IANA timezone: {{.Detail}}"
+  },
+  {
+    "id": "usagereport.account",
+    "other": "Account"
+  },
+  {
+    "id": "usagereport.account_activity_rate",
+    "other": "Account activity rate"
+  },
+  {
+    "id": "usagereport.account_details",
+    "other": "Account details"
+  },
+  {
+    "id": "usagereport.account_id",
+    "other": "Account ID"
+  },
+  {
+    "id": "usagereport.accounts_used",
+    "other": "Accounts used"
+  },
+  {
+    "id": "usagereport.active",
+    "other": "Active"
+  },
+  {
+    "id": "usagereport.active_accounts",
+    "other": "Active accounts"
+  },
+  {
+    "id": "usagereport.active_days",
+    "other": "Active days"
+  },
+  {
+    "id": "usagereport.active_means_at_least_one_request_in_the_reporting_period",
+    "other": "Active means at least one request in the reporting period. User and account totals are deduplicated. Activity rates use identified entities; usage without an identity remains included in totals."
+  },
+  {
+    "id": "usagereport.active_teams",
+    "other": "Active teams"
+  },
+  {
+    "id": "usagereport.active_users",
+    "other": "Active users"
+  },
+  {
+    "id": "usagereport.average_weight",
+    "other": "Average weight"
+  },
+  {
+    "id": "usagereport.both_periods_use_current_team_membership_account_usage_is_attributed",
+    "other": "Both periods use current team membership. Account usage is attributed to the account that served each request. Current bindings do not change historical attribution."
+  },
+  {
+    "id": "usagereport.cached_input",
+    "other": "Cached input"
+  },
+  {
+    "id": "usagereport.ccpa_token_report_xlsx",
+    "other": "CCPA_Token_Report_{{.Start}}_{{.End}}.xlsx"
+  },
+  {
+    "id": "usagereport.change",
+    "other": "Change"
+  },
+  {
+    "id": "usagereport.change_from_previous",
+    "other": "Change from previous"
+  },
+  {
+    "id": "usagereport.current_account",
+    "other": "Current account"
+  },
+  {
+    "id": "usagereport.current_bindings",
+    "other": "Current bindings"
+  },
+  {
+    "id": "usagereport.current_team",
+    "other": "Current team"
+  },
+  {
+    "id": "usagereport.current_week_is_incomplete",
+    "other": "  Current week is incomplete"
+  },
+  {
+    "id": "usagereport.daily_token_usage",
+    "other": "Daily token usage"
+  },
+  {
+    "id": "usagereport.daily_trends",
+    "other": "Daily trends"
+  },
+  {
+    "id": "usagereport.daily_trends_c_8_c_14",
+    "other": "'Daily trends'!$C$8:$C$14"
+  },
+  {
+    "id": "usagereport.date",
+    "other": "Date"
+  },
+  {
+    "id": "usagereport.dates_use_the_system_timezone_previous_dates_align_by_weekday",
+    "other": "Dates use the system timezone; previous dates align by weekday. Future dates are blank. Active user and account totals are deduplicated."
+  },
+  {
+    "id": "usagereport.end_exclusive",
+    "other": "{{.Start}} — {{.End}} (end exclusive)  {{.Timezone}}"
+  },
+  {
+    "id": "usagereport.friday",
+    "other": "Friday"
+  },
+  {
+    "id": "usagereport.highest_usage",
+    "other": "Highest usage"
+  },
+  {
+    "id": "usagereport.includes_current_and_historical_identities_including_those_without_request_records",
+    "other": "; includes current and historical identities, including those without request records."
+  },
+  {
+    "id": "usagereport.input_tokens",
+    "other": "Input tokens"
+  },
+  {
+    "id": "usagereport.largest_decrease",
+    "other": "Largest decrease"
+  },
+  {
+    "id": "usagereport.largest_increase",
+    "other": "Largest increase"
+  },
+  {
+    "id": "usagereport.last_request",
+    "other": "Last request"
+  },
+  {
+    "id": "usagereport.monday",
+    "other": "Monday"
+  },
+  {
+    "id": "usagereport.no",
+    "other": "No."
+  },
+  {
+    "id": "usagereport.no_data",
+    "other": "No data"
+  },
+  {
+    "id": "usagereport.no_request_records",
+    "other": "No request records"
+  },
+  {
+    "id": "usagereport.no_requests",
+    "other": "No requests"
+  },
+  {
+    "id": "usagereport.no_team_usage_in_this_period",
+    "other": "No team usage in this period"
+  },
+  {
+    "id": "usagereport.output_tokens",
+    "other": "Output tokens"
+  },
+  {
+    "id": "usagereport.outside_the_reporting_period",
+    "other": "Outside the reporting period"
+  },
+  {
+    "id": "usagereport.previous_date",
+    "other": "Previous date"
+  },
+  {
+    "id": "usagereport.previous_period_end_exclusive_change_is_when_previous_usage_is",
+    "other": "Previous period: {{.Start}} — {{.End}} (end exclusive). Change is — when previous usage is zero or no records exist. Missing collected records do not prove zero usage."
+  },
+  {
+    "id": "usagereport.previous_records",
+    "other": "Previous records"
+  },
+  {
+    "id": "usagereport.previous_tokens",
+    "other": "Previous tokens"
+  },
+  {
+    "id": "usagereport.previous_weighted_tokens",
+    "other": "Previous weighted tokens"
+  },
+  {
+    "id": "usagereport.raw_tokens",
+    "other": "Raw tokens"
+  },
+  {
+    "id": "usagereport.recorded",
+    "other": "Recorded"
+  },
+  {
+    "id": "usagereport.reporting_rules",
+    "other": "Reporting rules"
+  },
+  {
+    "id": "usagereport.request_statistics",
+    "other": "Request statistics"
+  },
+  {
+    "id": "usagereport.requests",
+    "other": "Requests"
+  },
+  {
+    "id": "usagereport.saturday",
+    "other": "Saturday"
+  },
+  {
+    "id": "usagereport.select_a_valid_monday_no_later_than_the_current_week",
+    "other": "Select a valid Monday no later than the current week"
+  },
+  {
+    "id": "usagereport.share_default_ranking_per_user_usage_and_changes_use_raw",
+    "other": "Share, default ranking, per-user usage and changes use raw tokens. Raw values use collected total_tokens; cached input is not counted again."
+  },
+  {
+    "id": "usagereport.sorted_by_raw_tokens_cached_tokens_are_included_in_input",
+    "other": "Sorted by raw tokens. Cached tokens are included in input. Raw and weighted tokens preserve history. Account and active-day totals are deduplicated."
+  },
+  {
+    "id": "usagereport.sorted_by_raw_tokens_current_bindings_are_routes_at_export",
+    "other": "Sorted by raw tokens. Current bindings are routes at export time; usage belongs to the account that served each request. Cached tokens are included in input. Active user totals are deduplicated."
+  },
+  {
+    "id": "usagereport.sorted_by_raw_tokens_share_change_and_per_user_usage",
+    "other": "Sorted by raw tokens. Share, change and per-user usage use raw tokens. Teams use current membership."
+  },
+  {
+    "id": "usagereport.success_rate",
+    "other": "Success rate"
+  },
+  {
+    "id": "usagereport.sunday",
+    "other": "Sunday"
+  },
+  {
+    "id": "usagereport.team",
+    "other": "Team"
+  },
+  {
+    "id": "usagereport.team_statistics",
+    "other": "Team statistics"
+  },
+  {
+    "id": "usagereport.team_token_usage",
+    "other": "Team token usage"
+  },
+  {
+    "id": "usagereport.this_week",
+    "other": "This week"
+  },
+  {
+    "id": "usagereport.thursday",
+    "other": "Thursday"
+  },
+  {
+    "id": "usagereport.tokens_per_user",
+    "other": "Tokens per user"
+  },
+  {
+    "id": "usagereport.total",
+    "other": "Total"
+  },
+  {
+    "id": "usagereport.total_deduplicated",
+    "other": "Total (deduplicated)"
+  },
+  {
+    "id": "usagereport.tuesday",
+    "other": "Tuesday"
+  },
+  {
+    "id": "usagereport.unassigned",
+    "other": "Unassigned"
+  },
+  {
+    "id": "usagereport.unidentified_account",
+    "other": "Unidentified account"
+  },
+  {
+    "id": "usagereport.unidentified_user",
+    "other": "Unidentified user"
+  },
+  {
+    "id": "usagereport.usage_overview",
+    "other": "Usage overview"
+  },
+  {
+    "id": "usagereport.usage_share",
+    "other": "Usage share"
+  },
+  {
+    "id": "usagereport.usage_through",
+    "other": "Usage through "
+  },
+  {
+    "id": "usagereport.user",
+    "other": "User"
+  },
+  {
+    "id": "usagereport.user_activity_rate",
+    "other": "User activity rate"
+  },
+  {
+    "id": "usagereport.user_usage_details",
+    "other": "User usage details"
+  },
+  {
+    "id": "usagereport.wednesday",
+    "other": "Wednesday"
+  },
+  {
+    "id": "usagereport.weekday",
+    "other": "Weekday"
+  },
+  {
+    "id": "usagereport.weekly_observations",
+    "other": "Weekly observations"
+  },
+  {
+    "id": "usagereport.weekly_token_usage_report",
+    "other": "Weekly token usage report"
+  },
+  {
+    "id": "usagereport.weighted_tokens",
+    "other": "Weighted tokens"
+  },
+  {
+    "id": "usagereport.weighted_tokens_use_values_saved_when_requests_were_collected_historical",
+    "other": "Weighted tokens use values saved when requests were collected. Historical records are not recalculated using current multipliers. Legacy records without weighted values use raw tokens."
+  }
+]

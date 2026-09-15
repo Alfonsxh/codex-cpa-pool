@@ -10,7 +10,9 @@ import (
 	"strings"
 
 	"github.com/Alfonsxh/codex-cpa-pool/internal/controlplane"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/moby/moby/api/pkg/stdcopy"
+
 	dockerclient "github.com/moby/moby/client"
 )
 
@@ -315,7 +317,7 @@ func (manager *Manager) Logs(ctx context.Context, target string) (LogsResult, er
 		output = strings.ToValidUTF8(output[:manager.logLimit], "�")
 	}
 	if truncated {
-		output += "\n[输出已截断]\n"
+		output += i18n.Text(i18n.English, "runtimeops.output_truncated")
 	}
 	return LogsResult{Target: normalizeTarget(target), Output: output, ExitCode: 0, Truncated: truncated}, nil
 }

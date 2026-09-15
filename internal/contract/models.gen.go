@@ -250,21 +250,6 @@ func (e CPAImageStatusCached) Valid() bool {
 	}
 }
 
-// Defines values for ConfigurationCatalogVersion.
-const (
-	ConfigurationCatalogVersionN1 ConfigurationCatalogVersion = 1
-)
-
-// Valid indicates whether the value is a known member of the ConfigurationCatalogVersion enum.
-func (e ConfigurationCatalogVersion) Valid() bool {
-	switch e {
-	case ConfigurationCatalogVersionN1:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for ConfigurationFieldApplyMode.
 const (
 	ConfigurationFieldApplyModeAccounts   ConfigurationFieldApplyMode = "accounts"
@@ -1965,6 +1950,10 @@ type AccountClearAuthRequest struct {
 type AccountClearAuthResponse struct {
 	Account AccountClearAuthResult `json:"account"`
 	Message string                 `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                 `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{} `json:"message_params,omitempty"`
 }
 
 // AccountClearAuthResult defines model for AccountClearAuthResult.
@@ -1988,6 +1977,10 @@ type AccountCreateRequestProxyMode string
 type AccountCreateResponse struct {
 	Account AccountCreateResult `json:"account"`
 	Message string              `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                 `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{} `json:"message_params,omitempty"`
 }
 
 // AccountCreateResult defines model for AccountCreateResult.
@@ -2009,6 +2002,10 @@ type AccountDeleteRequest struct {
 type AccountDeleteResponse struct {
 	Account AccountDeleteResult `json:"account"`
 	Message string              `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                 `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{} `json:"message_params,omitempty"`
 }
 
 // AccountDeleteResult defines model for AccountDeleteResult.
@@ -2044,14 +2041,18 @@ type AccountModelTestRequest struct {
 
 // AccountModelTestResult defines model for AccountModelTestResult.
 type AccountModelTestResult struct {
-	Account        string `json:"account"`
-	CheckedAt      int64  `json:"checked_at"`
-	Code           string `json:"code"`
-	ElapsedMs      int64  `json:"elapsed_ms"`
-	Message        string `json:"message"`
-	Model          string `json:"model"`
-	Success        bool   `json:"success"`
-	UpstreamStatus int    `json:"upstream_status"`
+	Account   string `json:"account"`
+	CheckedAt int64  `json:"checked_at"`
+	Code      string `json:"code"`
+	ElapsedMs int64  `json:"elapsed_ms"`
+	Message   string `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey     *string                 `json:"message_key,omitempty"`
+	MessageParams  *map[string]interface{} `json:"message_params,omitempty"`
+	Model          string                  `json:"model"`
+	Success        bool                    `json:"success"`
+	UpstreamStatus int                     `json:"upstream_status"`
 }
 
 // AccountModels defines model for AccountModels.
@@ -2156,6 +2157,10 @@ type AccountUpdateRequestProxyMode string
 type AccountUpdateResponse struct {
 	Account AccountUpdateResult `json:"account"`
 	Message string              `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                 `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{} `json:"message_params,omitempty"`
 }
 
 // AccountUpdateResult defines model for AccountUpdateResult.
@@ -2198,6 +2203,10 @@ type AdminSessionAuthenticated bool
 type BrandingLogoMutationResponse struct {
 	Logo    BrandingLogoState `json:"logo"`
 	Message string            `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                 `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{} `json:"message_params,omitempty"`
 }
 
 // BrandingLogoResetRequest defines model for BrandingLogoResetRequest.
@@ -2292,14 +2301,11 @@ type CollectorStatus struct {
 
 // ConfigurationCatalog defines model for ConfigurationCatalog.
 type ConfigurationCatalog struct {
-	FieldCount  int                         `json:"field_count"`
-	GeneratedAt int64                       `json:"generated_at"`
-	Groups      []ConfigurationGroup        `json:"groups"`
-	Version     ConfigurationCatalogVersion `json:"version"`
+	FieldCount  int                  `json:"field_count"`
+	GeneratedAt int64                `json:"generated_at"`
+	Groups      []ConfigurationGroup `json:"groups"`
+	Version     int                  `json:"version"`
 }
-
-// ConfigurationCatalogVersion defines model for ConfigurationCatalog.Version.
-type ConfigurationCatalogVersion int
 
 // ConfigurationChoice defines model for ConfigurationChoice.
 type ConfigurationChoice struct {
@@ -2324,7 +2330,10 @@ type ConfigurationField struct {
 	MinLength      *int                        `json:"min_length,omitempty"`
 	Type           ConfigurationFieldType      `json:"type"`
 	Unit           *string                     `json:"unit,omitempty"`
-	Value          *ConfigurationValue         `json:"value"`
+
+	// UnitCode Stable unit identifier independent of the localized label
+	UnitCode *string             `json:"unit_code,omitempty"`
+	Value    *ConfigurationValue `json:"value"`
 }
 
 // ConfigurationFieldApplyMode defines model for ConfigurationField.ApplyMode.
@@ -2340,7 +2349,10 @@ type ConfigurationFieldType string
 type ConfigurationGroup struct {
 	Description string               `json:"description"`
 	Fields      []ConfigurationField `json:"fields"`
-	Name        string               `json:"name"`
+
+	// Id Stable language-independent group identifier
+	Id   *string `json:"id,omitempty"`
+	Name string  `json:"name"`
 }
 
 // ConfigurationUpdateRequest defines model for ConfigurationUpdateRequest.
@@ -2356,10 +2368,14 @@ type ConfigurationUpdateRequestConfirm string
 
 // ConfigurationUpdateResponse defines model for ConfigurationUpdateResponse.
 type ConfigurationUpdateResponse struct {
-	Applied           []ConfigurationUpdateResponseApplied `json:"applied"`
-	Changed           []string                             `json:"changed"`
-	Message           string                               `json:"message"`
-	PendingDeployment bool                                 `json:"pending_deployment"`
+	Applied []ConfigurationUpdateResponseApplied `json:"applied"`
+	Changed []string                             `json:"changed"`
+	Message string                               `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey        *string                 `json:"message_key,omitempty"`
+	MessageParams     *map[string]interface{} `json:"message_params,omitempty"`
+	PendingDeployment bool                    `json:"pending_deployment"`
 }
 
 // ConfigurationUpdateResponseApplied defines model for ConfigurationUpdateResponse.Applied.
@@ -2408,9 +2424,13 @@ type DeleteUserRequest struct {
 
 // ErrorDetail defines model for ErrorDetail.
 type ErrorDetail struct {
-	Code    string  `json:"code"`
-	Message string  `json:"message"`
-	Type    *string `json:"type,omitempty"`
+	Code    string `json:"code"`
+	Message string `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                 `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{} `json:"message_params,omitempty"`
+	Type          *string                 `json:"type,omitempty"`
 }
 
 // ErrorEnvelope defines model for ErrorEnvelope.
@@ -2440,8 +2460,12 @@ type GeneralSettingsBranding struct {
 
 // GeneralSettingsMutationResponse defines model for GeneralSettingsMutationResponse.
 type GeneralSettingsMutationResponse struct {
-	Message  string          `json:"message"`
-	Settings GeneralSettings `json:"settings"`
+	Message string `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                 `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{} `json:"message_params,omitempty"`
+	Settings      GeneralSettings         `json:"settings"`
 }
 
 // GeneralSettingsSecurity defines model for GeneralSettingsSecurity.
@@ -2490,6 +2514,10 @@ type InitialPasswordRequest struct {
 type InitialPasswordResponse struct {
 	Configured InitialPasswordResponseConfigured `json:"configured"`
 	Message    string                            `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                 `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{} `json:"message_params,omitempty"`
 }
 
 // InitialPasswordResponseConfigured defines model for InitialPasswordResponse.Configured.
@@ -2497,6 +2525,8 @@ type InitialPasswordResponseConfigured bool
 
 // LegacyRuntimeJob defines model for LegacyRuntimeJob.
 type LegacyRuntimeJob struct {
+	// Action Stable operation identifier
+	Action     *string                `json:"action,omitempty"`
 	CreatedAt  int64                  `json:"created_at"`
 	ExitCode   *int                   `json:"exit_code"`
 	FinishedAt *int64                 `json:"finished_at"`
@@ -2520,6 +2550,10 @@ type LegacyRuntimeJobCancelRequest struct {
 type LegacyRuntimeJobCancelResponse struct {
 	Job     LegacyRuntimeJob `json:"job"`
 	Message string           `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                 `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{} `json:"message_params,omitempty"`
 }
 
 // LegacyRuntimeJobCatalog defines model for LegacyRuntimeJobCatalog.
@@ -2545,7 +2579,11 @@ type LegacyRuntimeJobResponse struct {
 type LegacyRuntimeJobSubmissionResponse struct {
 	Job     LegacyRuntimeJob `json:"job"`
 	Message string           `json:"message"`
-	Reused  bool             `json:"reused"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                 `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{} `json:"message_params,omitempty"`
+	Reused        bool                    `json:"reused"`
 }
 
 // LoggedOutResponse defines model for LoggedOutResponse.
@@ -2564,8 +2602,12 @@ type ManagementKeyRotationRequest struct {
 
 // ManagementKeyRotationResponse defines model for ManagementKeyRotationResponse.
 type ManagementKeyRotationResponse struct {
-	Message string                      `json:"message"`
-	Result  ManagementKeyRotationResult `json:"result"`
+	Message string `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                     `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{}     `json:"message_params,omitempty"`
+	Result        ManagementKeyRotationResult `json:"result"`
 }
 
 // ManagementKeyRotationResult defines model for ManagementKeyRotationResult.
@@ -2583,6 +2625,10 @@ type ManagementKeyRotationResultServices int
 // MessageResponse defines model for MessageResponse.
 type MessageResponse struct {
 	Message string `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                 `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{} `json:"message_params,omitempty"`
 }
 
 // NativeAccount defines model for NativeAccount.
@@ -2605,9 +2651,13 @@ type NotificationSettings struct {
 
 // NotificationSettingsMutationResponse defines model for NotificationSettingsMutationResponse.
 type NotificationSettingsMutationResponse struct {
-	Message       string             `json:"message"`
-	Notifications NotificationStatus `json:"notifications"`
-	Values        NotificationValues `json:"values"`
+	Message string `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                 `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{} `json:"message_params,omitempty"`
+	Notifications NotificationStatus      `json:"notifications"`
+	Values        NotificationValues      `json:"values"`
 }
 
 // NotificationSettingsUpdateRequest defines model for NotificationSettingsUpdateRequest.
@@ -2663,8 +2713,12 @@ type NotificationWebhookRequestConfirm string
 
 // NotificationWebhookResponse defines model for NotificationWebhookResponse.
 type NotificationWebhookResponse struct {
-	Message       string             `json:"message"`
-	Notifications NotificationStatus `json:"notifications"`
+	Message string `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                 `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{} `json:"message_params,omitempty"`
+	Notifications NotificationStatus      `json:"notifications"`
 }
 
 // OnboardingPreferencesRequest defines model for OnboardingPreferencesRequest.
@@ -2910,7 +2964,11 @@ type PortalPasswordRequest struct {
 
 // PortalPasswordResponse defines model for PortalPasswordResponse.
 type PortalPasswordResponse struct {
-	Message                string                                       `json:"message"`
+	Message string `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey             *string                                      `json:"message_key,omitempty"`
+	MessageParams          *map[string]interface{}                      `json:"message_params,omitempty"`
 	PasswordChangeRequired PortalPasswordResponsePasswordChangeRequired `json:"password_change_required"`
 }
 
@@ -2940,9 +2998,13 @@ type PortalRotateKeyRequestConfirm bool
 
 // PortalRotateKeyResponse defines model for PortalRotateKeyResponse.
 type PortalRotateKeyResponse struct {
-	ApiKey             string `json:"api_key"`
-	Message            string `json:"message"`
-	SnapshotGeneration string `json:"snapshot_generation"`
+	ApiKey  string `json:"api_key"`
+	Message string `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey         *string                 `json:"message_key,omitempty"`
+	MessageParams      *map[string]interface{} `json:"message_params,omitempty"`
+	SnapshotGeneration string                  `json:"snapshot_generation"`
 }
 
 // PortalRoute defines model for PortalRoute.
@@ -2953,10 +3015,14 @@ type PortalRoute struct {
 
 // PortalRouteMutationResponse defines model for PortalRouteMutationResponse.
 type PortalRouteMutationResponse struct {
-	Changed            bool    `json:"changed"`
-	CurrentGroup       string  `json:"current_group"`
-	Message            string  `json:"message"`
-	SnapshotGeneration *string `json:"snapshot_generation,omitempty"`
+	Changed      bool   `json:"changed"`
+	CurrentGroup string `json:"current_group"`
+	Message      string `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey         *string                 `json:"message_key,omitempty"`
+	MessageParams      *map[string]interface{} `json:"message_params,omitempty"`
+	SnapshotGeneration *string                 `json:"snapshot_generation,omitempty"`
 }
 
 // PortalRouteRequest defines model for PortalRouteRequest.
@@ -3168,8 +3234,12 @@ type RebalanceAccountRequest struct {
 
 // RebalanceAccountResponse defines model for RebalanceAccountResponse.
 type RebalanceAccountResponse struct {
-	Message   string                    `json:"message"`
-	Rebalance RebalanceEvacuationResult `json:"rebalance"`
+	Message string `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                   `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{}   `json:"message_params,omitempty"`
+	Rebalance     RebalanceEvacuationResult `json:"rebalance"`
 }
 
 // RebalanceAllRequest defines model for RebalanceAllRequest.
@@ -3205,8 +3275,12 @@ type RebalancePlanSummary struct {
 
 // RebalanceResponse defines model for RebalanceResponse.
 type RebalanceResponse struct {
-	Message   string          `json:"message"`
-	Rebalance RebalanceResult `json:"rebalance"`
+	Message string `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                 `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{} `json:"message_params,omitempty"`
+	Rebalance     RebalanceResult         `json:"rebalance"`
 }
 
 // RebalanceResult defines model for RebalanceResult.
@@ -3253,12 +3327,16 @@ type ResetAccountQuotaRequest struct {
 
 // ResetAccountQuotaResponse defines model for ResetAccountQuotaResponse.
 type ResetAccountQuotaResponse struct {
-	Account      string             `json:"account"`
-	Code         string             `json:"code"`
-	Credit       ResetQuotaCredit   `json:"credit"`
-	Message      string             `json:"message"`
-	Windows      []ResetQuotaWindow `json:"windows"`
-	WindowsReset int64              `json:"windows_reset"`
+	Account string           `json:"account"`
+	Code    string           `json:"code"`
+	Credit  ResetQuotaCredit `json:"credit"`
+	Message string           `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                 `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{} `json:"message_params,omitempty"`
+	Windows       []ResetQuotaWindow      `json:"windows"`
+	WindowsReset  int64                   `json:"windows_reset"`
 }
 
 // ResetQuotaCredit defines model for ResetQuotaCredit.
@@ -3309,6 +3387,10 @@ type RuntimeJobStatus string
 type RuntimeJobCancelResponse struct {
 	Job     RuntimeJob `json:"job"`
 	Message string     `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                 `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{} `json:"message_params,omitempty"`
 }
 
 // RuntimeJobCatalog defines model for RuntimeJobCatalog.
@@ -3337,7 +3419,11 @@ type RuntimeJobResponse struct {
 type RuntimeJobSubmissionResponse struct {
 	Job     RuntimeJob `json:"job"`
 	Message string     `json:"message"`
-	Reused  bool       `json:"reused"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                 `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{} `json:"message_params,omitempty"`
+	Reused        bool                    `json:"reused"`
 }
 
 // RuntimeLogs defines model for RuntimeLogs.
@@ -3382,6 +3468,10 @@ type RuntimeServiceCatalog struct {
 type SendNotificationResponse struct {
 	Format  SendNotificationResponseFormat `json:"format"`
 	Message string                         `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                 `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{} `json:"message_params,omitempty"`
 }
 
 // SendNotificationResponseFormat defines model for SendNotificationResponse.Format.
@@ -3487,7 +3577,11 @@ type TeamModelUsage struct {
 // TeamMutationResponse defines model for TeamMutationResponse.
 type TeamMutationResponse struct {
 	Message string `json:"message"`
-	Team    Team   `json:"team"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                 `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{} `json:"message_params,omitempty"`
+	Team          Team                    `json:"team"`
 }
 
 // TeamTagStyle defines model for TeamTagStyle.
@@ -3803,7 +3897,11 @@ type UserCreateResponse struct {
 	InitialPassword string           `json:"initial_password"`
 	Keys            []UserOneTimeKey `json:"keys"`
 	Message         string           `json:"message"`
-	TeamId          *string          `json:"team_id"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                 `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{} `json:"message_params,omitempty"`
+	TeamId        *string                 `json:"team_id"`
 }
 
 // UserDetail defines model for UserDetail.
@@ -3867,6 +3965,10 @@ type UserKeyPreview struct {
 type UserKeyRotationResponse struct {
 	Keys    []UserOneTimeKey `json:"keys"`
 	Message string           `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                 `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{} `json:"message_params,omitempty"`
 }
 
 // UserOneTimeKey defines model for UserOneTimeKey.
@@ -3884,10 +3986,14 @@ type UserOneTimeKey struct {
 
 // UserPasswordResetResponse defines model for UserPasswordResetResponse.
 type UserPasswordResetResponse struct {
-	InitialPassword        string              `json:"initial_password"`
-	Message                string              `json:"message"`
-	PasswordChangeRequired bool                `json:"password_change_required"`
-	User                   openapi_types.Email `json:"user"`
+	InitialPassword string `json:"initial_password"`
+	Message         string `json:"message"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey             *string                 `json:"message_key,omitempty"`
+	MessageParams          *map[string]interface{} `json:"message_params,omitempty"`
+	PasswordChangeRequired bool                    `json:"password_change_required"`
+	User                   openapi_types.Email     `json:"user"`
 }
 
 // UserQuotaActionRequest defines model for UserQuotaActionRequest.
@@ -3928,11 +4034,15 @@ type UserQuotaActionResponse struct {
 	ChangedPolicies *int64                        `json:"changed_policies,omitempty"`
 	CreatedAt       *int64                        `json:"created_at,omitempty"`
 	Message         string                        `json:"message"`
-	QuotaOperations UserQuotaOperationSummary     `json:"quota_operations"`
-	Reason          *string                       `json:"reason,omitempty"`
-	SkippedUsers    []openapi_types.Email         `json:"skipped_users"`
-	TokenAmount     *int64                        `json:"token_amount,omitempty"`
-	WeekStartAt     *int64                        `json:"week_start_at,omitempty"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey      *string                   `json:"message_key,omitempty"`
+	MessageParams   *map[string]interface{}   `json:"message_params,omitempty"`
+	QuotaOperations UserQuotaOperationSummary `json:"quota_operations"`
+	Reason          *string                   `json:"reason,omitempty"`
+	SkippedUsers    []openapi_types.Email     `json:"skipped_users"`
+	TokenAmount     *int64                    `json:"token_amount,omitempty"`
+	WeekStartAt     *int64                    `json:"week_start_at,omitempty"`
 }
 
 // UserQuotaActionResponseAction defines model for UserQuotaActionResponse.Action.
@@ -3970,8 +4080,12 @@ type UserQuotaOperationSummary struct {
 type UserQuotaResult struct {
 	Adjustments []UserQuotaAdjustment `json:"adjustments"`
 	Message     *string               `json:"message,omitempty"`
-	User        openapi_types.Email   `json:"user"`
-	WeeklyQuota UserWeeklyQuota       `json:"weekly_quota"`
+
+	// MessageKey Stable authored message identifier
+	MessageKey    *string                 `json:"message_key,omitempty"`
+	MessageParams *map[string]interface{} `json:"message_params,omitempty"`
+	User          openapi_types.Email     `json:"user"`
+	WeeklyQuota   UserWeeklyQuota         `json:"weekly_quota"`
 }
 
 // UserSummary defines model for UserSummary.

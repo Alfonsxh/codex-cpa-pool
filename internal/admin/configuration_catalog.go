@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/usage"
 	"github.com/gin-gonic/gin"
 )
@@ -31,6 +33,7 @@ type configurationCatalogField struct {
 	Default        any                          `json:"default"`
 	ApplyMode      string                       `json:"apply_mode"`
 	Editable       bool                         `json:"editable"`
+	UnitCode       string                       `json:"unit_code,omitempty"`
 	Unit           string                       `json:"unit,omitempty"`
 	Minimum        *float64                     `json:"min,omitempty"`
 	Maximum        *float64                     `json:"max,omitempty"`
@@ -42,6 +45,7 @@ type configurationCatalogField struct {
 }
 
 type configurationCatalogGroup struct {
+	ID          string                      `json:"id"`
 	Name        string                      `json:"name"`
 	Description string                      `json:"description"`
 	Fields      []configurationCatalogField `json:"fields"`
@@ -77,15 +81,15 @@ func (server *Server) readConfiguration(c *gin.Context) {
 			groupIndex = len(groups)
 			groupIndexes[presentation.Group] = groupIndex
 			groups = append(groups, configurationCatalogGroup{
-				Name: presentation.Group, Description: configurationGroupDescriptions[presentation.Group],
+				ID: strings.TrimPrefix(presentation.Group, "admin."), Name: httpi18n.Text(c, presentation.Group), Description: httpi18n.Text(c, configurationGroupDescriptions[presentation.Group]),
 				Fields: make([]configurationCatalogField, 0),
 			})
 		}
 
 		field := configurationCatalogField{
-			Key: definition.Key, Label: definition.Label, Description: presentation.Description,
+			Key: definition.Key, Label: definition.label().Render(httpi18n.Locale(c)), Description: httpi18n.Text(c, presentation.Description),
 			ValueType: definition.ValueType, Value: values[definition.Key], Default: definition.Default,
-			ApplyMode: definition.ApplyMode, Editable: true, Unit: presentation.Unit,
+			ApplyMode: definition.ApplyMode, Editable: true, Unit: configurationUnit(presentation.Unit, httpi18n.Locale(c)), UnitCode: configurationUnitCode(presentation.Unit),
 			DigestRequired: definition.DigestRequired,
 		}
 		if definition.Key == quotaResetSettingKey {
@@ -122,6 +126,8 @@ func (server *Server) readConfiguration(c *gin.Context) {
 				label := presentation.ChoiceLabels[value]
 				if label == "" {
 					label = value
+				} else {
+					label = httpi18n.Text(c, label)
 				}
 				field.Choices = append(field.Choices, configurationCatalogChoice{Value: value, Label: label})
 			}
@@ -134,8 +140,8 @@ func (server *Server) readConfiguration(c *gin.Context) {
 		groups[groupIndex].Fields = append(groups[groupIndex].Fields, field)
 	}
 
-	c.JSON(http.StatusOK, configurationCatalogResponse{
-		Version: 2, GeneratedAt: time.Now().Unix(), FieldCount: len(configurationDefinitions), Groups: groups,
+	httpi18n.JSON(c, http.StatusOK, configurationCatalogResponse{
+		Version: 3, GeneratedAt: time.Now().Unix(), FieldCount: len(configurationDefinitions), Groups: groups,
 	})
 }
 
@@ -150,97 +156,123 @@ func errMissingConfigurationPresentation(key string) error {
 }
 
 var configurationGroupDescriptions = map[string]string{
-	"系统设置":   "站点统一的时间与日期边界。",
-	"品牌与身份":  "品牌、域名和客户端配置。",
-	"CPA 请求": "CPA 请求与代理配置。",
-	"用量与额度":  "额度与用量采集。",
-	"账号自动切换": "额度不足时自动迁移。",
-	"用户额度":   "用户额度和故障策略。",
-	"推理强度策略": "模型与推理强度共同决定用户额度 Token 倍率；颜色只影响展示。",
-	"企业微信通知": "额度报告和预警。",
-	"会话与采集":  "会话和采集设置。",
-	"账号供应":   "新 CPA 端口范围。",
-	"账号与发布":  "CPA 监听与更新镜像。",
+	"admin.system_settings":             "admin.shared_time_and_date_boundaries_across_the_site",
+	"admin.brand_identity":              "admin.brand_domains_and_client_configuration",
+	"admin.cpa_requests":                "admin.cpa_request_and_proxy_settings",
+	"admin.usage_quotas":                "admin.quotas_and_usage_collection",
+	"admin.automatic_account_switching": "admin.automatic_migration_when_quota_is_low",
+	"admin.user_quotas":                 "admin.user_quotas_and_failure_policies",
+	"admin.reasoning_effort_policy":     "admin.model_and_reasoning_effort_together_determine_the_user_quota_token",
+	"admin.wecom_notifications":         "admin.quota_reports_and_alerts",
+	"admin.sessions_collection":         "admin.session_and_collection_settings",
+	"admin.account_provisioning":        "admin.port_range_for_new_cpas",
+	"admin.accounts_releases":           "admin.cpa_listen_address_and_update_image",
 }
 
 var configurationPresentationByKey = map[string]configurationPresentation{
-	"branding.product_name":                              {Group: "品牌与身份", Description: "页面产品名称。"},
-	"branding.short_name":                                {Group: "品牌与身份", Description: "客户端显示的简称。"},
-	"branding.environment_label":                         {Group: "品牌与身份", Description: "入口页环境说明，可留空。"},
-	"branding.public_base_url":                           {Group: "品牌与身份", Description: "通知与导出地址；留空用当前站点。"},
-	"identity.allowed_email_domains":                     {Group: "品牌与身份", Description: "逗号分隔；创建用户前至少填一个。"},
-	"identity.key_prefix":                                {Group: "品牌与身份", Description: "新 Key 前缀，以下划线结尾。"},
-	"portal.provider_name":                               {Group: "品牌与身份", Description: "客户端 Provider 名称。"},
-	"portal.api_key_env":                                 {Group: "品牌与身份", Description: "Shell Key 变量名。"},
-	"portal.default_model":                               {Group: "品牌与身份", Description: "客户端默认模型。"},
-	"cpa.proxy_enabled":                                  {Group: "CPA 请求", Description: "仅用于继承默认代理的 CPA。"},
-	"cpa.proxy_url":                                      {Group: "CPA 请求", Description: "默认代理地址（HTTP/HTTPS/SOCKS5）。"},
-	"cpa.request_retry":                                  {Group: "CPA 请求", Description: "上游失败重试次数。"},
-	"cpa.disable_image_generation":                       {Group: "CPA 请求", Description: "图片工具启用策略。", ChoiceLabels: map[string]string{"chat": "仅普通对话禁用（推荐）", "true": "全部禁用", "false": "全部启用"}},
-	"cpa.max_retry_credentials":                          {Group: "CPA 请求", Description: "单次切换凭据上限。"},
-	"cpa.max_retry_interval":                             {Group: "CPA 请求", Description: "冷却凭据最长等待时间。", Unit: "秒"},
-	"cpa.transient_error_cooldown_seconds":               {Group: "CPA 请求", Description: "临时错误冷却时间。", Unit: "秒"},
-	"cpa.session_affinity":                               {Group: "CPA 请求", Description: "是否复用会话凭据。"},
-	"cpa.session_affinity_ttl":                           {Group: "CPA 请求", Description: "凭据复用时长，如 30s。"},
-	"cpa.debug":                                          {Group: "CPA 请求", Description: "排障时开启，会增加日志量。"},
-	"cpa.logging_to_file":                                {Group: "CPA 请求", Description: "是否保存 CPA 日志。"},
-	"cpa.logs_max_total_size_mb":                         {Group: "CPA 请求", Description: "单个 CPA 上限，超出删除最旧日志。", Unit: "MiB"},
-	"cpa.error_logs_max_files":                           {Group: "CPA 请求", Description: "单个 CPA 错误日志文件上限。", Unit: "个"},
-	"cpa.usage_statistics_enabled":                       {Group: "用量与额度", Description: "关闭后停止采集新增 Token 用量。"},
-	"cpa.usage_queue_retention_seconds":                  {Group: "用量与额度", Description: "中断时事件保留时间。", Unit: "秒"},
-	usage.ActiveUserWindowSettingKey:                     {Group: "用量与额度", Description: "账号活跃用户去重统计的滚动时间窗口。", Unit: "秒"},
-	"usage.quota_cache_seconds":                          {Group: "用量与额度", Description: "官方额度缓存时间。", Unit: "秒"},
-	"usage.upstream_timeout_seconds":                     {Group: "用量与额度", Description: "官方接口超时时间。", Unit: "秒"},
-	"account_failover.mode":                              {Group: "账号自动切换", Description: "官方周额度耗尽后自动迁移用户。", ChoiceLabels: map[string]string{"off": "关闭", "active": "自动执行"}},
-	"account_failover.poll_seconds":                      {Group: "账号自动切换", Description: "官方额度检查周期。", Unit: "秒"},
-	"account_failover.reserve_percent":                   {Group: "账号自动切换", Description: "剩余额度不高于此值时不接收迁入。", Unit: "%"},
-	"account_failover.stale_after_seconds":               {Group: "账号自动切换", Description: "额度过期后停止迁移。", Unit: "秒"},
-	"user_quota.default_weekly_tokens":                   {Group: "用户额度", Description: "每人自然周加权上限；留空不限额，个人策略优先。", Unit: "Token"},
-	quotaResetSettingKey:                                 {Group: "用户额度", Description: "对所有用户生效。关闭时，本周额度不变，下周一 00:00 按系统时区恢复组织默认额度；开启时持续保留个人额度。每周用量仍重新累计，临时追加额度仍在换周后失效。"},
-	"system.timezone":                                    {Group: "系统设置", Description: "统一用于页面时间、今日用量、自然周额度与通知调度。修改后将重新归集本周用量。"},
-	"user_quota.fail_open_after_seconds":                 {Group: "用户额度", Description: "采集异常超时后放行并告警。", Unit: "秒"},
-	"user_quota.reasoning_multiplier.none":               {Group: "推理强度策略", Description: "新采集事件的 Token 倍率。", Unit: "倍"},
-	"user_quota.reasoning_multiplier.minimal":            {Group: "推理强度策略", Description: "新采集事件的 Token 倍率。", Unit: "倍"},
-	"user_quota.reasoning_multiplier.low":                {Group: "推理强度策略", Description: "新采集事件的 Token 倍率。", Unit: "倍"},
-	"user_quota.reasoning_multiplier.medium":             {Group: "推理强度策略", Description: "新采集事件的 Token 倍率。", Unit: "倍"},
-	"user_quota.reasoning_multiplier.high":               {Group: "推理强度策略", Description: "新采集事件的 Token 倍率。", Unit: "倍"},
-	"user_quota.reasoning_multiplier.xhigh":              {Group: "推理强度策略", Description: "新采集事件的 Token 倍率。", Unit: "倍"},
-	"user_quota.reasoning_multiplier.max":                {Group: "推理强度策略", Description: "新采集事件的 Token 倍率。", Unit: "倍"},
-	"user_quota.reasoning_multiplier.ultra":              {Group: "推理强度策略", Description: "新采集事件的 Token 倍率。", Unit: "倍"},
-	"user_quota.reasoning_multiplier.auto":               {Group: "推理强度策略", Description: "新采集事件的 Token 倍率。", Unit: "倍"},
-	"user_quota.reasoning_multiplier.unknown":            {Group: "推理强度策略", Description: "新采集事件的 Token 倍率。", Unit: "倍"},
-	"admin.account_usage.reasoning_effort_color.none":    {Group: "推理强度策略", Description: "账号明细显示颜色。"},
-	"admin.account_usage.reasoning_effort_color.minimal": {Group: "推理强度策略", Description: "账号明细显示颜色。"},
-	"admin.account_usage.reasoning_effort_color.low":     {Group: "推理强度策略", Description: "账号明细显示颜色。"},
-	"admin.account_usage.reasoning_effort_color.medium":  {Group: "推理强度策略", Description: "账号明细显示颜色。"},
-	"admin.account_usage.reasoning_effort_color.high":    {Group: "推理强度策略", Description: "账号明细显示颜色。"},
-	"admin.account_usage.reasoning_effort_color.xhigh":   {Group: "推理强度策略", Description: "账号明细显示颜色。"},
-	"admin.account_usage.reasoning_effort_color.max":     {Group: "推理强度策略", Description: "账号明细显示颜色。"},
-	"admin.account_usage.reasoning_effort_color.ultra":   {Group: "推理强度策略", Description: "账号明细显示颜色。"},
-	"admin.account_usage.reasoning_effort_color.auto":    {Group: "推理强度策略", Description: "账号明细显示颜色。"},
-	"admin.account_usage.reasoning_effort_color.unknown": {Group: "推理强度策略", Description: "账号明细显示颜色。"},
-	"notification.enabled":                               {Group: "企业微信通知", Description: "是否发送企业微信通知。"},
-	"notification.daily_times":                           {Group: "企业微信通知", Description: "HH:MM 格式，多个时间用逗号分隔。"},
-	"notification.schedule_grace_minutes":                {Group: "企业微信通知", Description: "计划发送时间后允许补发的时长。", Unit: "分钟"},
-	"notification.quota_alert_enabled":                   {Group: "企业微信通知", Description: "是否发送周额度预警。"},
-	"notification.weekly_threshold_percent":              {Group: "企业微信通知", Description: "账号周额度已用比例达到此值时预警。", Unit: "%"},
-	"portal.session_ttl_seconds":                         {Group: "会话与采集", Description: "仅影响保存后的新登录会话。", Unit: "秒"},
-	"collector.interval_seconds":                         {Group: "会话与采集", Description: "采集轮询间隔。", Unit: "秒"},
-	"collector.batch_size":                               {Group: "会话与采集", Description: "单个 CPA 每批采集事件上限。"},
-	"accounts.port_start":                                {Group: "账号供应", Description: "新 CPA 端口起点。"},
-	"accounts.port_end":                                  {Group: "账号供应", Description: "新 CPA 端口终点，不小于起点。"},
-	"accounts.listen_address":                            {Group: "账号与发布", Description: "仅允许宿主机回环地址。"},
-	"runtime.cliproxy_image":                             {Group: "账号与发布", Description: "在账号管理中拉取并验证更新。"},
+	i18n.SettingKey:                                      {Group: "admin.system_settings", Description: "configuration.system_language_description", ChoiceLabels: map[string]string{"en": "configuration.language_english", "zh-CN": "configuration.language_chinese"}},
+	"branding.product_name":                              {Group: "admin.brand_identity", Description: "admin.product_name_shown_on_pages"},
+	"branding.short_name":                                {Group: "admin.brand_identity", Description: "admin.short_name_displayed_in_clients"},
+	"branding.environment_label":                         {Group: "admin.brand_identity", Description: "admin.portal_environment_label_may_be_left_blank"},
+	"branding.public_base_url":                           {Group: "admin.brand_identity", Description: "admin.url_used_in_notifications_and_exports_leave_blank_to_use"},
+	"identity.allowed_email_domains":                     {Group: "admin.brand_identity", Description: "admin.separate_with_commas_configure_at_least_one_domain_before_creating"},
+	"identity.key_prefix":                                {Group: "admin.brand_identity", Description: "admin.prefix_for_new_keys_ending_with_an_underscore"},
+	"portal.provider_name":                               {Group: "admin.brand_identity", Description: "admin.client_provider_name_2"},
+	"portal.api_key_env":                                 {Group: "admin.brand_identity", Description: "admin.shell_variable_for_the_key"},
+	"portal.default_model":                               {Group: "admin.brand_identity", Description: "admin.default_client_model_2"},
+	"cpa.proxy_enabled":                                  {Group: "admin.cpa_requests", Description: "admin.used_only_by_cpas_that_inherit_the_default_proxy"},
+	"cpa.proxy_url":                                      {Group: "admin.cpa_requests", Description: "admin.default_proxy_url_http_https_socks5"},
+	"cpa.request_retry":                                  {Group: "admin.cpa_requests", Description: "admin.retries_after_upstream_failures"},
+	"cpa.disable_image_generation":                       {Group: "admin.cpa_requests", Description: "admin.image_tool_availability_policy", ChoiceLabels: map[string]string{"chat": "admin.disable_in_regular_chats_only_recommended", "true": "admin.disable_all", "false": "admin.enable_all"}},
+	"cpa.max_retry_credentials":                          {Group: "admin.cpa_requests", Description: "admin.maximum_credential_switches_per_attempt"},
+	"cpa.max_retry_interval":                             {Group: "admin.cpa_requests", Description: "admin.maximum_wait_for_credentials_in_cooldown", Unit: "admin.sec"},
+	"cpa.transient_error_cooldown_seconds":               {Group: "admin.cpa_requests", Description: "admin.cooldown_after_transient_errors", Unit: "admin.sec"},
+	"cpa.session_affinity":                               {Group: "admin.cpa_requests", Description: "admin.reuse_session_credentials"},
+	"cpa.session_affinity_ttl":                           {Group: "admin.cpa_requests", Description: "admin.credential_reuse_duration_such_as_30s"},
+	"cpa.debug":                                          {Group: "admin.cpa_requests", Description: "admin.enable_for_troubleshooting_increases_log_volume"},
+	"cpa.logging_to_file":                                {Group: "admin.cpa_requests", Description: "admin.save_cpa_logs_to_files"},
+	"cpa.logs_max_total_size_mb":                         {Group: "admin.cpa_requests", Description: "admin.per_cpa_limit_oldest_logs_are_deleted_when_exceeded", Unit: "MiB"},
+	"cpa.error_logs_max_files":                           {Group: "admin.cpa_requests", Description: "admin.maximum_error_log_files_per_cpa", Unit: "admin.items"},
+	"cpa.usage_statistics_enabled":                       {Group: "admin.usage_quotas", Description: "admin.disabling_stops_collection_of_new_token_usage"},
+	"cpa.usage_queue_retention_seconds":                  {Group: "admin.usage_quotas", Description: "admin.event_retention_during_interruptions", Unit: "admin.sec"},
+	usage.ActiveUserWindowSettingKey:                     {Group: "admin.usage_quotas", Description: "admin.rolling_window_for_counting_unique_active_users_per_account", Unit: "admin.sec"},
+	"usage.quota_cache_seconds":                          {Group: "admin.usage_quotas", Description: "admin.official_quota_cache_duration", Unit: "admin.sec"},
+	"usage.upstream_timeout_seconds":                     {Group: "admin.usage_quotas", Description: "admin.official_api_request_timeout", Unit: "admin.sec"},
+	"account_failover.mode":                              {Group: "admin.automatic_account_switching", Description: "admin.automatically_move_users_when_official_weekly_quota_is_exhausted", ChoiceLabels: map[string]string{"off": "admin.close", "active": "admin.automatic"}},
+	"account_failover.poll_seconds":                      {Group: "admin.automatic_account_switching", Description: "admin.official_quota_check_interval", Unit: "admin.sec"},
+	"account_failover.reserve_percent":                   {Group: "admin.automatic_account_switching", Description: "admin.accounts_at_or_below_this_remaining_quota_do_not_receive", Unit: "%"},
+	"account_failover.stale_after_seconds":               {Group: "admin.automatic_account_switching", Description: "admin.stop_migration_when_quota_data_expires", Unit: "admin.sec"},
+	"user_quota.default_weekly_tokens":                   {Group: "admin.user_quotas", Description: "admin.weighted_limit_per_user_per_calendar_week_blank_means_unlimited", Unit: "Token"},
+	quotaResetSettingKey:                                 {Group: "admin.user_quotas", Description: "admin.applies_to_all_users_when_off_this_week_s_quota"},
+	"system.timezone":                                    {Group: "admin.system_settings", Description: "admin.used_for_page_times_daily_usage_calendar_week_quotas_and"},
+	"user_quota.fail_open_after_seconds":                 {Group: "admin.user_quotas", Description: "admin.allow_requests_and_alert_after_a_prolonged_collection_failure", Unit: "admin.sec"},
+	"user_quota.reasoning_multiplier.none":               {Group: "admin.reasoning_effort_policy", Description: "admin.token_multiplier_for_newly_collected_events", Unit: "admin.label"},
+	"user_quota.reasoning_multiplier.minimal":            {Group: "admin.reasoning_effort_policy", Description: "admin.token_multiplier_for_newly_collected_events", Unit: "admin.label"},
+	"user_quota.reasoning_multiplier.low":                {Group: "admin.reasoning_effort_policy", Description: "admin.token_multiplier_for_newly_collected_events", Unit: "admin.label"},
+	"user_quota.reasoning_multiplier.medium":             {Group: "admin.reasoning_effort_policy", Description: "admin.token_multiplier_for_newly_collected_events", Unit: "admin.label"},
+	"user_quota.reasoning_multiplier.high":               {Group: "admin.reasoning_effort_policy", Description: "admin.token_multiplier_for_newly_collected_events", Unit: "admin.label"},
+	"user_quota.reasoning_multiplier.xhigh":              {Group: "admin.reasoning_effort_policy", Description: "admin.token_multiplier_for_newly_collected_events", Unit: "admin.label"},
+	"user_quota.reasoning_multiplier.max":                {Group: "admin.reasoning_effort_policy", Description: "admin.token_multiplier_for_newly_collected_events", Unit: "admin.label"},
+	"user_quota.reasoning_multiplier.ultra":              {Group: "admin.reasoning_effort_policy", Description: "admin.token_multiplier_for_newly_collected_events", Unit: "admin.label"},
+	"user_quota.reasoning_multiplier.auto":               {Group: "admin.reasoning_effort_policy", Description: "admin.token_multiplier_for_newly_collected_events", Unit: "admin.label"},
+	"user_quota.reasoning_multiplier.unknown":            {Group: "admin.reasoning_effort_policy", Description: "admin.token_multiplier_for_newly_collected_events", Unit: "admin.label"},
+	"admin.account_usage.reasoning_effort_color.none":    {Group: "admin.reasoning_effort_policy", Description: "admin.display_color_in_account_details"},
+	"admin.account_usage.reasoning_effort_color.minimal": {Group: "admin.reasoning_effort_policy", Description: "admin.display_color_in_account_details"},
+	"admin.account_usage.reasoning_effort_color.low":     {Group: "admin.reasoning_effort_policy", Description: "admin.display_color_in_account_details"},
+	"admin.account_usage.reasoning_effort_color.medium":  {Group: "admin.reasoning_effort_policy", Description: "admin.display_color_in_account_details"},
+	"admin.account_usage.reasoning_effort_color.high":    {Group: "admin.reasoning_effort_policy", Description: "admin.display_color_in_account_details"},
+	"admin.account_usage.reasoning_effort_color.xhigh":   {Group: "admin.reasoning_effort_policy", Description: "admin.display_color_in_account_details"},
+	"admin.account_usage.reasoning_effort_color.max":     {Group: "admin.reasoning_effort_policy", Description: "admin.display_color_in_account_details"},
+	"admin.account_usage.reasoning_effort_color.ultra":   {Group: "admin.reasoning_effort_policy", Description: "admin.display_color_in_account_details"},
+	"admin.account_usage.reasoning_effort_color.auto":    {Group: "admin.reasoning_effort_policy", Description: "admin.display_color_in_account_details"},
+	"admin.account_usage.reasoning_effort_color.unknown": {Group: "admin.reasoning_effort_policy", Description: "admin.display_color_in_account_details"},
+	"notification.enabled":                               {Group: "admin.wecom_notifications", Description: "admin.send_wecom_notifications"},
+	"notification.daily_times":                           {Group: "admin.wecom_notifications", Description: "admin.hh_mm_format_separate_multiple_times_with_commas"},
+	"notification.schedule_grace_minutes":                {Group: "admin.wecom_notifications", Description: "admin.how_long_a_missed_scheduled_notification_may_still_be_sent", Unit: "admin.minutes"},
+	"notification.quota_alert_enabled":                   {Group: "admin.wecom_notifications", Description: "admin.send_weekly_quota_alerts"},
+	"notification.weekly_threshold_percent":              {Group: "admin.wecom_notifications", Description: "admin.alert_when_account_weekly_usage_reaches_this_percentage", Unit: "%"},
+	"portal.session_ttl_seconds":                         {Group: "admin.sessions_collection", Description: "admin.affects_only_sessions_created_after_saving", Unit: "admin.sec"},
+	"collector.interval_seconds":                         {Group: "admin.sessions_collection", Description: "admin.collection_polling_interval_2", Unit: "admin.sec"},
+	"collector.batch_size":                               {Group: "admin.sessions_collection", Description: "admin.maximum_events_collected_per_cpa_in_each_batch"},
+	"accounts.port_start":                                {Group: "admin.account_provisioning", Description: "admin.start_port_for_new_cpas"},
+	"accounts.port_end":                                  {Group: "admin.account_provisioning", Description: "admin.end_port_for_new_cpas_must_not_be_below_the"},
+	"accounts.listen_address":                            {Group: "admin.accounts_releases", Description: "admin.only_host_loopback_addresses_are_allowed"},
+	"runtime.cliproxy_image":                             {Group: "admin.accounts_releases", Description: "admin.pull_and_verify_updates_in_accounts"},
 }
 
 func init() {
 	for _, model := range usage.ModelMultiplierDefinitions() {
-		description := "新采集事件的模型 Token 倍率。"
+		description := "admin.model_token_multiplier_for_newly_collected_events"
 		if model.Model == "unknown" {
-			description = "模型未匹配时用于新采集事件的 Token 倍率。"
+			description = "admin.token_multiplier_for_newly_collected_events_with_an_unmatched_model"
 		}
 		configurationPresentationByKey[usage.ModelMultiplierSettingKey(model.Model)] = configurationPresentation{
-			Group: "推理强度策略", Description: description, Unit: "倍",
+			Group: "admin.reasoning_effort_policy", Description: description, Unit: "admin.label",
 		}
+	}
+}
+
+func configurationUnit(value string, lang i18n.Language) string {
+	if strings.HasPrefix(value, "admin.") {
+		return i18n.Text(lang, value)
+	}
+	return value
+}
+
+// Codes describe the unit independently of its translated label.
+func configurationUnitCode(value string) string {
+	switch value {
+	case "admin.sec":
+		return "second"
+	case "admin.minutes":
+		return "minute"
+	case "admin.label":
+		return "multiplier"
+	case "Token":
+		return "token"
+	case "%":
+		return "percent"
+	default:
+		return value
 	}
 }

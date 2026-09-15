@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"sort"
 	"strconv"
@@ -12,6 +11,8 @@ import (
 	"unicode/utf8"
 
 	"github.com/Alfonsxh/codex-cpa-pool/internal/controlplane"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/identity"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/usage"
 	"github.com/gin-gonic/gin"
@@ -83,26 +84,26 @@ func (server *Server) listUsers(c *gin.Context) {
 		view = "summary"
 	}
 	if view != "summary" && view != "members" {
-		writeError(c, http.StatusBadRequest, "用户目录视图无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_user_directory_view"), "invalid_request")
 		return
 	}
 	page, err := positiveQueryInteger(c, "page", 1)
 	if err != nil {
-		writeError(c, http.StatusBadRequest, "用户分页参数无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_user_pagination_parameters"), "invalid_request")
 		return
 	}
 	pageSize, err := positiveQueryInteger(c, "page_size", 50)
 	if err != nil {
-		writeError(c, http.StatusBadRequest, "用户分页参数无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_user_pagination_parameters"), "invalid_request")
 		return
 	}
 	if pageSize != 25 && pageSize != 50 && pageSize != 100 {
-		writeError(c, http.StatusBadRequest, "每页数量只支持 25、50 或 100", "invalid_page_size")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.page_size_must_be_25_50_or_100"), "invalid_page_size")
 		return
 	}
 	search := strings.ToLower(strings.TrimSpace(c.Query("q")))
 	if utf8.RuneCountInString(search) > 200 {
-		writeError(c, http.StatusBadRequest, "用户搜索内容过长", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.user_search_text_is_too_long"), "invalid_request")
 		return
 	}
 	teamID := strings.TrimSpace(c.Query("team_id"))
@@ -111,7 +112,7 @@ func (server *Server) listUsers(c *gin.Context) {
 		usageState = "all"
 	}
 	if usageState != "all" && usageState != "used" && usageState != "unused" {
-		writeError(c, http.StatusBadRequest, "Token 状态无效", "invalid_usage_state")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_token_activity_filter"), "invalid_usage_state")
 		return
 	}
 	sortField := strings.ToLower(strings.TrimSpace(c.Query("sort")))
@@ -120,7 +121,7 @@ func (server *Server) listUsers(c *gin.Context) {
 	}
 	if sortField != "email" && sortField != "requests" && sortField != "tokens" &&
 		sortField != "quota" && sortField != "last_used" {
-		writeError(c, http.StatusBadRequest, "排序字段无效", "invalid_sort_field")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_sort_field"), "invalid_sort_field")
 		return
 	}
 	direction := strings.ToLower(strings.TrimSpace(c.Query("direction")))
@@ -128,7 +129,7 @@ func (server *Server) listUsers(c *gin.Context) {
 		direction = "desc"
 	}
 	if direction != "asc" && direction != "desc" {
-		writeError(c, http.StatusBadRequest, "排序方向无效", "invalid_sort_direction")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_sort_direction"), "invalid_sort_direction")
 		return
 	}
 	window, err := server.parseUsageWindow(c, false)
@@ -138,7 +139,7 @@ func (server *Server) listUsers(c *gin.Context) {
 	}
 	usageReader, ok := server.usage.(UserUsageSummaryReader)
 	if !ok || server.users == nil {
-		writeError(c, http.StatusServiceUnavailable, "用户用量目录服务尚未就绪", "usage_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.user_usage_directory_service_is_not_ready"), "usage_not_ready")
 		return
 	}
 	baseUsers, err := server.store.ListUserSummaries(c.Request.Context())
@@ -228,7 +229,7 @@ func (server *Server) listUsers(c *gin.Context) {
 	for _, account := range accounts {
 		accountCatalog[account.ID] = gin.H{"email": account.Email}
 	}
-	c.JSON(http.StatusOK, gin.H{
+	httpi18n.JSON(c, http.StatusOK, gin.H{
 		"generated_at":         window.GeneratedAt,
 		"window":               window.Window,
 		"window_seconds":       window.WindowSeconds,
@@ -298,12 +299,12 @@ func compareInt64(left, right int64) int {
 func (server *Server) userDetail(c *gin.Context) {
 	usageReader, ok := server.usage.(UserUsageSummaryReader)
 	if !ok || server.users == nil {
-		writeError(c, http.StatusServiceUnavailable, "用户详情服务尚未就绪", "usage_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.user_detail_service_is_not_ready"), "usage_not_ready")
 		return
 	}
 	email := strings.ToLower(strings.TrimSpace(c.Query("email")))
 	if email == "" {
-		writeError(c, http.StatusBadRequest, "请指定用户邮箱", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.specify_the_user_s_email"), "invalid_request")
 		return
 	}
 	window, err := server.parseUsageWindow(c, false)
@@ -324,7 +325,7 @@ func (server *Server) userDetail(c *gin.Context) {
 		}
 	}
 	if summary == nil {
-		writeError(c, http.StatusNotFound, "用户不存在", "user_not_found")
+		writeError(c, http.StatusNotFound, i18n.M("admin.user_does_not_exist"), "user_not_found")
 		return
 	}
 	accountUsage, err := usageReader.UserAccounts(
@@ -397,7 +398,7 @@ func (server *Server) userDetail(c *gin.Context) {
 		},
 		Accounts: details,
 	}
-	c.JSON(http.StatusOK, gin.H{
+	httpi18n.JSON(c, http.StatusOK, gin.H{
 		"generated_at":    window.GeneratedAt,
 		"window":          window.Window,
 		"window_seconds":  window.WindowSeconds,
@@ -429,7 +430,7 @@ func (server *Server) createUser(c *gin.Context) {
 	}
 	var body createUserPayload
 	if err := c.ShouldBindJSON(&body); err != nil {
-		writeError(c, http.StatusBadRequest, "用户参数无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_user_parameters"), "invalid_request")
 		return
 	}
 	result, err := server.users.CreateUser(c.Request.Context(), body.Email, body.TeamID)
@@ -438,8 +439,8 @@ func (server *Server) createUser(c *gin.Context) {
 		return
 	}
 	c.Header("Cache-Control", "no-store")
-	c.JSON(http.StatusCreated, gin.H{
-		"message":          "用户已创建；API Key 仅显示本次，使用中心采用默认初始密码，首次登录必须修改",
+	httpi18n.JSON(c, http.StatusCreated, gin.H{
+		"message":          i18n.M("admin.user_created_the_api_key_is_shown_only_once_usage"),
 		"keys":             []oneTimeUserKey{server.oneTimeKey(c, result.User, result.APIKey, "")},
 		"initial_password": result.InitialPassword,
 		"team_id":          result.TeamID,
@@ -452,11 +453,11 @@ func (server *Server) rotateUserKey(c *gin.Context) {
 	}
 	var body userKeyActionPayload
 	if err := c.ShouldBindJSON(&body); err != nil {
-		writeError(c, http.StatusBadRequest, "API Key 轮换参数无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_api_key_rotation_parameters"), "invalid_request")
 		return
 	}
 	if body.Confirm != "" && body.Confirm != "rotate" {
-		writeError(c, http.StatusBadRequest, "请确认轮换 API Key", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.confirm_api_key_rotation"), "invalid_request")
 		return
 	}
 	email := strings.ToLower(strings.TrimSpace(body.Email))
@@ -465,7 +466,7 @@ func (server *Server) rotateUserKey(c *gin.Context) {
 		email = strings.ToLower(strings.TrimSpace(strings.SplitN(label, ":", 2)[0]))
 	}
 	if email == "" {
-		writeError(c, http.StatusBadRequest, "请指定要轮换的用户 Key", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.specify_the_user_key_to_rotate"), "invalid_request")
 		return
 	}
 	result, err := server.users.RotateUserKey(c.Request.Context(), email)
@@ -474,8 +475,8 @@ func (server *Server) rotateUserKey(c *gin.Context) {
 		return
 	}
 	c.Header("Cache-Control", "no-store")
-	c.JSON(http.StatusOK, gin.H{
-		"message": "用户唯一 Key 已轮换，新密钥只显示一次",
+	httpi18n.JSON(c, http.StatusOK, gin.H{
+		"message": i18n.M("admin.unified_user_key_rotated_the_new_key_is_shown_only"),
 		"keys":    []oneTimeUserKey{server.oneTimeKey(c, email, result.APIKey, label)},
 	})
 }
@@ -486,7 +487,7 @@ func (server *Server) revokeUser(c *gin.Context) {
 	}
 	var body userActionPayload
 	if err := c.ShouldBindJSON(&body); err != nil || (body.Confirm != "" && body.Confirm != "revoke") {
-		writeError(c, http.StatusBadRequest, "请确认停用用户 API Key", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.confirm_disabling_the_user_s_api_key"), "invalid_request")
 		return
 	}
 	result, err := server.users.RevokeUser(c.Request.Context(), body.Email)
@@ -494,7 +495,7 @@ func (server *Server) revokeUser(c *gin.Context) {
 		server.writeUserLifecycleError(c, "revoke user", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "用户唯一 Key 已停用", "revoked": result.RevokedKeys})
+	httpi18n.JSON(c, http.StatusOK, gin.H{"message": i18n.M("admin.unified_user_key_disabled"), "revoked": result.RevokedKeys})
 }
 
 func (server *Server) resetUserPassword(c *gin.Context) {
@@ -503,7 +504,7 @@ func (server *Server) resetUserPassword(c *gin.Context) {
 	}
 	var body userActionPayload
 	if err := c.ShouldBindJSON(&body); err != nil || (body.Confirm != "" && body.Confirm != "reset") {
-		writeError(c, http.StatusBadRequest, "请确认重置使用中心密码", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.confirm_resetting_the_usage_center_password"), "invalid_request")
 		return
 	}
 	result, err := server.users.ResetUserPassword(c.Request.Context(), body.Email)
@@ -512,8 +513,8 @@ func (server *Server) resetUserPassword(c *gin.Context) {
 		return
 	}
 	c.Header("Cache-Control", "no-store")
-	c.JSON(http.StatusOK, gin.H{
-		"message":                  "用户密码已重置为默认初始密码；现有登录会话已失效，首次登录必须修改",
+	httpi18n.JSON(c, http.StatusOK, gin.H{
+		"message":                  i18n.M("admin.user_password_reset_to_the_initial_password_existing_sessions_ended"),
 		"user":                     result.User,
 		"password_change_required": result.PasswordChangeRequired,
 		"initial_password":         result.InitialPassword,
@@ -560,7 +561,7 @@ func (server *Server) deleteUser(c *gin.Context) {
 	}
 	var body userActionPayload
 	if err := c.ShouldBindJSON(&body); err != nil || body.Confirm != body.Email {
-		writeError(c, http.StatusBadRequest, "确认内容必须与用户邮箱完全一致", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.confirmation_must_exactly_match_the_user_s_email"), "invalid_request")
 		return
 	}
 	result, err := server.users.DeleteUser(c.Request.Context(), body.Email, body.RevokeKeys)
@@ -568,8 +569,8 @@ func (server *Server) deleteUser(c *gin.Context) {
 		server.writeUserLifecycleError(c, "delete user", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"message": "用户、路由、登录凭据和当前配额策略已删除；历史用量继续保留",
+	httpi18n.JSON(c, http.StatusOK, gin.H{
+		"message": i18n.M("admin.user_routes_login_credentials_and_current_quota_policy_deleted_historical"),
 		"user":    result,
 	})
 }
@@ -580,7 +581,7 @@ func (server *Server) readUserQuota(c *gin.Context) {
 	}
 	email := strings.TrimSpace(c.Query("email"))
 	if email == "" {
-		writeError(c, http.StatusBadRequest, "请指定用户邮箱", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.specify_the_user_s_email"), "invalid_request")
 		return
 	}
 	result, err := server.users.ReadUserQuota(c.Request.Context(), email)
@@ -588,7 +589,7 @@ func (server *Server) readUserQuota(c *gin.Context) {
 		server.writeUserLifecycleError(c, "read user quota", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	httpi18n.JSON(c, http.StatusOK, result)
 }
 
 func (server *Server) updateUserQuota(c *gin.Context) {
@@ -597,12 +598,12 @@ func (server *Server) updateUserQuota(c *gin.Context) {
 	}
 	var body userQuotaPayload
 	if err := c.ShouldBindJSON(&body); err != nil {
-		writeError(c, http.StatusBadRequest, "用户周额度参数无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_user_weekly_quota_parameters"), "invalid_request")
 		return
 	}
 	body.Mode = strings.ToLower(strings.TrimSpace(body.Mode))
 	if !validUserQuotaPolicy(body.Mode, body.WeeklyTokens) {
-		writeError(c, http.StatusBadRequest, "额度模式或自定义周额度无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_quota_mode_or_custom_weekly_quota"), "invalid_request")
 		return
 	}
 	result, err := server.users.UpdateUserQuota(
@@ -612,8 +613,8 @@ func (server *Server) updateUserQuota(c *gin.Context) {
 		server.writeUserLifecycleError(c, "update user quota", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"message":      "用户周额度策略已保存，将由额度采集器发布到 Gateway",
+	httpi18n.JSON(c, http.StatusOK, gin.H{
+		"message":      i18n.M("admin.user_weekly_quota_policy_saved_the_quota_collector_will_publish"),
 		"user":         result.User,
 		"weekly_quota": result.WeeklyQuota,
 		"adjustments":  result.Adjustments,
@@ -626,7 +627,7 @@ func (server *Server) clearUserQuota(c *gin.Context) {
 	}
 	email := strings.TrimSpace(c.Query("email"))
 	if email == "" {
-		writeError(c, http.StatusBadRequest, "请指定用户邮箱", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.specify_the_user_s_email"), "invalid_request")
 		return
 	}
 	result, err := server.users.ClearUserQuota(c.Request.Context(), email)
@@ -634,8 +635,8 @@ func (server *Server) clearUserQuota(c *gin.Context) {
 		server.writeUserLifecycleError(c, "clear user quota", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"message":      "已恢复继承组织默认周额度，将由额度采集器发布到 Gateway",
+	httpi18n.JSON(c, http.StatusOK, gin.H{
+		"message":      i18n.M("admin.organization_weekly_quota_default_restored_the_quota_collector_will_publish"),
 		"user":         result.User,
 		"weekly_quota": result.WeeklyQuota,
 		"adjustments":  result.Adjustments,
@@ -657,30 +658,30 @@ func (server *Server) requireUserLifecycle(c *gin.Context) bool {
 	if server.users != nil {
 		return true
 	}
-	writeError(c, http.StatusServiceUnavailable, "用户生命周期服务尚未就绪", "user_lifecycle_unavailable")
+	writeError(c, http.StatusServiceUnavailable, i18n.M("admin.user_lifecycle_service_is_not_ready"), "user_lifecycle_unavailable")
 	return false
 }
 
 func (server *Server) writeUserLifecycleError(c *gin.Context, operation string, err error) {
 	switch {
 	case errors.Is(err, identity.ErrInvalidUser):
-		writeError(c, http.StatusBadRequest, "用户邮箱不属于允许的域名", "invalid_user")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.the_user_s_email_domain_is_not_allowed"), "invalid_user")
 	case errors.Is(err, ErrInitialPasswordMissing):
-		writeError(c, http.StatusConflict, "请先配置使用中心初始密码", "initial_password_unavailable")
+		writeError(c, http.StatusConflict, i18n.M("admin.configure_the_initial_usage_center_password_first"), "initial_password_unavailable")
 	case errors.Is(err, controlplane.ErrUserAlreadyActive):
-		writeError(c, http.StatusConflict, "用户已有启用中的 API Key", "user_exists")
+		writeError(c, http.StatusConflict, i18n.M("admin.the_user_already_has_an_active_api_key"), "user_exists")
 	case errors.Is(err, controlplane.ErrUserLifecycleNotFound):
-		writeError(c, http.StatusNotFound, "用户不存在或没有启用中的 API Key", "user_not_found")
+		writeError(c, http.StatusNotFound, i18n.M("admin.user_does_not_exist_or_has_no_active_api_key"), "user_not_found")
 	case errors.Is(err, controlplane.ErrTeamNotFound):
-		writeError(c, http.StatusNotFound, "团队不存在", "team_not_found")
+		writeError(c, http.StatusNotFound, i18n.M("admin.team_does_not_exist"), "team_not_found")
 	case errors.Is(err, controlplane.ErrUserDeleteRequiresRevoke):
-		writeError(c, http.StatusConflict, "用户仍有有效 API Key，请确认同时停用后再删除", "active_keys_present")
+		writeError(c, http.StatusConflict, i18n.M("admin.the_user_still_has_active_api_keys_confirm_disabling_them"), "active_keys_present")
 	case errors.Is(err, controlplane.ErrUserLifecycleConflict), errors.Is(err, identity.ErrRotationConflict):
-		writeError(c, http.StatusConflict, "用户状态已变化，请刷新后重试", "user_lifecycle_conflict")
+		writeError(c, http.StatusConflict, i18n.M("admin.user_state_changed_refresh_and_try_again"), "user_lifecycle_conflict")
 	case errors.Is(err, identity.ErrRotationUnsafe), errors.Is(err, controlplane.ErrInvalidCatalogInput):
-		writeError(c, http.StatusBadRequest, "用户或 API Key 状态不安全，拒绝操作", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.user_or_api_key_state_is_unsafe_the_operation_was"), "invalid_request")
 	case isQuotaActionInputError(err):
-		writeError(c, http.StatusBadRequest, "额度操作参数或目标状态无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_quota_action_parameters_or_target_state"), "invalid_request")
 	default:
 		server.internalError(c, operation, err)
 	}
@@ -732,7 +733,7 @@ type userTeamPayload struct {
 func (server *Server) updateUserTeam(c *gin.Context) {
 	var body userTeamPayload
 	if err := c.ShouldBindJSON(&body); err != nil {
-		writeError(c, http.StatusBadRequest, "用户团队参数无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_user_team_parameters"), "invalid_request")
 		return
 	}
 	server.applyUserTeamUpdate(c, []string{body.Email}, body)
@@ -741,7 +742,7 @@ func (server *Server) updateUserTeam(c *gin.Context) {
 func (server *Server) updateUserTeams(c *gin.Context) {
 	var body userTeamPayload
 	if err := c.ShouldBindJSON(&body); err != nil {
-		writeError(c, http.StatusBadRequest, "用户团队参数无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_user_team_parameters"), "invalid_request")
 		return
 	}
 	server.applyUserTeamUpdate(c, body.Users, body)
@@ -750,7 +751,7 @@ func (server *Server) updateUserTeams(c *gin.Context) {
 func (server *Server) applyUserTeamUpdate(c *gin.Context, requested []string, body userTeamPayload) {
 	users := normalizeUserEmails(requested)
 	if len(users) == 0 || len(users) > 500 {
-		writeError(c, http.StatusBadRequest, "请选择 1 到 500 位用户", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.select_between_1_and_500_users"), "invalid_request")
 		return
 	}
 	knownUsers, err := server.store.KnownUsers(c.Request.Context())
@@ -769,12 +770,12 @@ func (server *Server) applyUserTeamUpdate(c *gin.Context, requested []string, bo
 		}
 	}
 	if len(missing) > 0 {
-		message := "用户不存在：" + strings.Join(missing[:min(len(missing), 3)], "、")
+		message := httpi18n.Text(c, "admin.user_does_not_exist_2") + strings.Join(missing[:min(len(missing), 3)], "、")
 		writeError(c, http.StatusNotFound, message, "user_not_found")
 		return
 	}
 	if server.teamIdentities == nil {
-		writeError(c, http.StatusServiceUnavailable, "用量身份同步服务尚未就绪", "usage_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.usage_identity_synchronization_service_is_not_ready"), "usage_not_ready")
 		return
 	}
 	teamID := normalizeOptionalString(body.TeamID)
@@ -809,8 +810,8 @@ func (server *Server) applyUserTeamUpdate(c *gin.Context, requested []string, bo
 		server.internalError(c, "synchronize updated user team identities", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"message":         fmt.Sprintf("已更新 %d 位用户的团队归属；团队用量按当前成员动态统计", len(users)),
+	httpi18n.JSON(c, http.StatusOK, gin.H{
+		"message":         i18n.M("admin.updated_team_membership_for_users_team_usage_is_calculated_using", i18n.Params{"Count": len(users)}),
 		"assignments":     assignments,
 		"classifications": classifications,
 	})

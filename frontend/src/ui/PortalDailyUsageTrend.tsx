@@ -1,3 +1,5 @@
+import "../i18n/usage";
+import { t, getIntlLocale } from "../i18n";
 import { useSiteTimezone } from "./site-time";
 import * as echarts from "echarts/core";
 import { LineChart, type LineSeriesOption } from "echarts/charts";
@@ -43,7 +45,7 @@ type PortalTrendSeries = {
 type PortalTrendMetric = "total" | "weighted";
 
 type PortalTrendSummaryValue = {
-  label: "未加权" | "加权";
+  label: string;
   value: string;
   title: string;
   metric: PortalTrendMetric;
@@ -112,21 +114,21 @@ export function PortalDailyUsageTrend({
   );
   const hasData = Boolean(query.data?.days.some((day) => day.request_count > 0 || day.weighted_tokens > 0 || day.total_tokens > 0));
   return (
-    <section className={`usage-trend-card${expanded ? "" : " collapsed"}`} aria-label="每日用量">
+    <section className={`usage-trend-card${expanded ? "" : " collapsed"}`} aria-label={t("usage.daily_usage")}>
       <header className="usage-trend-header">
         <div className="usage-trend-heading">
-          <div className="usage-trend-dimensions" role="group" aria-label="趋势统计维度">
-            <button type="button" aria-pressed={dimension === "total"} onClick={() => setDimension("total")}>总用量</button>
-            <button type="button" aria-pressed={dimension === "model_reasoning"} onClick={() => setDimension("model_reasoning")}>模型 + 推理强度</button>
+          <div className="usage-trend-dimensions" role="group" aria-label={t("usage.trend_dimension")}>
+            <button type="button" aria-pressed={dimension === "total"} onClick={() => setDimension("total")}>{t("usage.total_usage")}</button>
+            <button type="button" aria-pressed={dimension === "model_reasoning"} onClick={() => setDimension("model_reasoning")}>{t("usage.model_reasoning_effort")}</button>
           </div>
         </div>
 
-        <div className={`usage-trend-summary${dimension === "model_reasoning" ? " model-reasoning" : ""}`} aria-label="趋势摘要">
+        <div className={`usage-trend-summary${dimension === "model_reasoning" ? " model-reasoning" : ""}`} aria-label={t("usage.trend_summary")}>
           {summary.items.map((item) => {
-            const combinationCount = item.label === "组合数";
+            const combinationCount = item.label === t("usage.combinations");
             return (
               <div className={[
-                item.label === "主要组合" ? "primary-combination" : "",
+                item.label === t("usage.top_combination") ? "primary-combination" : "",
                 item.values ? "has-metrics" : "",
                 combinationCount ? "combination-count" : ""
               ].filter(Boolean).join(" ")} key={item.label}>
@@ -145,7 +147,7 @@ export function PortalDailyUsageTrend({
                         <div
                           className="usage-trend-summary-value"
                           data-metric={value.metric}
-                          aria-label={`${value.label} Token，完整数量 ${query.isPending ? "正在读取" : value.title}`}
+                          aria-label={t("usage.tokens_exact_count", [value.label, query.isPending ? t("common.loading") : value.title])}
                         >
                           <small><i className="usage-trend-summary-value-marker" aria-hidden="true" /><span>{value.label}</span></small>
                           <strong>{query.isPending ? "—" : value.value}</strong>
@@ -166,12 +168,12 @@ export function PortalDailyUsageTrend({
           {query.isPending ? <TrendSkeleton /> : null}
           {query.isError ? (
             <div className="usage-trend-state error" role="alert">
-              <span><strong>每日用量加载失败</strong> · {errorMessage(query.error)}</span>
-              <button type="button" onClick={() => void query.refetch()}>重试</button>
+              <span><strong>{t("usage.unable_to_load_daily_usage")}</strong> · {errorMessage(query.error)}</span>
+              <button type="button" onClick={() => void query.refetch()}>{t("common.retry")}</button>
             </div>
           ) : null}
           {query.data && !hasData ? (
-            <div className="usage-trend-state">所选范围暂无已采集用量</div>
+            <div className="usage-trend-state">{t("usage.no_collected_usage_in_the_selected_range")}</div>
           ) : null}
           {query.data && hasData ? (
             <PortalTrendChart
@@ -190,7 +192,7 @@ export function PortalDailyUsageTrend({
 
 function TrendSkeleton() {
   return (
-    <div className="usage-trend-skeleton" aria-label="正在加载每日用量">
+    <div className="usage-trend-skeleton" aria-label={t("usage.loading_daily_usage")}>
       <span /><span /><span /><span />
     </div>
   );
@@ -227,7 +229,7 @@ function PortalTrendChart({
     )));
     const option: DailyTrendOption = {
       animation: false,
-      aria: { enabled: true, description: "个人每日 Token 用量趋势" },
+      aria: { enabled: true, description: t("usage.personal_daily_token_trend") },
       grid: { left: 76, right: 18, top: 18, bottom: 44, containLabel: false },
       tooltip: {
         trigger: "axis",
@@ -315,16 +317,16 @@ function PortalTrendChart({
     <div className={`usage-trend-chart${dimension === "model_reasoning" ? " model-reasoning" : ""}`}>
       {dimension === "model_reasoning" ? (
         <div className="usage-trend-chart-toolbar">
-          <div className="usage-trend-metric-switch" role="group" aria-label="模型趋势统计口径">
-            <button type="button" data-metric="weighted" aria-pressed={modelMetric === "weighted"} onClick={() => onModelMetricChange("weighted")}><i aria-hidden="true" /><span>加权</span></button>
-            <button type="button" data-metric="total" aria-pressed={modelMetric === "total"} onClick={() => onModelMetricChange("total")}><i aria-hidden="true" /><span>未加权</span></button>
+          <div className="usage-trend-metric-switch" role="group" aria-label={t("usage.model_trend_metric")}>
+            <button type="button" data-metric="weighted" aria-pressed={modelMetric === "weighted"} onClick={() => onModelMetricChange("weighted")}><i aria-hidden="true" /><span>{t("common.weighted_2")}</span></button>
+            <button type="button" data-metric="total" aria-pressed={modelMetric === "total"} onClick={() => onModelMetricChange("total")}><i aria-hidden="true" /><span>{t("common.unweighted_2")}</span></button>
           </div>
         </div>
       ) : null}
       <div
         className="usage-trend-chart-plot"
         role="img"
-        aria-label={`个人每日 Token 用量趋势${dimension === "model_reasoning" ? `，当前按${modelMetric === "total" ? "未加权" : "加权"}口径展示` : ""}。鼠标悬停或使用左右方向键查看每日详情。`}
+        aria-label={t("usage.personal_daily_token_trend_hover_or_use_the_left_and", [dimension === "model_reasoning" ? t("usage.showing_tokens", [modelMetric === "total" ? t("common.unweighted_2") : t("common.weighted_2")]) : ""])}
         tabIndex={0}
         onFocus={() => showDay(trend.days.length - 1)}
         onBlur={() => chartRef.current?.dispatchAction({ type: "hideTip" })}
@@ -357,8 +359,8 @@ export function buildPortalTrendSeries(
   const visibleValue = (state: string, value: number) => state === "uncollected" ? null : value;
   if (dimension === "total") {
     return [
-      { name: "未加权 Token", values: trend.days.map((day) => visibleValue(day.collection_state, day.total_tokens)) },
-      { name: "加权 Token", values: trend.days.map((day) => visibleValue(day.collection_state, day.weighted_tokens)) }
+      { name: t("common.raw_tokens"), values: trend.days.map((day) => visibleValue(day.collection_state, day.total_tokens)) },
+      { name: t("common.weighted_tokens_2"), values: trend.days.map((day) => visibleValue(day.collection_state, day.weighted_tokens)) }
     ];
   }
 
@@ -373,7 +375,7 @@ export function buildPortalTrendSeries(
   }
   const ranked = [...totals.entries()].sort((left, right) => (
     right[1].total - left[1].total || combinationLabel(left[1].model, left[1].effort).localeCompare(
-      combinationLabel(right[1].model, right[1].effort), "zh-CN", { numeric: true }
+      combinationLabel(right[1].model, right[1].effort), getIntlLocale(), { numeric: true }
     )
   ));
   const direct = ranked.slice(0, directCombinationLimit);
@@ -389,7 +391,7 @@ export function buildPortalTrendSeries(
   }));
   if (overflow.size > 0) {
     result.push({
-      name: "其他组合",
+      name: t("usage.other_combinations"),
       values: trend.days.map((day) => visibleValue(day.collection_state, day.combinations
         .filter((item) => overflow.has(combinationKey(item.model, item.reasoning_effort)))
         .reduce((sum, item) => sum + metricValue(item), 0)))
@@ -411,12 +413,12 @@ export function summarizePortalTrend(
     const weightedPeak = trend.days.reduce((maximum, day) => Math.max(maximum, day.weighted_tokens), 0);
     const rawPeak = trend.days.reduce((maximum, day) => Math.max(maximum, day.total_tokens), 0);
     return { items: [
-      { label: `${trend.window_days}天用量`, values: dualSummaryValues(rawTotal, weightedTotal) },
-      { label: "日均", values: dualSummaryValues(
+      { label: t("usage.day_usage", [trend.window_days]), values: dualSummaryValues(rawTotal, weightedTotal) },
+      { label: t("usage.daily_average"), values: dualSummaryValues(
         Math.round(rawTotal / Math.max(1, trend.window_days)),
         Math.round(weightedTotal / Math.max(1, trend.window_days))
       ) },
-      { label: "峰值", values: dualSummaryValues(rawPeak, weightedPeak) }
+      { label: t("common.peak"), values: dualSummaryValues(rawPeak, weightedPeak) }
     ] };
   }
   const combinations = new Map<string, { label: string; raw: number; weighted: number }>();
@@ -431,35 +433,35 @@ export function summarizePortalTrend(
   }
   const primary = [...combinations.values()].sort((left, right) => right.weighted - left.weighted || left.label.localeCompare(right.label))[0];
   return { items: [
-    { label: `${trend.window_days}天用量`, values: dualSummaryValues(rawTotal, weightedTotal) },
+    { label: t("usage.day_usage", [trend.window_days]), values: dualSummaryValues(rawTotal, weightedTotal) },
     {
-      label: "主要组合",
+      label: t("usage.top_combination"),
       value: primary?.label ?? "—",
-      title: primary?.label ?? "暂无组合",
+      title: primary?.label ?? t("usage.no_combinations"),
       values: primary ? dualSummaryValues(primary.raw, primary.weighted) : dualSummaryValues(0, 0)
     },
-    { label: "组合数", value: String(combinations.size), title: `${combinations.size} 个模型与推理强度组合` }
+    { label: t("usage.combinations"), value: String(combinations.size), title: t("usage.model_and_reasoning_effort_combinations", [combinations.size]) }
   ] };
 }
 
 function dualSummaryValues(raw: number, weighted: number): PortalTrendSummaryValue[] {
   return [
-    { label: "加权", value: formatTokens(weighted), title: weighted.toLocaleString("en-US"), metric: "weighted" },
-    { label: "未加权", value: formatTokens(raw), title: raw.toLocaleString("en-US"), metric: "total" }
+    { label: t("common.weighted_2"), value: formatTokens(weighted), title: weighted.toLocaleString("en-US"), metric: "weighted" },
+    { label: t("common.unweighted_2"), value: formatTokens(raw), title: raw.toLocaleString("en-US"), metric: "total" }
   ];
 }
 
 function defaultSummaryItems(dimension: PortalUsageTrendDimension) {
   return dimension === "total"
     ? [
-      { label: "30天用量", values: dualSummaryValues(0, 0) },
-      { label: "日均", values: dualSummaryValues(0, 0) },
-      { label: "峰值", values: dualSummaryValues(0, 0) }
+      { label: t("usage.30_day_usage"), values: dualSummaryValues(0, 0) },
+      { label: t("usage.daily_average"), values: dualSummaryValues(0, 0) },
+      { label: t("common.peak"), values: dualSummaryValues(0, 0) }
     ]
     : [
-      { label: "30天用量", values: dualSummaryValues(0, 0) },
-      { label: "主要组合", value: "—", title: "正在读取", values: dualSummaryValues(0, 0) },
-      { label: "组合数", value: "—", title: "正在读取" }
+      { label: t("usage.30_day_usage"), values: dualSummaryValues(0, 0) },
+      { label: t("usage.top_combination"), value: "—", title: t("common.loading"), values: dualSummaryValues(0, 0) },
+      { label: t("usage.combinations"), value: "—", title: t("common.loading") }
     ];
 }
 
@@ -489,8 +491,8 @@ export function renderPortalTrendTooltip(
     .map((item) => renderTooltipRow(item, dimension))
     .join("");
   const requestRow = dimension === "total"
-    ? `<span class="usage-trend-tooltip-request"><b>请求</b><em>${day.request_count.toLocaleString("en-US")}</em></span>`
-    : `<span class="usage-trend-tooltip-total"><b>当日${modelMetric === "total" ? "未加权" : "加权"}</b><em>${escapeHTML(`${formatTokenAmount(modelMetric === "total" ? day.total_tokens : day.weighted_tokens)} Token`)}</em></span>`;
+    ? t("usage.span_class_usage_trend_tooltip_request_b_requests_b_em", [day.request_count.toLocaleString("en-US")])
+    : t("usage.span_class_usage_trend_tooltip_total_b_daily_b_em", [modelMetric === "total" ? t("common.unweighted_2") : t("common.weighted_2"), escapeHTML(`${formatTokenAmount(modelMetric === "total" ? day.total_tokens : day.weighted_tokens)} Token`)]);
   return `<div class="overview-chart-tooltip usage-trend-tooltip" role="tooltip" data-active="true" data-layout="single-column" data-dimension="${escapeAttribute(dimension)}"><strong>${escapeHTML(formatTrendDate(day.date))}</strong>${rows}${requestRow}</div>`;
 }
 
@@ -531,7 +533,7 @@ function formatTrendDate(date: string) {
 }
 
 function errorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "未知错误";
+  return error instanceof Error ? error.message : t("usage.unknown_error");
 }
 
 function escapeHTML(value: string) {

@@ -1,4 +1,8 @@
+import { t, getLanguage } from "../i18n";
 import { App as AntApp, ConfigProvider, theme as antTheme, type ThemeConfig } from "antd";
+import enUS from "antd/locale/en_US";
+import dayjs from "dayjs";
+import "dayjs/locale/zh-cn";
 import zhCN from "antd/locale/zh_CN";
 import { createContext, useContext, useLayoutEffect, useMemo, useState } from "react";
 
@@ -38,6 +42,8 @@ function applyDocumentTheme(theme: ThemeMode) {
     favicon.href = `/portal/assets/codex-cpa-pool-favicon${theme === "dark" ? "-dark" : ""}.svg`;
   }
 }
+
+dayjs.locale(getLanguage() === "en" ? "en" : "zh-cn");
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<ThemeMode>(() => {
@@ -158,7 +164,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <ThemeContext.Provider value={value}>
-      <ConfigProvider locale={zhCN} theme={componentTheme} button={{ autoInsertSpace: false }}>
+      <ConfigProvider locale={getLanguage() === "en" ? enUS : zhCN} theme={componentTheme} button={{ autoInsertSpace: false }}>
         <AntApp>{children}</AntApp>
       </ConfigProvider>
     </ThemeContext.Provider>
@@ -171,13 +177,13 @@ export function useTheme() {
 
 export function ThemeToggle({ className = "" }: { className?: string }) {
   const { theme, toggleTheme } = useTheme();
-  const nextLabel = theme === "dark" ? "浅色" : "深色";
+  const nextLabel = theme === "dark" ? t("common.light") : t("common.dark");
   return (
     <button
       className={`theme-toggle ${className}`.trim()}
       type="button"
-      aria-label={`切换为${nextLabel}主题`}
-      title="切换主题"
+      aria-label={t("common.switch_to_theme", [nextLabel])}
+      title={t("common.switch_theme")}
       onClick={toggleTheme}
     >
       <span className="theme-toggle-icon" aria-hidden="true">

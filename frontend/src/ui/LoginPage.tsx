@@ -1,3 +1,5 @@
+import { LanguageSelect } from "./LanguageSelect";
+import { t } from "../i18n";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -10,7 +12,7 @@ import { applicationHref } from "../application-links";
 import { useTheme } from "./ThemeProvider";
 
 const loginSchema = z.object({
-  managementKey: z.string().trim().min(1, "请输入管理密钥")
+  managementKey: z.string().trim().min(1, t("common.enter_the_management_key"))
 });
 
 type LoginValues = z.infer<typeof loginSchema>;
@@ -45,7 +47,7 @@ export function LoginPage({ notice = "", onAuthenticated }: { notice?: string; o
   const validationError = form.formState.errors.managementKey?.message;
   const requestError = mutation.isError
     ? mutation.error instanceof ApiError && mutation.error.status === 401
-      ? "管理密钥无效"
+      ? t("common.invalid_management_key")
       : mutation.error.message
     : "";
   const errorMessage = requestError || validationError || (!noticeDismissed ? notice : "");
@@ -53,12 +55,13 @@ export function LoginPage({ notice = "", onAuthenticated }: { notice?: string; o
   return (
     <main className="login-layout auth-screen admin-login-layout">
       <section className="login-card auth-card">
+        <div className="auth-language"><LanguageSelect /></div>
         <img
           className="auth-brand-logo"
           src={`/portal/assets/codex-cpa-pool-logo${theme === "dark" ? "-dark" : ""}.svg`}
           alt="Codex CPA Pool"
         />
-        <h1>进入管理中心</h1>
+        <h1>{t("common.sign_in_to_admin")}</h1>
         <p className="eyebrow">CONTROL PLANE</p>
         <form
           className="auth-form"
@@ -67,7 +70,7 @@ export function LoginPage({ notice = "", onAuthenticated }: { notice?: string; o
             if (!mutation.isPending) mutation.mutate();
           })}
         >
-          <label htmlFor="management-key">管理密钥</label>
+          <label htmlFor="management-key">{t("common.management_key")}</label>
           <div className="password-row">
             <span className="password-input">
               <input
@@ -84,9 +87,9 @@ export function LoginPage({ notice = "", onAuthenticated }: { notice?: string; o
                 type="button"
                 tabIndex={-1}
                 aria-controls="management-key"
-                aria-label={passwordVisible ? "隐藏密码" : "显示密码"}
+                aria-label={passwordVisible ? t("common.hide_password") : t("common.show_password")}
                 aria-pressed={passwordVisible}
-                title={passwordVisible ? "隐藏密码" : "显示密码"}
+                title={passwordVisible ? t("common.hide_password") : t("common.show_password")}
                 onClick={() => setPasswordVisible((visible) => !visible)}
               >
                 <svg className="password-eye-show" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -99,12 +102,11 @@ export function LoginPage({ notice = "", onAuthenticated }: { notice?: string; o
               </button>
             </span>
             <button className="button button-primary primary" type="submit" disabled={mutation.isPending}>
-              验证并进入
-            </button>
+ {t("common.verify_sign_in")} </button>
           </div>
           <p className="form-error" role="alert">{errorMessage}</p>
         </form>
-        <a className="quiet-link" href={applicationHref("usage")}>进入使用中心 →</a>
+        <a className="quiet-link" href={applicationHref("usage")}>{t("common.open_usage_center_2")}</a>
       </section>
     </main>
   );

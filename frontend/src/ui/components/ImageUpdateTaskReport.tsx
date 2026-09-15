@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { Tag } from "antd";
 
 type ImageUpdateEntryState = "updating" | "verified" | "skipped" | "restored" | "failed";
@@ -28,33 +29,33 @@ export function ImageUpdateTaskReport({ output, status }: { output: string; stat
   const active = ["queued", "running", "cancelling"].includes(status);
   const discoveredUpdates = report.entries.filter((entry) => entry.fromImage && entry.toImage).length;
   const updatedCount = report.updatedCount ?? (status === "succeeded" ? discoveredUpdates : null);
-  const targetImage = report.targetImage || (active ? "正在识别…" : "输出未包含镜像摘要");
+  const targetImage = report.targetImage || (active ? t("common.identifying") : t("common.no_image_digest_in_output"));
   return (
-    <section className="image-update-task-report" aria-label="CPA 镜像更新详情">
-      <div className="image-update-summary" aria-label="镜像更新摘要">
+    <section className="image-update-task-report" aria-label={t("common.cpa_image_update_details")}>
+      <div className="image-update-summary" aria-label={t("common.image_update_summary")}>
         <div className="target">
-          <span>目标镜像</span>
+          <span>{t("common.target_image")}</span>
           <code title={targetImage}>{targetImage}</code>
         </div>
         <div>
-          <span>涉及账号</span>
+          <span>{t("common.affected_accounts")}</span>
           <strong>{report.entries.length}</strong>
         </div>
         <div>
-          <span>更新完成</span>
+          <span>{t("common.update_complete")}</span>
           <strong>{updatedCount ?? "—"}</strong>
         </div>
         <div>
-          <span>探针通过</span>
+          <span>{t("common.probes_passed")}</span>
           <strong>{report.verifiedCount}</strong>
         </div>
         <div>
-          <span>已跳过</span>
+          <span>{t("common.skipped")}</span>
           <strong>{report.skippedCount}</strong>
         </div>
       </div>
 
-      <div className="image-update-account-list" role="list" aria-label="账号更新结果">
+      <div className="image-update-account-list" role="list" aria-label={t("common.account_update_results")}>
         {report.entries.map((entry) => {
           const presentation = imageUpdateEntryPresentation(entry, status);
           return (
@@ -65,9 +66,9 @@ export function ImageUpdateTaskReport({ output, status }: { output: string; stat
               </header>
               {entry.fromImage || entry.toImage ? (
                 <div className="image-update-transition">
-                  <div><span>原镜像</span><code title={entry.fromImage}>{entry.fromImage || "—"}</code></div>
+                  <div><span>{t("common.previous_image")}</span><code title={entry.fromImage}>{entry.fromImage || "—"}</code></div>
                   <i aria-hidden="true">→</i>
-                  <div><span>目标镜像</span><code title={entry.toImage}>{entry.toImage || "—"}</code></div>
+                  <div><span>{t("common.target_image")}</span><code title={entry.toImage}>{entry.toImage || "—"}</code></div>
                 </div>
               ) : null}
               <p>{entry.detail || presentation.detail}</p>
@@ -77,13 +78,13 @@ export function ImageUpdateTaskReport({ output, status }: { output: string; stat
       </div>
 
       {report.notices.length ? (
-        <div className="image-update-notices" aria-label="任务说明">
+        <div className="image-update-notices" aria-label={t("common.task_notes")}>
           {report.notices.map((notice, index) => <p key={`${index}-${notice}`}>{notice}</p>)}
         </div>
       ) : null}
 
       <details className="image-update-raw-output">
-        <summary>查看原始输出 <span>{report.lineCount} 行</span></summary>
+        <summary>{t("common.view_raw_output")} <span>{report.lineCount} {t("common.lines")}</span></summary>
         <pre className="oauth-task-output">{output}</pre>
       </details>
     </section>
@@ -112,25 +113,25 @@ export function parseImageUpdateOutput(output: string, status: TaskStatus = "suc
   };
 
   for (const line of lines) {
-    const updating = line.match(/^正在更新\s+(.+?)[:：]\s*(.+?)\s+->\s+(.+)$/);
+    const updating = line.match(/^(?:正在更新|Updating)\s+(.+?)[:：]\s*(.+?)\s+->\s+(.+)$/);
     if (updating) {
       const entry = ensureEntry(updating[1].trim());
       entry.fromImage = updating[2].trim();
       entry.toImage = updating[3].trim();
       entry.state = "updating";
-      entry.detail = "镜像已替换，等待运行探针确认";
+      entry.detail = t("common.image_replaced_waiting_for_runtime_probes");
       recognized++;
       continue;
     }
-    const verified = line.match(/^(.+?)\s+验证通过[:：]\s*(.+)$/);
+    const verified = line.match(/^(.+?)\s+(?:验证通过|verified)[:：]\s*(.+)$/);
     if (verified) {
       const entry = ensureEntry(verified[1].trim());
       entry.state = "verified";
-      entry.detail = `${verified[2].trim()}通过`;
+      entry.detail = t("common.passed", [verified[2].trim()]);
       recognized++;
       continue;
     }
-    const skipped = line.match(/^跳过\s+(.+?)[:：]\s*(.+)$/);
+    const skipped = line.match(/^(?:跳过|Skipping)\s+(.+?)[:：]\s*(.+)$/);
     if (skipped) {
       const entry = ensureEntry(skipped[1].trim());
       entry.state = "skipped";
@@ -138,22 +139,22 @@ export function parseImageUpdateOutput(output: string, status: TaskStatus = "suc
       recognized++;
       continue;
     }
-    const restored = line.match(/^已恢复\s+(.+)$/);
+    const restored = line.match(/^(?:已恢复|Restored)\s+(.+)$/);
     if (restored) {
       const entry = ensureEntry(restored[1].trim());
       entry.state = "restored";
-      entry.detail = "更新失败，已恢复原镜像并通过探针";
+      entry.detail = t("common.update_failed_original_image_restored_and_probes_passed");
       recognized++;
       continue;
     }
-    const completed = line.match(/^CPA 镜像更新完成[:：]\s*(\d+)\s*个$/);
+    const completed = line.match(/^(?:CPA 镜像更新完成|CPA image update completed)[:：]\s*(\d+)\s*(?:个)?$/);
     if (completed) {
       updatedCount = Number(completed[1]);
       notices.push(line);
       recognized++;
       continue;
     }
-    if (/^(运行中的 CPA 已验证|没有运行中的 CPA|镜像更新失败)/.test(line)) {
+    if (/^(运行中的 CPA 已验证|没有运行中的 CPA|镜像更新失败|Running CPAs verified|No running CPAs|Image update failed)/.test(line)) {
       notices.push(line);
       recognized++;
     }
@@ -162,7 +163,7 @@ export function parseImageUpdateOutput(output: string, status: TaskStatus = "suc
   if (!recognized) return null;
   const normalizedEntries = [...entries.values()].map((entry) => (
     status === "failed" && entry.state === "updating"
-      ? { ...entry, state: "failed" as const, detail: "镜像更新未完成，请查看任务说明和原始输出" }
+      ? { ...entry, state: "failed" as const, detail: t("common.image_update_incomplete_check_the_task_notes_and_raw_output") }
       : entry
   ));
   return {
@@ -179,16 +180,16 @@ export function parseImageUpdateOutput(output: string, status: TaskStatus = "suc
 function imageUpdateEntryPresentation(entry: ImageUpdateEntry, taskStatus: TaskStatus) {
   switch (entry.state) {
     case "verified":
-      return { label: entry.fromImage ? "更新并验证通过" : "验证通过", color: "success", tone: "success", detail: "运行探针通过" };
+      return { label: entry.fromImage ? t("common.updated_verified") : t("common.verified"), color: "success", tone: "success", detail: t("common.runtime_probes_passed") };
     case "skipped":
-      return { label: "已跳过", color: "default", tone: "neutral", detail: "此账号未执行镜像替换" };
+      return { label: t("common.skipped"), color: "default", tone: "neutral", detail: t("common.this_account_s_image_was_not_replaced") };
     case "restored":
-      return { label: "已恢复", color: "warning", tone: "warning", detail: "已恢复原镜像" };
+      return { label: t("common.restored"), color: "warning", tone: "warning", detail: t("common.original_image_restored") };
     case "failed":
-      return { label: "更新失败", color: "error", tone: "error", detail: "镜像更新未完成" };
+      return { label: t("common.update_failed"), color: "error", tone: "error", detail: t("common.image_update_incomplete") };
     default:
       return taskStatus === "cancelled"
-        ? { label: "已取消", color: "default", tone: "neutral", detail: "任务已取消" }
-        : { label: "更新中", color: "processing", tone: "processing", detail: "等待运行探针确认" };
+        ? { label: t("common.cancelled"), color: "default", tone: "neutral", detail: t("common.task_cancelled") }
+        : { label: t("common.updating"), color: "processing", tone: "processing", detail: t("common.waiting_for_runtime_probes") };
   }
 }

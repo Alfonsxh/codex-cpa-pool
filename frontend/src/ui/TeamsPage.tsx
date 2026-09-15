@@ -1,3 +1,5 @@
+import "../i18n/admin";
+import { t, getIntlLocale } from "../i18n";
 import { useSiteTimezone, formatSiteTimestamp } from "./site-time";
 import { Button, Empty, Modal, Spin, Tooltip } from "antd";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -42,15 +44,15 @@ import { teamTagClassName } from "./teamTagStyles";
 
 const teamUsageWindows = [
   ...recentUsageWindows.filter((option) => option.value !== "21600"),
-  { value: "current_week", label: "本周", title: "系统时区本周一 00:00 起的团队用量" },
-  { value: "all", label: "全部" }
+  { value: "current_week", label: t("common.this_week"), title: t("admin.team_usage_since_monday_00_00_in_the_system_timezone") },
+  { value: "all", label: t("admin.all") }
 ] as const;
 type TeamWindow = (typeof teamUsageWindows)[number]["value"];
 
 type TeamStatus = "all" | "active" | "empty";
 type TeamSortField = "name" | "members" | "active_users" | "weighted_tokens" | "updated_at";
 type TeamSort = { field: TeamSortField; direction: "asc" | "desc" };
-const teamNameCollator = new Intl.Collator("zh-CN", { numeric: true, sensitivity: "base" });
+const teamNameCollator = new Intl.Collator(getIntlLocale(), { numeric: true, sensitivity: "base" });
 type MemberScope = "current" | "unassigned" | "all";
 type UsageState = "all" | "used" | "unused";
 type MemberWindow = "today" | "604800" | "2592000" | "all";
@@ -129,10 +131,10 @@ export function TeamsPage({ csrfToken }: { csrfToken: string }) {
         staleTime: 0
       });
       queryClient.setQueryData([...teamUsageQueryKey(selectedUsageRange), siteTimezone], usageResult);
-      setRefreshLabel("团队数据已刷新");
-      showToast("数据已刷新");
+      setRefreshLabel(t("admin.team_data_refreshed"));
+      showToast(t("admin.data_refreshed"));
     } catch (error) {
-      setRefreshLabel("刷新失败");
+      setRefreshLabel(t("admin.refresh_failed"));
       throw error;
     } finally {
       setRefreshing(false);
@@ -149,12 +151,12 @@ export function TeamsPage({ csrfToken }: { csrfToken: string }) {
   useEffect(() => {
     if (!teams.isSuccess || teamUsage.isFetching) return;
     reportedCatalogError.current = null;
-    setRefreshLabel(teamUsage.isError ? "团队用量加载失败" : "团队数据已刷新");
+    setRefreshLabel(teamUsage.isError ? t("admin.unable_to_load_team_usage") : t("admin.team_data_refreshed"));
   }, [teamUsage.isError, teamUsage.isFetching, teamUsage.status, setRefreshLabel, teams.isSuccess]);
   useEffect(() => {
     if (!teams.isError || reportedCatalogError.current === teams.error) return;
     reportedCatalogError.current = teams.error;
-    setRefreshLabel("刷新失败");
+    setRefreshLabel(t("admin.refresh_failed"));
     showToast(errorMessage(teams.error), "error");
   }, [setRefreshLabel, showToast, teams.error, teams.isError]);
   useEffect(() => () => {
@@ -205,11 +207,11 @@ export function TeamsPage({ csrfToken }: { csrfToken: string }) {
     }));
   };
 
-  const rangeLabel = usageWindow === "all" ? "全部历史" : teamUsageWindows.find((option) => option.value === usageWindow)?.label;
+  const rangeLabel = usageWindow === "all" ? t("admin.all_history") : teamUsageWindows.find((option) => option.value === usageWindow)?.label;
   const rangeBoundary = (timestamp: number | null | undefined, unbounded = false) => {
     if (teamUsage.isPending) return "…";
     if (teamUsage.isError || !teamUsage.data) return "—";
-    if (timestamp == null) return unbounded ? "不限" : "—";
+    if (timestamp == null) return unbounded ? t("admin.unlimited") : "—";
     return formatSiteTimestamp(timestamp);
   };
 
@@ -244,69 +246,69 @@ export function TeamsPage({ csrfToken }: { csrfToken: string }) {
   });
 
   return (
-    <section className="page-content legacy-team-page" aria-label="团队管理">
+    <section className="page-content legacy-team-page" aria-label={t("common.teams")}>
       <div className="panel table-panel organization-catalog-panel" id="organization-teams-panel">
         <div className="organization-table-toolbar">
           <div className="team-time-filter">
             <UsageTimeRangeControl
               className="team-usage-time-control"
-              label="团队用量时间范围"
+              label={t("admin.team_usage_time_range")}
               value={usageWindow}
               options={teamUsageWindows}
               onChange={setUsageWindow}
             />
-            <div className="overview-token-window-boundaries" aria-label="团队用量时间边界" aria-live="polite" aria-busy={teamUsage.isPending}>
-              <div className="overview-token-window-value"><small>起始时间</small><strong>{rangeBoundary(teamUsage.data?.window_start_at, usageWindow === "all")}</strong></div>
-              <div className="overview-token-window-value"><small>结束时间</small><strong>{rangeBoundary(teamUsage.data?.window_end_at)}</strong></div>
+            <div className="overview-token-window-boundaries" aria-label={t("admin.team_usage_time_boundaries")} aria-live="polite" aria-busy={teamUsage.isPending}>
+              <div className="overview-token-window-value"><small>{t("common.start_time")}</small><strong>{rangeBoundary(teamUsage.data?.window_start_at, usageWindow === "all")}</strong></div>
+              <div className="overview-token-window-value"><small>{t("common.end_time")}</small><strong>{rangeBoundary(teamUsage.data?.window_end_at)}</strong></div>
             </div>
           </div>
           <div className="team-catalog-controls">
             <div className="organization-table-filters">
               <div className="team-search-filter">
-                <label htmlFor="team-search">团队</label>
+                <label htmlFor="team-search">{t("admin.team_2")}</label>
                 <div className="search-field">
                   <span aria-hidden="true">⌕</span>
                   <input
                     id="team-search"
                     type="search"
-                    aria-label="搜索团队名称或说明"
-                    placeholder="搜索团队名称或说明"
+                    aria-label={t("admin.search_team_name_or_description")}
+                    placeholder={t("admin.search_team_name_or_description")}
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
                   />
                 </div>
               </div>
               <div className="organization-status-filter">
-                <span className="team-filter-label">团队状态</span>
+                <span className="team-filter-label">{t("admin.team_status")}</span>
                 <LegacyEnhancedSelect
-                  label="团队状态"
+                  label={t("admin.team_status")}
                   value={status}
                   options={[
-                    { value: "all", label: "全部团队" },
-                    { value: "active", label: "有成员" },
-                    { value: "empty", label: "空团队" }
+                    { value: "all", label: t("admin.all_teams") },
+                    { value: "active", label: t("admin.with_members") },
+                    { value: "empty", label: t("admin.empty_teams") }
                   ]}
                   onChange={setStatus}
                 />
               </div>
             </div>
             <div className="team-catalog-actions">
-              <button className="button primary" type="button" onClick={() => setEditor({ mode: "create" })}>创建团队</button>
+              <button className="button primary" type="button" onClick={() => setEditor({ mode: "create" })}>{t("admin.create_team")}</button>
             </div>
           </div>
         </div>
-        {teamUsage.isError ? <p className="organization-error form-error" role="alert">团队用量加载失败，请刷新重试</p> : null}
-        <NativeTableViewport className="table-wrap organization-catalog-table-wrap" aria-label="团队目录表格">
+        {teamUsage.isError ? <p className="organization-error form-error" role="alert">{t("admin.unable_to_load_team_usage_refresh_and_try_again")}</p> : null}
+        <NativeTableViewport className="table-wrap organization-catalog-table-wrap" aria-label={t("admin.team_directory_table")}>
           <table className="organization-catalog-table">
             <thead>
               <tr>
-                <th className="table-index-column">序号</th>
-                <TeamSortHeader field="name" label="团队" sort={sort} onSort={changeSort} />
-                <TeamSortHeader field="members" label="当前成员" sort={sort} onSort={changeSort} />
-                <TeamSortHeader field="active_users" label="活跃成员" sort={sort} onSort={changeSort} />
-                <TeamSortHeader field="weighted_tokens" label="Token 用量" sort={sort} onSort={changeSort} />
-                <TeamSortHeader field="updated_at" label="更新时间" sort={sort} onSort={changeSort} />
-                <th className="organization-action-column">操作</th>
+                <th className="table-index-column">{t("common.no")}</th>
+                <TeamSortHeader field="name" label={t("admin.team_2")} sort={sort} onSort={changeSort} />
+                <TeamSortHeader field="members" label={t("admin.current_members")} sort={sort} onSort={changeSort} />
+                <TeamSortHeader field="active_users" label={t("admin.active_members")} sort={sort} onSort={changeSort} />
+                <TeamSortHeader field="weighted_tokens" label={t("admin.token_usage_3")} sort={sort} onSort={changeSort} />
+                <TeamSortHeader field="updated_at" label={t("admin.updated_2")} sort={sort} onSort={changeSort} />
+                <th className="organization-action-column">{t("admin.actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -328,7 +330,7 @@ export function TeamsPage({ csrfToken }: { csrfToken: string }) {
                 />
               ))}
               {teams.isSuccess && visibleTeams.length === 0 ? (
-                <tr><td colSpan={7} className="team-usage-state">没有匹配的团队</td></tr>
+                <tr><td colSpan={7} className="team-usage-state">{t("admin.no_matching_teams")}</td></tr>
               ) : null}
             </tbody>
           </table>
@@ -346,9 +348,9 @@ export function TeamsPage({ csrfToken }: { csrfToken: string }) {
         }}
       />
       <LegacyConfirmModal
-        title={deleting ? `删除“${deleting.name}”` : "删除团队"}
+        title={deleting ? t("admin.delete_2", [deleting.name]) : t("admin.delete_team")}
         open={deleting !== null}
-        okText="确认删除"
+        okText={t("admin.confirm_deletion")}
         danger
         pending={deleteMutation.isPending}
         onCancel={() => !deleteMutation.isPending && setDeleting(null)}
@@ -360,8 +362,7 @@ export function TeamsPage({ csrfToken }: { csrfToken: string }) {
           deleteMutation.mutate(target);
         }}
       >
-        空团队删除后无法恢复。
-      </LegacyConfirmModal>
+ {t("admin.an_empty_team_cannot_be_restored_after_deletion")} </LegacyConfirmModal>
       <TeamMembersModal
         key={memberTeam?.id ?? "closed"}
         team={memberTeam}
@@ -384,8 +385,8 @@ function TeamSortHeader({ field, label, sort, onSort }: {
   const active = sort?.field === field;
   const tokenColumn = field === "weighted_tokens";
   const description = active
-    ? `${label}，当前${sort.direction === "asc" ? "升序" : "降序"}，点击切换排序方向`
-    : `${label}，点击排序`;
+    ? t("admin.currently_click_to_reverse_the_sort_order", [label, sort.direction === "asc" ? t("common.ascending") : t("common.descending")])
+    : t("admin.click_to_sort", [label]);
   return (
     <th scope="col" aria-sort={active ? sort.direction === "asc" ? "ascending" : "descending" : "none"} className={tokenColumn ? "team-token-column" : undefined}>
       <button type="button" className={`legacy-sort-button${active ? " active" : ""}`} title={description} aria-label={description} onClick={() => onSort(field)}>
@@ -414,11 +415,11 @@ function TeamRow({ index, team, usage, usagePending, rangeLabel, onMembers, onEd
       <td className="number-cell token-total team-token-cell">
         <div className="user-token-summary">
           <div className="user-token-stat user-token-weighted">
-            <span>{rangeLabel}加权</span>
+            <span>{t("common.weighted", [rangeLabel])}</span>
             {usage ? <LegacyTokenValue value={usage.usage.weighted_tokens} /> : <span className="team-usage-placeholder">{usagePending ? "…" : "—"}</span>}
           </div>
           <div className="user-token-stat user-token-current">
-            <span>{rangeLabel}未加权</span>
+            <span>{t("common.unweighted", [rangeLabel])}</span>
             {usage ? <LegacyTokenValue value={usage.usage.total_tokens} /> : <span className="team-usage-placeholder">{usagePending ? "…" : "—"}</span>}
           </div>
         </div>
@@ -426,9 +427,9 @@ function TeamRow({ index, team, usage, usagePending, rangeLabel, onMembers, onEd
       <td>{formatSiteTimestamp(team.updated_at)}</td>
       <td>
         <div className="organization-row-actions">
-          <button className="inline-action" type="button" onClick={onMembers}>成员</button>
-          <button className="inline-action" type="button" onClick={onEdit}>编辑</button>
-          <button className="inline-action danger-text" type="button" disabled={team.user_count > 0} title={team.user_count > 0 ? "请先移出团队成员" : undefined} onClick={onDelete}>删除</button>
+          <button className="inline-action" type="button" onClick={onMembers}>{t("admin.members")}</button>
+          <button className="inline-action" type="button" onClick={onEdit}>{t("admin.edit")}</button>
+          <button className="inline-action danger-text" type="button" disabled={team.user_count > 0} title={team.user_count > 0 ? t("admin.remove_team_members_first") : undefined} onClick={onDelete}>{t("admin.delete")}</button>
         </div>
       </td>
     </tr>
@@ -470,15 +471,15 @@ function TeamEditorModal({ state, csrfToken, onClose, onSaved }: {
   return (
     <Modal
       className="legacy-user-form-modal legacy-team-editor-modal"
-      title={<LegacyDialogTitle title={`${editing ? "编辑" : "创建"}团队`} kicker="TEAM CATALOG" />}
+      title={<LegacyDialogTitle title={t("admin.team", [editing ? t("admin.edit") : t("admin.create")])} kicker="TEAM CATALOG" />}
       open={state !== null}
       width={560}
       centered
       closeIcon={<span className="legacy-dialog-close" aria-hidden="true">×</span>}
       transitionName=""
       maskTransitionName=""
-      okText={`${editing ? "保存" : "创建"}团队`}
-      cancelText="取消"
+      okText={t("admin.team", [editing ? t("admin.save") : t("admin.create")])}
+      cancelText={t("common.cancel")}
       okButtonProps={{ disabled: mutation.isPending }}
       onCancel={() => !mutation.isPending && onClose()}
       onOk={submit}
@@ -487,9 +488,9 @@ function TeamEditorModal({ state, csrfToken, onClose, onSaved }: {
       mask={{ closable: false }}
     >
       <div className="legacy-user-form-body legacy-team-editor-body">
-        <label className="field"><span>团队名称</span><input ref={nameRef} aria-label="团队名称" maxLength={64} required value={name} onChange={(event) => setName(event.target.value)} /></label>
-        <label className="field"><span>团队说明</span><textarea aria-label="团队说明" maxLength={200} rows={3} placeholder="说明团队职责或成员范围（可选）" value={description} onChange={(event) => setDescription(event.target.value)} /></label>
-        <div className="inline-notice">每位用户只能属于一个团队；报表按当前成员动态汇总所选范围内的 Token。</div>
+        <label className="field"><span>{t("admin.team_name")}</span><input ref={nameRef} aria-label={t("admin.team_name")} maxLength={64} required value={name} onChange={(event) => setName(event.target.value)} /></label>
+        <label className="field"><span>{t("admin.team_description")}</span><textarea aria-label={t("admin.team_description")} maxLength={200} rows={3} placeholder={t("admin.describe_responsibilities_or_membership_optional")} value={description} onChange={(event) => setDescription(event.target.value)} /></label>
+        <div className="inline-notice">{t("admin.each_user_belongs_to_one_team_reports_aggregate_tokens_for")}</div>
         <LegacyFormError error={mutation.error} />
       </div>
     </Modal>
@@ -601,12 +602,12 @@ function TeamMembersModal({ team, csrfToken, onClose, onCatalogRefresh, onToast 
     const users = [...selectedRef.current.entries()];
     const conflicts = users.filter(([, currentTeam]) => currentTeam && currentTeam !== team.id);
     if (mode === "join" && conflicts.length) {
-      setError(`有 ${formatNumber(conflicts.length)} 位用户已在其他团队；请将用户范围切换为“仅未分组”，或先移出原团队。`);
+      setError(t("admin.users_already_belong_to_other_teams_select_ungrouped_users_only", [formatNumber(conflicts.length)]));
       return;
     }
     const eligible = users.filter(([, currentTeam]) => mode === "remove" ? currentTeam === team.id : mode === "move" ? Boolean(currentTeam && currentTeam !== team.id) : currentTeam === null);
     if (!eligible.length) {
-      setError(mode === "remove" ? "所选用户已不在当前团队" : mode === "move" ? "没有属于其他团队的用户" : "没有可直接加入的未分组用户");
+      setError(mode === "remove" ? t("admin.the_selected_users_are_no_longer_in_this_team") : mode === "move" ? t("admin.no_users_belong_to_other_teams") : t("admin.no_ungrouped_users_can_be_added_directly"));
       return;
     }
     setError("");
@@ -635,7 +636,7 @@ function TeamMembersModal({ team, csrfToken, onClose, onCatalogRefresh, onToast 
       const emptySelection = new Map<string, string | null>();
       selectedRef.current = emptySelection;
       setRenderedSelected(emptySelection);
-      onToast(`已更新 ${count} 位用户的团队归属`);
+      onToast(t("admin.updated_team_membership_for_users", [count]));
 
       const refreshes: Array<Promise<unknown>> = [onCatalogRefresh()];
       if (assignment.mode === "join" && criteria.scope === "unassigned") {
@@ -653,7 +654,7 @@ function TeamMembersModal({ team, csrfToken, onClose, onCatalogRefresh, onToast 
       }
       const refreshResults = await Promise.allSettled(refreshes);
       if (refreshResults.some((result) => result.status === "rejected")) {
-        setError("团队归属已更新，但最新状态刷新失败，请刷新页面后确认。");
+        setError(t("admin.team_membership_was_updated_but_the_latest_status_could_not"));
       }
     } catch (assignmentError) {
       setError(errorMessage(assignmentError));
@@ -663,12 +664,12 @@ function TeamMembersModal({ team, csrfToken, onClose, onCatalogRefresh, onToast 
     }
   };
 
-  const actionLabel = confirm?.mode === "remove" ? "移出" : confirm?.mode === "move" ? "移动到" : "加入";
+  const actionLabel = confirm?.mode === "remove" ? t("admin.remove") : confirm?.mode === "move" ? t("admin.move_to") : t("admin.add");
   return (
     <>
       <Modal
         className="legacy-user-form-modal legacy-organization-members-modal"
-        title={<LegacyDialogTitle title={team ? `${team.name} · 成员管理` : "团队成员"} kicker="TEAM MEMBERS" />}
+        title={<LegacyDialogTitle title={team ? t("admin.manage_members", [team.name]) : t("admin.team_members")} kicker="TEAM MEMBERS" />}
         open={team !== null}
         width={1240}
         centered
@@ -678,32 +679,32 @@ function TeamMembersModal({ team, csrfToken, onClose, onCatalogRefresh, onToast 
         onCancel={() => !assigning && onClose()}
         destroyOnHidden
         mask={{ closable: false }}
-        footer={[<Button key="done" onClick={onClose}>完成</Button>]}
+        footer={[<Button key="done" onClick={onClose}>{t("admin.done")}</Button>]}
       >
         <div className="organization-members-body">
           <div className="organization-member-toolbar">
-            <label className="search-field"><span aria-hidden="true">⌕</span><input type="search" aria-label="搜索用户邮箱" placeholder="搜索用户邮箱" value={draftCriteria.query} onChange={(event) => setDraftCriteria((current) => ({ ...current, query: event.target.value }))} onKeyDown={(event) => { if (event.key !== "Enter") return; event.preventDefault(); const nextCriteria = { ...draftCriteria, query: event.currentTarget.value }; setCriteria(nextCriteria); setPage(1); const emptySelection = new Map<string, string | null>(); selectedRef.current = emptySelection; setRenderedSelected(emptySelection); setError(""); }} /></label>
-            <label className="window-field filter-field"><span>成员范围</span><LegacyEnhancedSelect id="organization-user-scope-react" label="成员范围" value={draftCriteria.scope} options={[{ value: "current", label: "当前团队成员" }, { value: "unassigned", label: "未分组用户" }, { value: "all", label: "全部用户" }]} onChange={(scope) => setDraftCriteria((current) => ({ ...current, scope }))} /></label>
-            <label className="window-field filter-field"><span>Token 状态</span><LegacyEnhancedSelect id="organization-usage-state-react" label="Token 状态" value={draftCriteria.usageState} options={[{ value: "all", label: "不限用量" }, { value: "used", label: "已产生 Token" }, { value: "unused", label: "未产生 Token" }]} onChange={(usageState) => setDraftCriteria((current) => ({ ...current, usageState }))} /></label>
-            <label className="window-field filter-field"><span>统计范围</span><LegacyEnhancedSelect id="organization-usage-window-react" label="统计范围" value={draftCriteria.window} options={[{ value: "today", label: "今日" }, { value: "604800", label: "近 7 天" }, { value: "2592000", label: "近 30 天" }, { value: "all", label: "全部历史" }]} onChange={(window) => setDraftCriteria((current) => ({ ...current, window }))} /></label>
+            <label className="search-field"><span aria-hidden="true">⌕</span><input type="search" aria-label={t("admin.search_user_emails")} placeholder={t("admin.search_user_emails")} value={draftCriteria.query} onChange={(event) => setDraftCriteria((current) => ({ ...current, query: event.target.value }))} onKeyDown={(event) => { if (event.key !== "Enter") return; event.preventDefault(); const nextCriteria = { ...draftCriteria, query: event.currentTarget.value }; setCriteria(nextCriteria); setPage(1); const emptySelection = new Map<string, string | null>(); selectedRef.current = emptySelection; setRenderedSelected(emptySelection); setError(""); }} /></label>
+            <label className="window-field filter-field"><span>{t("admin.member_scope")}</span><LegacyEnhancedSelect id="organization-user-scope-react" label={t("admin.member_scope")} value={draftCriteria.scope} options={[{ value: "current", label: t("admin.current_team_members") }, { value: "unassigned", label: t("admin.ungrouped_users") }, { value: "all", label: t("admin.all_users_2") }]} onChange={(scope) => setDraftCriteria((current) => ({ ...current, scope }))} /></label>
+            <label className="window-field filter-field"><span>{t("admin.token_activity")}</span><LegacyEnhancedSelect id="organization-usage-state-react" label={t("admin.token_activity")} value={draftCriteria.usageState} options={[{ value: "all", label: t("admin.any_usage") }, { value: "used", label: t("admin.with_token_usage") }, { value: "unused", label: t("admin.no_token_usage") }]} onChange={(usageState) => setDraftCriteria((current) => ({ ...current, usageState }))} /></label>
+            <label className="window-field filter-field"><span>{t("common.reporting_range")}</span><LegacyEnhancedSelect id="organization-usage-window-react" label={t("common.reporting_range")} value={draftCriteria.window} options={[{ value: "today", label: t("common.today") }, { value: "604800", label: t("common.last_7_days_2") }, { value: "2592000", label: t("common.last_30_days") }, { value: "all", label: t("admin.all_history") }]} onChange={(window) => setDraftCriteria((current) => ({ ...current, window }))} /></label>
           </div>
-          <NativeTableViewport className="organization-member-table-wrap" aria-label="团队成员表格">
+          <NativeTableViewport className="organization-member-table-wrap" aria-label={t("admin.team_members_table")}>
             <table className={`organization-member-table${showInitialMemberLoading || visibleUsers.length === 0 ? " is-state" : ""}`}>
-              <thead><tr><th className="table-index-column">序号</th><th className="user-select-column"><IndeterminateCheckbox ariaLabel="选择本页用户" checked={everyVisible} indeterminate={!everyVisible && anyVisible} onChange={toggleVisible} /></th><th>用户</th><th>团队归属</th><th>Token 用量</th><th>{team ? `与“${team.name}”的关系` : "与当前团队的关系"}</th></tr></thead>
+              <thead><tr><th className="table-index-column">{t("common.no")}</th><th className="user-select-column"><IndeterminateCheckbox ariaLabel={t("admin.select_users_on_this_page")} checked={everyVisible} indeterminate={!everyVisible && anyVisible} onChange={toggleVisible} /></th><th>{t("common.user")}</th><th>{t("admin.team_membership")}</th><th>{t("admin.token_usage_3")}</th><th>{team ? t("admin.relationship_to", [team.name]) : t("admin.relationship_to_this_team")}</th></tr></thead>
               <tbody>
-                {showInitialMemberLoading ? <tr><td colSpan={6} className="organization-member-state"><span role="status" className="organization-member-state-content"><Spin size="small" />正在加载成员…</span></td></tr> : null}
-                {!showInitialMemberLoading && visibleUsers.length === 0 ? <tr><td colSpan={6} className="organization-member-state"><div role="status" className="organization-member-state-content"><Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="当前条件没有匹配用户" /></div></td></tr> : null}
+                {showInitialMemberLoading ? <tr><td colSpan={6} className="organization-member-state"><span role="status" className="organization-member-state-content"><Spin size="small" />{t("admin.loading_members")}</span></td></tr> : null}
+                {!showInitialMemberLoading && visibleUsers.length === 0 ? <tr><td colSpan={6} className="organization-member-state"><div role="status" className="organization-member-state-content"><Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t("admin.no_users_match_these_filters")} /></div></td></tr> : null}
                 {!showInitialMemberLoading ? visibleUsers.map((user, index) => <MemberRow key={user.email} index={(pagination.page - 1) * pagination.page_size + index + 1} user={user} teamID={openTeamID} checked={renderedSelected.has(user.email)} onChange={(checked) => toggleUser(user, checked)} />) : null}
               </tbody>
             </table>
           </NativeTableViewport>
-          {pagination.total > 0 ? <div className="table-pagination organization-pagination"><span className="pagination-summary">共 {formatNumber(pagination.total)} 位匹配用户；批量操作仅作用于已勾选用户</span><div className="pagination-controls"><button className="pagination-nav" type="button" disabled={pagination.page <= 1} onClick={() => { setRenderedSelected(new Map(selectedRef.current)); setPage((current) => Math.max(1, current - 1)); }}>上一页</button><span>{pagination.page} / {pagination.total_pages}</span><button className="pagination-nav" type="button" disabled={pagination.page >= pagination.total_pages} onClick={() => { setRenderedSelected(new Map(selectedRef.current)); setPage((current) => current + 1); }}>下一页</button></div></div> : null}
-          {renderedSelected.size > 0 ? <div className="organization-bulk-bar"><div><strong>已选择 {formatNumber(renderedSelected.size)} 位用户</strong><small>已有团队成员不会被静默移动。</small></div><button className="button ghost" type="button" onClick={() => { const emptySelection = new Map<string, string | null>(); selectedRef.current = emptySelection; setRenderedSelected(emptySelection); }}>取消选择</button><button className="button secondary" type="button" onClick={() => beginAssignment("remove")}>移出当前团队</button><button className="button secondary" type="button" onClick={() => beginAssignment("move")}>从其他团队移动</button><button className="button primary" type="button" onClick={() => beginAssignment("join")}>加入当前团队</button></div> : null}
+          {pagination.total > 0 ? <div className="table-pagination organization-pagination"><span className="pagination-summary">{t("admin.total")} {formatNumber(pagination.total)} {t("admin.matching_users_bulk_actions_apply_only_to_selected_users")}</span><div className="pagination-controls"><button className="pagination-nav" type="button" disabled={pagination.page <= 1} onClick={() => { setRenderedSelected(new Map(selectedRef.current)); setPage((current) => Math.max(1, current - 1)); }}>{t("admin.previous")}</button><span>{pagination.page} / {pagination.total_pages}</span><button className="pagination-nav" type="button" disabled={pagination.page >= pagination.total_pages} onClick={() => { setRenderedSelected(new Map(selectedRef.current)); setPage((current) => current + 1); }}>{t("admin.next")}</button></div></div> : null}
+          {renderedSelected.size > 0 ? <div className="organization-bulk-bar"><div><strong>{t("admin.selected")} {formatNumber(renderedSelected.size)} {t("admin.users_3")}</strong><small>{t("admin.existing_team_members_are_never_moved_silently")}</small></div><button className="button ghost" type="button" onClick={() => { const emptySelection = new Map<string, string | null>(); selectedRef.current = emptySelection; setRenderedSelected(emptySelection); }}>{t("admin.clear_selection")}</button><button className="button secondary" type="button" onClick={() => beginAssignment("remove")}>{t("admin.remove_from_this_team")}</button><button className="button secondary" type="button" onClick={() => beginAssignment("move")}>{t("admin.move_from_another_team")}</button><button className="button primary" type="button" onClick={() => beginAssignment("join")}>{t("admin.add_to_this_team")}</button></div> : null}
           <p className="form-error organization-error" role="alert">{error}</p>
         </div>
       </Modal>
-      <LegacyConfirmModal title={confirm ? `${actionLabel}“${confirm.team.name}”` : "更新团队成员"} open={confirm !== null} okText={`确认${actionLabel}`} danger={confirm?.mode !== "join"} pending={assigning} onCancel={() => !assigning && setConfirm(null)} onConfirm={() => void submitAssignment()}>
-        {confirm ? `${confirm.users.length} 位用户将${confirm.mode === "remove" ? "变为未分组" : confirm.mode === "move" ? "从原团队移动到该团队" : "加入该团队"}。保存后，所选统计范围内这些用户的 Token 会立即按当前团队重新汇总；历史事件本身不会改写。` : ""}
+      <LegacyConfirmModal title={confirm ? `${actionLabel}“${confirm.team.name}”` : t("admin.update_team_members")} open={confirm !== null} okText={t("admin.confirm", [actionLabel])} danger={confirm?.mode !== "join"} pending={assigning} onCancel={() => !assigning && setConfirm(null)} onConfirm={() => void submitAssignment()}>
+        {confirm ? t("admin.users_will_their_tokens_in_the_selected_range_are_immediately", [confirm.users.length, confirm.mode === "remove" ? t("admin.become_ungrouped") : confirm.mode === "move" ? t("admin.move_from_their_original_teams_to_this_team") : t("admin.join_this_team")]) : ""}
       </LegacyConfirmModal>
     </>
   );
@@ -712,7 +713,7 @@ function TeamMembersModal({ team, csrfToken, onClose, onCatalogRefresh, onToast 
 function MemberRow({ index, user, teamID, checked, onChange }: { index: number; user: UserSummary; teamID: string; checked: boolean; onChange: (checked: boolean) => void }) {
   const conflict = Boolean(user.team_id && user.team_id !== teamID);
   const current = user.team_id === teamID;
-  return <tr><td className="table-index-cell">{index}</td><td><input type="checkbox" aria-label={`选择 ${user.email}`} checked={checked} onChange={(event) => onChange(event.target.checked)} /></td><td><span className="table-primary">{user.email}</span></td><td>{user.team ? <span className={teamTagClassName(user.team.tag_style)}>{user.team.name}</span> : <span className={teamTagClassName(null, true)}>未分组</span>}</td><td className="number-cell token-total"><LegacyTokenValue value={user.usage?.weighted_tokens ?? 0} /></td><td><span className={`status-chip ${conflict ? "warning" : current ? "success" : "neutral"}`}>{conflict ? "属于其他团队" : current ? "本团队成员" : "尚未加入"}</span></td></tr>;
+  return <tr><td className="table-index-cell">{index}</td><td><input type="checkbox" aria-label={t("admin.select_2", [user.email])} checked={checked} onChange={(event) => onChange(event.target.checked)} /></td><td><span className="table-primary">{user.email}</span></td><td>{user.team ? <span className={teamTagClassName(user.team.tag_style)}>{user.team.name}</span> : <span className={teamTagClassName(null, true)}>{t("admin.ungrouped")}</span>}</td><td className="number-cell token-total"><LegacyTokenValue value={user.usage?.weighted_tokens ?? 0} /></td><td><span className={`status-chip ${conflict ? "warning" : current ? "success" : "neutral"}`}>{conflict ? t("admin.in_another_team") : current ? t("admin.in_this_team") : t("admin.not_a_member")}</span></td></tr>;
 }
 
 function IndeterminateCheckbox({ ariaLabel, checked, indeterminate, onChange }: { ariaLabel: string; checked: boolean; indeterminate: boolean; onChange: (checked: boolean) => void }) {
@@ -729,7 +730,7 @@ function LegacyTokenValue({ value }: { value: number }) {
 }
 
 function LegacyConfirmModal({ title, open, okText, danger, pending, children, onCancel, onConfirm }: { title: string; open: boolean; okText: string; danger?: boolean; pending?: boolean; children: ReactNode; onCancel: () => void; onConfirm: () => void }) {
-  return <Modal className="legacy-confirm-modal" title={null} open={open} width={430} centered closable={false} transitionName="" maskTransitionName="" onCancel={onCancel} destroyOnHidden mask={{ closable: false }} footer={[<Button key="cancel" disabled={pending} onClick={onCancel}>取消</Button>, <Button key="confirm" danger={danger} type={danger ? "default" : "primary"} loading={pending} onClick={onConfirm}>{okText}</Button>]}><div className="legacy-confirm-body"><div className="legacy-confirm-icon" aria-hidden="true">!</div><h3>{title}</h3><div className="legacy-confirm-message">{children}</div></div></Modal>;
+  return <Modal className="legacy-confirm-modal" title={null} open={open} width={430} centered closable={false} transitionName="" maskTransitionName="" onCancel={onCancel} destroyOnHidden mask={{ closable: false }} footer={[<Button key="cancel" disabled={pending} onClick={onCancel}>{t("common.cancel")}</Button>, <Button key="confirm" danger={danger} type={danger ? "default" : "primary"} loading={pending} onClick={onConfirm}>{okText}</Button>]}><div className="legacy-confirm-body"><div className="legacy-confirm-icon" aria-hidden="true">!</div><h3>{title}</h3><div className="legacy-confirm-message">{children}</div></div></Modal>;
 }
 
 function LegacyDialogTitle({ title, kicker }: { title: string; kicker: string }) {
@@ -742,7 +743,7 @@ function LegacyFormError({ error }: { error: unknown }) {
 
 function errorMessage(error: unknown) {
   if (error instanceof ApiError || error instanceof Error) return error.message;
-  return "请稍后重试";
+  return t("common.please_try_again_later");
 }
 
 function sameCriteria(left: MemberCriteria, right: MemberCriteria) {

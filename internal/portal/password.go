@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/crypto/scrypt"
 )
@@ -84,13 +85,13 @@ func DummyPasswordHash() string {
 
 func validatePasswordShape(password string, requireMinimum bool) error {
 	if password == "" || len(password) > PasswordMaximumLength {
-		return errors.New("密码格式无效")
+		return i18n.M("admin.invalid_password_format")
 	}
 	if requireMinimum && len(password) < PasswordMinimumLength {
-		return fmt.Errorf("新密码至少需要 %d 位", PasswordMinimumLength)
+		return i18n.M("portal.the_new_password_must_contain_at_least_characters", i18n.Params{"Count": PasswordMinimumLength})
 	}
 	if requireMinimum && subtle.ConstantTimeCompare([]byte(password), []byte(legacyDefaultPassword)) == 1 {
-		return errors.New("不能使用已停用的历史默认密码")
+		return i18n.M("admin.this_retired_default_password_cannot_be_used")
 	}
 	return nil
 }

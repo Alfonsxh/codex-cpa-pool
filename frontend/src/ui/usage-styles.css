@@ -625,13 +625,13 @@ body {
   .usage-mobile-panel-actions .usage-updated { justify-self: stretch; grid-template-columns: 6px max-content minmax(0, 1fr); }
   .usage-mobile-panel-actions .usage-update-time { text-align: right; }
   .usage-mobile-panel-actions .usage-trend-windows { justify-self: end; }
-  .usage-center-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; padding-bottom: 10px; }
+  .usage-center-head { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding-bottom: 10px; }
   .usage-brand-block { display: grid; gap: 4px; }
   .usage-product-brand { width: min(160px, 42vw); gap: 6px; }
   .usage-brand-logo { width: 24px; height: 24px; }
   .usage-product-name { font-size: 12px; }
   .usage-center-head h1 { font-size: 20px; }
-  .usage-user-actions { width: auto; flex-wrap: nowrap; gap: 6px; }
+  .usage-user-actions { width: auto; justify-self: end; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
   .usage-user-badge { max-width: 132px; min-height: 34px; gap: 6px; padding: 9px 8px; }
   .usage-link-button { min-height: 34px; padding: 0 10px; }
   .usage-theme-toggle.theme-toggle { width: 34px; min-width: 34px; min-height: 34px; padding: 0; }

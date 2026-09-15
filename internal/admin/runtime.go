@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/runtimeops"
 	"github.com/alitto/pond/v2"
 	"github.com/gin-gonic/gin"
@@ -42,10 +44,11 @@ type cancelLegacyRuntimeJobRequest struct {
 }
 
 // legacyRuntimeJob preserves the stable compatibility job shape. Output is an
-// array of complete lines, action/result are absent, and timestamps/exit code
+// array of complete lines, action is a stable identifier, and timestamps/exit code
 // remain explicit nullable fields. The namespaced /runtime/jobs API exposes
 // the native Go job shape with one bounded output string.
 type legacyRuntimeJob struct {
+	Action     string    `json:"action"`
 	ID         string    `json:"id"`
 	Name       string    `json:"name"`
 	Target     string    `json:"target"`
@@ -75,7 +78,7 @@ func (server *Server) readOperationImpact(c *gin.Context) {
 		target = "all"
 	}
 	if action != "stop" {
-		writeError(c, http.StatusBadRequest, "只支持查询停止操作影响", "invalid_runtime_target")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.only_stop_operation_impact_queries_are_supported"), "invalid_runtime_target")
 		return
 	}
 	accounts, err := server.store.ReadAccounts(c.Request.Context())
@@ -96,12 +99,12 @@ func (server *Server) readOperationImpact(c *gin.Context) {
 	case func() bool { _, found := stoppableServiceTargets[target]; return found }():
 		targetType = "service"
 	default:
-		writeError(c, http.StatusBadRequest, "未知操作目标", "invalid_runtime_target")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.unknown_operation_target"), "invalid_runtime_target")
 		return
 	}
 	response := operationImpactResponse{Action: action, Target: target, TargetType: targetType}
 	if targetType == "service" {
-		c.JSON(http.StatusOK, response)
+		httpi18n.JSON(c, http.StatusOK, response)
 		return
 	}
 	routes, err := server.store.ReadRoutes(c.Request.Context())
@@ -120,7 +123,7 @@ func (server *Server) readOperationImpact(c *gin.Context) {
 		}
 	}
 	response.RoutedUsers = &count
-	c.JSON(http.StatusOK, response)
+	httpi18n.JSON(c, http.StatusOK, response)
 }
 
 func (server *Server) listRuntimeServices(c *gin.Context) {
@@ -132,12 +135,12 @@ func (server *Server) listRuntimeServices(c *gin.Context) {
 		server.runtimeUnavailable(c, "list runtime services", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"services": services})
+	httpi18n.JSON(c, http.StatusOK, gin.H{"services": services})
 }
 
 func (server *Server) readCPAImageStatus(c *gin.Context) {
 	if server.images == nil {
-		writeError(c, http.StatusServiceUnavailable, "镜像查询服务尚未就绪", "runtime_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.image_query_service_is_not_ready"), "runtime_not_ready")
 		return
 	}
 	status, err := server.images.CPAImageStatus(c.Request.Context())
@@ -145,7 +148,7 @@ func (server *Server) readCPAImageStatus(c *gin.Context) {
 		server.runtimeUnavailable(c, "read CPA image status", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
+	httpi18n.JSON(c, http.StatusOK, gin.H{
 		"target_image": status.TargetImage, "update_channel": status.UpdateChannel,
 		"candidate": status.Candidate, "applied": status.Applied, "local_image": status.LocalImage,
 		"accounts": status.Accounts, "running_count": status.RunningCount,
@@ -162,7 +165,7 @@ func (server *Server) readRuntimeLogs(c *gin.Context) {
 		server.writeRuntimeError(c, "read runtime logs", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	httpi18n.JSON(c, http.StatusOK, result)
 }
 
 func (server *Server) listRuntimeJobs(c *gin.Context) {
@@ -181,21 +184,26 @@ func (server *Server) listRuntimeJobsWithShape(c *gin.Context, legacy bool) {
 	if raw := strings.TrimSpace(c.Query("limit")); raw != "" {
 		parsed, err := strconv.Atoi(raw)
 		if err != nil || parsed < 1 || parsed > maxRuntimeJobsResponse {
-			writeError(c, http.StatusBadRequest, "任务数量范围无效", "invalid_request")
+			writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_task_count_range"), "invalid_request")
 			return
 		}
 		limit = parsed
 	}
 	jobs := server.runtimeJobs.Recent(limit)
+	localizedJobs := make([]runtimeops.Job, len(jobs))
+	for i, job := range jobs {
+		localizedJobs[i] = job.WithLanguage(httpi18n.Locale(c))
+	}
+	jobs = localizedJobs
 	if legacy {
 		legacyJobs := make([]legacyRuntimeJob, 0, len(jobs))
 		for _, job := range jobs {
 			legacyJobs = append(legacyJobs, toLegacyRuntimeJob(job, false))
 		}
-		c.JSON(http.StatusOK, gin.H{"jobs": legacyJobs})
+		httpi18n.JSON(c, http.StatusOK, gin.H{"jobs": legacyJobs})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"jobs": jobs})
+	httpi18n.JSON(c, http.StatusOK, gin.H{"jobs": jobs})
 }
 
 func (server *Server) readRuntimeJob(c *gin.Context) {
@@ -216,10 +224,10 @@ func (server *Server) readRuntimeJobWithShape(c *gin.Context, legacy bool) {
 		return
 	}
 	if legacy {
-		c.JSON(http.StatusOK, gin.H{"job": toLegacyRuntimeJob(job, true)})
+		httpi18n.JSON(c, http.StatusOK, gin.H{"job": toLegacyRuntimeJob(job.WithLanguage(httpi18n.Locale(c)), true)})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"job": job})
+	httpi18n.JSON(c, http.StatusOK, gin.H{"job": job.WithLanguage(httpi18n.Locale(c))})
 }
 
 func (server *Server) submitConfirmedRuntimeJob(c *gin.Context) {
@@ -236,7 +244,7 @@ func (server *Server) submitRuntimeJob(c *gin.Context, requireConfirmation bool,
 	}
 	var body runtimeJobRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
-		writeError(c, http.StatusBadRequest, "运行操作请求无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_runtime_operation_request"), "invalid_request")
 		return
 	}
 	action := strings.ToLower(strings.TrimSpace(body.Action))
@@ -248,7 +256,7 @@ func (server *Server) submitRuntimeJob(c *gin.Context, requireConfirmation bool,
 		target = "all"
 	}
 	if requireConfirmation && body.Confirm != action+":"+target {
-		writeError(c, http.StatusBadRequest, "请确认运行操作及目标", "confirmation_required")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.confirm_the_runtime_operation_and_target"), "confirmation_required")
 		return
 	}
 	submission, err := server.runtimeJobs.Submit(action, target)
@@ -256,17 +264,17 @@ func (server *Server) submitRuntimeJob(c *gin.Context, requireConfirmation bool,
 		server.writeRuntimeError(c, "submit runtime job", err)
 		return
 	}
-	message := "任务已提交"
+	message := httpi18n.Text(c, "admin.task_submitted")
 	status := http.StatusAccepted
 	if submission.Reused {
-		message = "已有相同任务，已直接打开"
+		message = httpi18n.Text(c, "admin.an_identical_task_already_exists_and_has_been_opened")
 		status = http.StatusOK
 	}
-	job := any(submission.Job)
+	job := any(submission.Job.WithLanguage(httpi18n.Locale(c)))
 	if legacy {
-		job = toLegacyRuntimeJob(submission.Job, true)
+		job = toLegacyRuntimeJob(submission.Job.WithLanguage(httpi18n.Locale(c)), true)
 	}
-	c.JSON(status, gin.H{"message": message, "job": job, "reused": submission.Reused})
+	httpi18n.JSON(c, status, gin.H{"message": message, "job": job, "reused": submission.Reused})
 }
 
 func (server *Server) cancelRuntimeJob(c *gin.Context) {
@@ -282,7 +290,7 @@ func (server *Server) cancelLegacyRuntimeJob(c *gin.Context) {
 	}
 	var body cancelLegacyRuntimeJobRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
-		writeError(c, http.StatusBadRequest, "取消任务请求无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_task_cancellation_request"), "invalid_request")
 		return
 	}
 	server.cancelRuntimeJobID(c, body.ID, true)
@@ -294,11 +302,11 @@ func (server *Server) cancelRuntimeJobID(c *gin.Context, id string, legacy ...bo
 		server.writeRuntimeError(c, "cancel runtime job", err)
 		return
 	}
-	responseJob := any(job)
+	responseJob := any(job.WithLanguage(httpi18n.Locale(c)))
 	if len(legacy) > 0 && legacy[0] {
-		responseJob = toLegacyRuntimeJob(job, true)
+		responseJob = toLegacyRuntimeJob(job.WithLanguage(httpi18n.Locale(c)), true)
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "任务取消请求已提交", "job": responseJob})
+	httpi18n.JSON(c, http.StatusOK, gin.H{"message": i18n.M("admin.task_cancellation_requested"), "job": responseJob})
 }
 
 func toLegacyRuntimeJob(job runtimeops.Job, includeOutput bool) legacyRuntimeJob {
@@ -315,7 +323,7 @@ func toLegacyRuntimeJob(job runtimeops.Job, includeOutput bool) legacyRuntimeJob
 		exitCode = &value
 	}
 	result := legacyRuntimeJob{
-		ID: job.ID, Name: job.Name, Target: job.Target, Status: job.Status,
+		ID: job.ID, Action: job.Action, Name: job.Name, Target: job.Target, Status: job.Status,
 		CreatedAt: job.CreatedAt, StartedAt: job.StartedAt, FinishedAt: job.FinishedAt,
 		ExitCode: exitCode,
 	}
@@ -331,7 +339,7 @@ func toLegacyRuntimeJob(job runtimeops.Job, includeOutput bool) legacyRuntimeJob
 
 func (server *Server) requireRuntime(c *gin.Context, jobs bool) bool {
 	if server.runtime == nil || (jobs && server.runtimeJobs == nil) {
-		writeError(c, http.StatusServiceUnavailable, "运行维护服务尚未就绪", "runtime_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.maintenance_service_is_not_ready"), "runtime_not_ready")
 		return false
 	}
 	return true
@@ -339,24 +347,24 @@ func (server *Server) requireRuntime(c *gin.Context, jobs bool) bool {
 
 func (server *Server) runtimeUnavailable(c *gin.Context, operation string, err error) {
 	server.logger.Warn(operation, zap.String("error", runtimeops.Sanitize(err.Error())))
-	writeError(c, http.StatusServiceUnavailable, "Docker 运行时暂时不可用", "runtime_unavailable")
+	writeError(c, http.StatusServiceUnavailable, i18n.M("admin.docker_runtime_is_unavailable"), "runtime_unavailable")
 }
 
 func (server *Server) writeRuntimeError(c *gin.Context, operation string, err error) {
 	switch {
 	case errors.Is(err, runtimeops.ErrJobNotFound):
-		writeError(c, http.StatusNotFound, "运行任务不存在", "job_not_found")
+		writeError(c, http.StatusNotFound, i18n.M("admin.runtime_task_does_not_exist"), "job_not_found")
 	case errors.Is(err, runtimeops.ErrJobFinished):
-		writeError(c, http.StatusConflict, "运行任务已经结束", "job_finished")
+		writeError(c, http.StatusConflict, i18n.M("admin.runtime_task_has_already_finished"), "job_finished")
 	case errors.Is(err, runtimeops.ErrJobConflict):
-		writeError(c, http.StatusConflict, "已有冲突的运行任务", "job_conflict")
+		writeError(c, http.StatusConflict, i18n.M("admin.a_conflicting_runtime_task_already_exists"), "job_conflict")
 	case errors.Is(err, runtimeops.ErrJobQueueFull), errors.Is(err, pond.ErrQueueFull):
 		c.Header("Retry-After", "1")
-		writeError(c, http.StatusTooManyRequests, "运行任务队列已满", "job_queue_full")
+		writeError(c, http.StatusTooManyRequests, i18n.M("admin.runtime_task_queue_is_full"), "job_queue_full")
 	case errors.Is(err, pond.ErrPoolStopped):
-		writeError(c, http.StatusServiceUnavailable, "运行任务服务正在关闭", "runtime_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.runtime_task_service_is_shutting_down"), "runtime_not_ready")
 	case errors.Is(err, runtimeops.ErrRuntimeTarget):
-		writeError(c, http.StatusBadRequest, "运行操作或目标无效", "invalid_runtime_target")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_runtime_operation_or_target"), "invalid_runtime_target")
 	default:
 		server.runtimeUnavailable(c, operation, err)
 	}

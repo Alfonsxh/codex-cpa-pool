@@ -1,3 +1,5 @@
+import "../i18n/admin";
+import { t, getIntlLocale } from "../i18n";
 import { useSiteTimezone, formatSiteTimestamp, getSiteTimezone } from "./site-time";
 import { Alert, Button, Empty, Result, Skeleton, Spin, Typography } from "antd";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -54,7 +56,7 @@ type UsageSeriesView = "aggregate" | "account" | "user";
 
 const standardWindows: Array<{ value: Exclude<OverviewUsageWindow, "custom">; label: string }> = [
   ...recentUsageWindows,
-  { value: "since_reset", label: "额度周期" }
+  { value: "since_reset", label: t("admin.quota_cycle") }
 ];
 
 const chartColors = [
@@ -170,7 +172,7 @@ export function OverviewPage() {
       queryClient.setQueryData(overviewCatalogQueryKey, nextCatalog);
       queryClient.setQueryData(usageQueryKey, nextUsage);
       queryClient.setQueryData(runtimeJobsQueryKey, nextJobs);
-      showToast("总览与 Token 趋势已刷新");
+      showToast(t("admin.overview_and_token_trends_refreshed"));
     });
     return () => setRefreshAction(null);
   }, [queryClient, setRefreshAction, showToast, usageOptions, usageQueryKey]);
@@ -195,7 +197,7 @@ export function OverviewPage() {
   useEffect(() => setRefreshing(refreshing), [refreshing, setRefreshing]);
   useEffect(() => {
     const generatedAt = Math.max(overview.data?.generated_at ?? 0, status.data?.generated_at ?? 0, usage.data?.generated_at ?? 0);
-    if (generatedAt > 0) setRefreshLabel(`总览更新于 ${formatSiteTimestamp(generatedAt)}`);
+    if (generatedAt > 0) setRefreshLabel(t("admin.updated", [formatSiteTimestamp(generatedAt)]));
   }, [overview.data?.generated_at, setRefreshLabel, siteTimezone, status.data?.generated_at, usage.data?.generated_at]);
   useEffect(() => () => {
     setRefreshing(false);
@@ -204,7 +206,7 @@ export function OverviewPage() {
 
   if (overview.isPending || status.isPending) {
     return (
-      <section className="page-content overview-legacy-page" aria-label="正在加载总览">
+      <section className="page-content overview-legacy-page" aria-label={t("admin.loading_overview")}>
         <div className="overview-legacy-metrics overview-legacy-metrics-loading">
           {Array.from({ length: 6 }, (_, index) => <Skeleton.Node key={index} active />)}
         </div>
@@ -218,9 +220,9 @@ export function OverviewPage() {
       <section className="page-content">
         <Result
           status="warning"
-          title="总览数据加载失败"
-          subTitle={loadError instanceof Error ? loadError.message : "请稍后重试"}
-          extra={<Button type="primary" onClick={() => void Promise.all([overview.refetch(), status.refetch()])}>重新加载</Button>}
+          title={t("admin.unable_to_load_overview_data")}
+          subTitle={loadError instanceof Error ? loadError.message : t("common.please_try_again_later")}
+          extra={<Button type="primary" onClick={() => void Promise.all([overview.refetch(), status.refetch()])}>{t("common.reload")}</Button>}
         />
       </section>
     );
@@ -236,8 +238,8 @@ export function OverviewPage() {
           className="page-alert"
           type="warning"
           showIcon
-          title={`${summary.incomplete_key_matrices} 个用户的统一 Key 账号矩阵不完整`}
-          description="这些用户不能参与跨账号迁移；修复前负载均衡会整批拒绝。"
+          title={t("admin.users_have_incomplete_unified_key_account_coverage", [summary.incomplete_key_matrices])}
+          description={t("admin.these_users_cannot_move_across_accounts_load_balancing_rejects_the")}
         />
       ) : null}
       {status.data.warnings.length ? (
@@ -245,18 +247,18 @@ export function OverviewPage() {
           className="page-alert"
           type="warning"
           showIcon
-          title="部分运行状态暂不可用"
+          title={t("admin.some_runtime_statuses_are_unavailable")}
           description={status.data.warnings.join("；")}
         />
       ) : null}
 
-      <div className="overview-legacy-metrics" aria-label="关键指标">
-        <Metric label="CPA 账号" value={summary.accounts} detail={`启用 ${summary.enabled_accounts} · 已授权 ${status.data.authorized_accounts}`} />
-        <Metric label="用户状态" value={`${summary.active_users}/${summary.users}`} detail={`已路由 ${summary.routed_users}`} />
-        <Metric label="Key 健康" value={summary.active_keys} detail={`矩阵异常 ${summary.incomplete_key_matrices}`} />
-        <Metric label="团队覆盖" value={summary.teams} detail={`未分配 ${summary.unassigned_users} 人`} />
-        <Metric label="服务状态" value={`${status.data.running_services}/${status.data.total_services}`} detail="Compose 服务" />
-        <Metric label="5 分钟请求" value={status.data.requests_5m} detail="网关访问日志" />
+      <div className="overview-legacy-metrics" aria-label={t("admin.key_metrics")}>
+        <Metric label={t("common.cpa_account")} value={summary.accounts} detail={t("admin.enabled_authorized", [summary.enabled_accounts, status.data.authorized_accounts])} />
+        <Metric label={t("admin.user_status")} value={`${summary.active_users}/${summary.users}`} detail={t("admin.routed", [summary.routed_users])} />
+        <Metric label={t("admin.key_health")} value={summary.active_keys} detail={t("admin.coverage_issues", [summary.incomplete_key_matrices])} />
+        <Metric label={t("admin.team_coverage")} value={summary.teams} detail={t("admin.unassigned", [summary.unassigned_users])} />
+        <Metric label={t("admin.service_status")} value={`${status.data.running_services}/${status.data.total_services}`} detail={t("admin.compose_services")} />
+        <Metric label={t("admin.requests_5_min")} value={status.data.requests_5m} detail={t("admin.gateway_access_log")} />
       </div>
 
       <AccountQuotaOverview quota={status.data.account_quota} />
@@ -265,40 +267,40 @@ export function OverviewPage() {
         <div className="overview-legacy-toolbar overview-token-monitor-toolbar">
           <div className="overview-token-heading-row">
             <div className="overview-legacy-toolbar-title usage-monitor-title">
-              <h3 id="overview-token-monitor-title">Token 使用</h3>
+              <h3 id="overview-token-monitor-title">{t("admin.token_usage_2")}</h3>
               <p className="section-kicker">TOKEN MONITOR</p>
             </div>
             <div className="overview-token-heading-actions">
               <div className="overview-collector-meta" aria-live="polite">
                 <span className={`overview-collector-state ${collectorState(usage.data?.collector.status).tone}`}>
-                  {usage.isPending ? "正在加载" : collectorState(usage.data?.collector.status).label}
+                  {usage.isPending ? t("admin.loading") : collectorState(usage.data?.collector.status).label}
                 </span>
-                <time aria-label="最近采集时间">
+                <time aria-label={t("admin.last_collection")}>
                   {usage.data?.collector.heartbeat_at
                     ? formatSiteTimestamp(usage.data.collector.heartbeat_at, getSiteTimezone())
                     : "—"}
                 </time>
               </div>
-              <WeeklyUsageExport onDownloaded={() => showToast("周报已生成，已开始下载")} />
+              <WeeklyUsageExport onDownloaded={() => showToast(t("admin.weekly_report_generated_download_started"))} />
             </div>
           </div>
-          <div className="overview-legacy-filters usage-monitor-filters" aria-label="Token Dashboard 变量">
+          <div className="overview-legacy-filters usage-monitor-filters" aria-label={t("admin.token_dashboard_filters")}>
             <div className="overview-token-window-row">
               <UsageTimeRangeControl
-                label="Token 使用时间范围"
+                label={t("admin.token_usage_time_range")}
                 value={usageWindow}
                 options={standardWindows}
                 onChange={setUsageWindow}
                 onCustomSelect={() => setCustomOpen(true)}
               />
-              <div className="overview-token-window-boundaries" aria-label="Token 使用时间边界" aria-live="polite" aria-busy={usageBoundaryUpdating}>
+              <div className="overview-token-window-boundaries" aria-label={t("admin.token_usage_time_boundaries")} aria-live="polite" aria-busy={usageBoundaryUpdating}>
                 <UsageTimeBoundary
-                  label="起始时间"
+                  label={t("common.start_time")}
                   value={usage.data ? formatOverviewUsageBoundary(usage.data.window_start_at, getSiteTimezone()) : "—"}
                   updating={usageBoundaryUpdating}
                 />
                 <UsageTimeBoundary
-                  label="结束时间"
+                  label={t("common.end_time")}
                   value={usage.data
                     ? formatOverviewUsageBoundary(
                         usageWindow === "custom" && customRange ? customRange.endAt : usage.data.generated_at,
@@ -311,27 +313,27 @@ export function OverviewPage() {
             </div>
             <div className="overview-token-scope-filters">
               <fieldset className="overview-token-mode-control">
-                <legend>Token 口径</legend>
-                <div className="overview-token-mode-segments" role="group" aria-label="Token 统计口径">
+                <legend>{t("common.token_metric")}</legend>
+                <div className="overview-token-mode-segments" role="group" aria-label={t("admin.token_accounting_metric")}>
                   <button
                     type="button"
                     className="unweighted"
                     aria-pressed={tokenMode === "unweighted"}
                     onClick={() => setTokenMode("unweighted")}
-                  ><i aria-hidden="true" />未加权</button>
+                  ><i aria-hidden="true" />{t("common.unweighted_2")}</button>
                   <button
                     type="button"
                     className="weighted"
                     aria-pressed={tokenMode === "weighted"}
                     onClick={() => setTokenMode("weighted")}
-                  ><i aria-hidden="true" />加权</button>
+                  ><i aria-hidden="true" />{t("common.weighted_2")}</button>
                 </div>
               </fieldset>
               <LegacyUsageMultiSelect
                 id="overview-usage-account-react"
                 label="CPA"
-                allLabel="全部 CPA"
-                searchPlaceholder="搜索 CPA"
+                allLabel={t("common.all_cpas")}
+                searchPlaceholder={t("admin.search_cpas")}
                 value={selectedAccounts}
                 options={accountOptions.map((account) => ({ value: account, label: account }))}
                 loading={catalog.isPending}
@@ -340,9 +342,9 @@ export function OverviewPage() {
               />
               <LegacyUsageMultiSelect
                 id="overview-usage-user-react"
-                label="用户"
-                allLabel="全部用户"
-                searchPlaceholder="搜索用户邮箱"
+                label={t("common.user")}
+                allLabel={t("admin.all_users_2")}
+                searchPlaceholder={t("admin.search_user_emails")}
                 value={selectedUsers}
                 options={userOptions.map((user) => ({ value: user, label: user }))}
                 loading={catalog.isPending}
@@ -350,19 +352,19 @@ export function OverviewPage() {
                 onChange={setSelectedUsers}
               />
               <div className="overview-legacy-refresh-controls usage-refresh-controls">
-                <span className="overview-refresh-label">自动刷新</span>
+                <span className="overview-refresh-label">{t("admin.auto_refresh")}</span>
                 <div className="overview-refresh-actions">
                   <div className="overview-legacy-filter usage-variable-select usage-refresh-control">
-                    <span className="sr-only">刷新间隔</span>
+                    <span className="sr-only">{t("admin.refresh_interval")}</span>
                     <LegacyEnhancedSelect
-                      label="自动刷新"
+                      label={t("admin.auto_refresh")}
                       value={String(refreshSeconds)}
                       options={[
-                        { value: "0", label: "关闭" },
-                        { value: "10", label: "10 秒" },
-                        { value: "30", label: "30 秒" },
-                        { value: "60", label: "1 分钟" },
-                        { value: "300", label: "5 分钟" }
+                        { value: "0", label: t("common.close") },
+                        { value: "10", label: t("admin.10_seconds") },
+                        { value: "30", label: t("admin.30_seconds") },
+                        { value: "60", label: t("admin.1_minute") },
+                        { value: "300", label: t("admin.5_minutes") }
                       ]}
                       onChange={(nextValue) => setRefreshSeconds(Number(nextValue))}
                     />
@@ -371,10 +373,10 @@ export function OverviewPage() {
                     type="button"
                     className="button ghost usage-monitor-refresh overview-legacy-refresh-button"
                     disabled={usage.isFetching || usageRefresh.isPending}
-                    aria-label="刷新 Token Dashboard"
+                    aria-label={t("admin.refresh_token_dashboard")}
                     onClick={() => usageRefresh.mutate()}
                   >
-                    <span aria-hidden="true">↻</span><span>刷新</span>
+                    <span aria-hidden="true">↻</span><span>{t("common.refresh")}</span>
                   </button>
                 </div>
               </div>
@@ -386,24 +388,24 @@ export function OverviewPage() {
           <Alert
             type="error"
             showIcon
-            title="Token Dashboard 加载失败"
+            title={t("admin.unable_to_load_token_dashboard")}
             description={(usageRefresh.error ?? usage.error) instanceof Error
               ? (usageRefresh.error ?? usage.error as Error).message
-              : "请稍后重试"}
-            action={<Button size="small" onClick={() => usageRefresh.mutate()}>重试</Button>}
+              : t("common.please_try_again_later")}
+            action={<Button size="small" onClick={() => usageRefresh.mutate()}>{t("common.retry")}</Button>}
           />
         ) : null}
         {usage.data?.unavailable_accounts.length ? (
           <Alert
             type="warning"
             showIcon
-            title={`${usage.data.unavailable_accounts.length} 个账号缺少额度周期起点`}
-            description="额度周期趋势仅聚合拥有有效周期起点的账号。"
+            title={t("admin.accounts_have_no_quota_period_start", [usage.data.unavailable_accounts.length])}
+            description={t("admin.quota_period_trends_include_only_accounts_with_a_valid_period")}
           />
         ) : null}
 
         {usage.isPending ? (
-          <div className="overview-legacy-loading"><Spin /><span>正在读取所选范围的 Token 桶</span></div>
+          <div className="overview-legacy-loading"><Spin /><span>{t("admin.loading_token_buckets_for_the_selected_range")}</span></div>
         ) : usage.data ? (
           <UsageDashboard
             payload={usage.data}
@@ -412,8 +414,8 @@ export function OverviewPage() {
               tone: account.operational_status.tone
             }]))}
             userStatuses={new Map(catalog.data?.users.map((user) => [user.email, user.status === "active"
-              ? { label: "活跃", tone: "success" }
-              : { label: "停用", tone: "neutral" }]))}
+              ? { label: t("admin.active"), tone: "success" }
+              : { label: t("admin.disable"), tone: "neutral" }]))}
             tokenMode={tokenMode}
             view={usageView}
             onViewChange={setUsageView}
@@ -429,7 +431,7 @@ export function OverviewPage() {
 
       <CustomUsageRangeModal
         open={customOpen}
-        title="时间选择"
+        title={t("common.custom")}
         range={customRange}
         timezone={getSiteTimezone()}
         onCancel={() => setCustomOpen(false)}
@@ -494,26 +496,26 @@ function UsageDashboard({
   const selectedSeries = tokenMode === "weighted" ? baseSeries.map(asWeightedSeries) : baseSeries;
   const chartSeries = view === "aggregate" ? selectedSeries : topTokenSeries(selectedSeries, 10);
   const metrics = tokenMode === "weighted" ? asWeightedSeries(aggregate) : aggregate;
-  const modeLabel = tokenMode === "weighted" ? "加权" : "未加权";
-  const viewLabel = view === "aggregate" ? "全部账号" : view === "account" ? "CPA 账号" : "用户";
+  const modeLabel = tokenMode === "weighted" ? t("common.weighted_2") : t("common.unweighted_2");
+  const viewLabel = view === "aggregate" ? t("common.all_accounts") : view === "account" ? t("common.cpa_account") : t("common.user");
   const chartAriaDetails = view === "aggregate"
-    ? `当前值 ${formatTokens(metrics.current)}，范围内总量 ${formatTokens(metrics.total)}，平均值 ${formatTokens(metrics.average)}，最大值 ${formatTokens(metrics.maximum)}`
+    ? t("admin.current_range_total_average_maximum", [formatTokens(metrics.current), formatTokens(metrics.total), formatTokens(metrics.average), formatTokens(metrics.maximum)])
     : chartSeries.map((item) => `${item.name} ${formatTokens(item.total)}`).join("，");
   const activeViewTabID = `overview-token-tab-${view}`;
-  const emptyText = view === "user" ? "所选范围内没有用户 Token 数据" : "所选范围内没有账号 Token 数据";
+  const emptyText = view === "user" ? t("admin.no_user_token_data_in_the_selected_range") : t("admin.no_account_token_data_in_the_selected_range");
   const chartFooter = (
     <footer className="overview-legacy-summary-footer overview-token-workspace-footer">
-      <span>单位：{modeLabel} Token / {interval}</span>
+      <span>{t("admin.unit_2")}{modeLabel} Token / {interval}</span>
     </footer>
   );
   return (
     <article className="overview-legacy-usage-panel overview-token-workspace">
       <header className="overview-token-workspace-header">
         <div className="overview-token-view-region">
-          <div className="overview-token-view-switch" role="tablist" aria-label="Token 使用数据视角">
-            <button id="overview-token-tab-aggregate" type="button" role="tab" aria-selected={view === "aggregate"} aria-controls="overview-token-series" onClick={() => onViewChange("aggregate")}>全部账号</button>
-            <button id="overview-token-tab-account" type="button" role="tab" aria-selected={view === "account"} aria-controls="overview-token-series" onClick={() => onViewChange("account")}>CPA 账号 Token 统计</button>
-            <button id="overview-token-tab-user" type="button" role="tab" aria-selected={view === "user"} aria-controls="overview-token-series" onClick={() => onViewChange("user")}>用户 Token 统计</button>
+          <div className="overview-token-view-switch" role="tablist" aria-label={t("admin.token_usage_view")}>
+            <button id="overview-token-tab-aggregate" type="button" role="tab" aria-selected={view === "aggregate"} aria-controls="overview-token-series" onClick={() => onViewChange("aggregate")}>{t("common.all_accounts")}</button>
+            <button id="overview-token-tab-account" type="button" role="tab" aria-selected={view === "account"} aria-controls="overview-token-series" onClick={() => onViewChange("account")}>{t("admin.cpa_account_token_statistics")}</button>
+            <button id="overview-token-tab-user" type="button" role="tab" aria-selected={view === "user"} aria-controls="overview-token-series" onClick={() => onViewChange("user")}>{t("admin.user_token_statistics")}</button>
           </div>
         </div>
       </header>
@@ -523,7 +525,7 @@ function UsageDashboard({
         className="overview-token-data-scroll"
         role="tabpanel"
         aria-labelledby={activeViewTabID}
-        aria-label={`${viewLabel} Token 趋势与明细`}
+        aria-label={t("admin.token_trend_details", [viewLabel])}
         tabIndex={0}
       >
         {chartSeries.length ? (
@@ -533,17 +535,17 @@ function UsageDashboard({
             summary={view === "aggregate"}
             valueLabel={modeLabel}
             timezone={payload.window_timezone}
-            ariaLabel={`${viewLabel}${modeLabel} Token 使用趋势：${chartAriaDetails}`}
+            ariaLabel={t("admin.token_usage_trend", [viewLabel, modeLabel, chartAriaDetails])}
             footer={chartFooter}
           />
         ) : (
           <>
-            <div className="overview-legacy-chart-empty"><strong>暂无趋势</strong><span>{emptyText}</span></div>
+            <div className="overview-legacy-chart-empty"><strong>{t("admin.no_trend_data")}</strong><span>{emptyText}</span></div>
             {chartFooter}
           </>
         )}
         {view !== "aggregate" ? <SeriesTable
-          subjectLabel={view === "user" ? "用户" : "CPA"}
+          subjectLabel={view === "user" ? t("common.user") : "CPA"}
           series={view === "user" ? payload.users : payload.accounts}
           emptyText={emptyText}
           statuses={view === "user" ? userStatuses : accountStatuses}
@@ -570,7 +572,7 @@ function UsageChartLoader({ buckets, series, summary = false, valueLabel, timezo
     <Suspense fallback={(
       <>
         <div className={`overview-legacy-chart overview-legacy-chart-loading${summary ? " summary" : ""}`} role="status">
-          <Spin size="small" /><span>正在加载趋势图</span>
+          <Spin size="small" /><span>{t("admin.loading_trend_chart")}</span>
         </div>
         {footer}
       </>
@@ -589,7 +591,7 @@ function UsageChartLoader({ buckets, series, summary = false, valueLabel, timezo
 }
 
 function SeriesTable({ subjectLabel, series, emptyText, statuses, tokenMode, canLoadMore, onLoadMore, resetKey }: {
-  subjectLabel: "CPA" | "用户";
+  subjectLabel: string;
   series: TokenSeries[];
   emptyText: string;
   statuses: Map<string, SeriesStatus>;
@@ -606,9 +608,9 @@ function SeriesTable({ subjectLabel, series, emptyText, statuses, tokenMode, can
     const rightValue = seriesSortValue(right, sort.key, statuses, tokenMode);
     const comparison = typeof leftValue === "number" && typeof rightValue === "number"
       ? leftValue - rightValue
-      : String(leftValue).localeCompare(String(rightValue), "zh-CN");
+      : String(leftValue).localeCompare(String(rightValue), getIntlLocale());
     const directed = sort.direction === "asc" ? comparison : -comparison;
-    return directed || left.name.localeCompare(right.name, "zh-CN");
+    return directed || left.name.localeCompare(right.name, getIntlLocale());
   }), [series, sort, statuses, tokenMode]);
   const colorByName = useMemo(() => new Map(
     topTokenSeries(tokenMode === "weighted" ? series.map(asWeightedSeries) : series, series.length)
@@ -628,7 +630,7 @@ function SeriesTable({ subjectLabel, series, emptyText, statuses, tokenMode, can
   return (
     <NativeTableViewport
       className="overview-legacy-table-wrap overview-token-detail-table"
-      aria-label={`${subjectLabel}用量明细表格`}
+      aria-label={t("admin.usage_details_table", [subjectLabel])}
       onScroll={(event) => {
         const viewport = event.currentTarget;
         if (viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - 48
@@ -639,11 +641,11 @@ function SeriesTable({ subjectLabel, series, emptyText, statuses, tokenMode, can
         <thead>
           <tr>
             <SeriesTableHeader label={subjectLabel} sortKey="name" sort={sort} onSort={updateSort} />
-            <SeriesTableHeader label="状态" sortKey="status" sort={sort} onSort={updateSort} />
-            <SeriesTableHeader label="当前值" sortKey="current" sort={sort} onSort={updateSort} />
-            <SeriesTableHeader label="平均值" sortKey="average" sort={sort} onSort={updateSort} />
-            <SeriesTableHeader label="最大值" sortKey="maximum" sort={sort} onSort={updateSort} />
-            <SeriesTableHeader label="范围内总量" sortKey="total" sort={sort} onSort={updateSort} />
+            <SeriesTableHeader label={t("admin.status_2")} sortKey="status" sort={sort} onSort={updateSort} />
+            <SeriesTableHeader label={t("common.current")} sortKey="current" sort={sort} onSort={updateSort} />
+            <SeriesTableHeader label={t("common.average")} sortKey="average" sort={sort} onSort={updateSort} />
+            <SeriesTableHeader label={t("common.maximum")} sortKey="maximum" sort={sort} onSort={updateSort} />
+            <SeriesTableHeader label={t("common.range_total")} sortKey="total" sort={sort} onSort={updateSort} />
           </tr>
         </thead>
         <tbody>
@@ -664,7 +666,7 @@ function SeriesTable({ subjectLabel, series, emptyText, statuses, tokenMode, can
           )}
         </tbody>
       </table>
-      {(visibleRows < sorted.length || canLoadMore) ? <button className="overview-token-load-more" type="button" onClick={loadNextPage} aria-label={`加载更多${subjectLabel}用量明细`}>加载更多</button> : null}
+      {(visibleRows < sorted.length || canLoadMore) ? <button className="overview-token-load-more" type="button" onClick={loadNextPage} aria-label={t("admin.load_more_usage_details", [subjectLabel])}>{t("admin.load_more")}</button> : null}
     </NativeTableViewport>
   );
 }
@@ -692,8 +694,8 @@ function SortButton({ label, sortKey, sort, onSort }: {
 }) {
   const active = sort.key === sortKey;
   const ariaLabel = active
-    ? `${label}，当前${sort.direction === "asc" ? "升序" : "降序"}，点击切换排序方向`
-    : `${label}，点击排序`;
+    ? t("admin.currently_click_to_reverse_the_sort_order", [label, sort.direction === "asc" ? t("common.ascending") : t("common.descending")])
+    : t("admin.click_to_sort", [label]);
   return (
     <button
       type="button"
@@ -719,13 +721,13 @@ function RecentJobs({ jobs, pending, error }: { jobs: RuntimeJob[]; pending: boo
   return (
     <section className="overview-legacy-jobs" aria-labelledby="overview-recent-jobs-title">
       <header>
-        <div><h2 id="overview-recent-jobs-title">最近任务</h2><span>ACTIVITY</span></div>
-        <a href="/admin/runtime">查看全部任务 →</a>
+        <div><h2 id="overview-recent-jobs-title">{t("admin.recent_tasks")}</h2><span>ACTIVITY</span></div>
+        <a href="/admin/runtime">{t("admin.view_all_tasks")}</a>
       </header>
       <div className="overview-legacy-panel overview-legacy-job-list">
-        {pending ? <div className="overview-legacy-job-state"><Spin size="small" /> 正在读取任务</div> : null}
-        {error ? <Alert type="error" showIcon message="最近任务加载失败" /> : null}
-        {!pending && !error && jobs.length === 0 ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无运行任务" /> : null}
+        {pending ? <div className="overview-legacy-job-state"><Spin size="small" /> {t("admin.loading_tasks")}</div> : null}
+        {error ? <Alert type="error" showIcon message={t("admin.unable_to_load_recent_tasks")} /> : null}
+        {!pending && !error && jobs.length === 0 ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t("admin.no_runtime_tasks")} /> : null}
         {jobs.slice(0, 8).map((job) => {
           const status = jobStatus(job.status);
           return (
@@ -750,7 +752,7 @@ function aggregateTokenSeries(buckets: number[], series: TokenSeries[]): TokenSe
   const total = values.reduce((sum, value) => sum + value, 0);
   const weightedTotal = weightedValues.reduce((sum, value) => sum + value, 0);
   return {
-    name: "全部账号合计",
+    name: t("admin.all_accounts_combined"),
     values,
     current: values.at(-1) ?? 0,
     average: values.length ? Math.round(total / values.length) : 0,
@@ -777,7 +779,7 @@ function asWeightedSeries(series: TokenSeries): TokenSeries {
 
 function topTokenSeries(series: TokenSeries[], limit: number) {
   return [...series]
-    .sort((left, right) => right.total - left.total || left.name.localeCompare(right.name, "zh-CN"))
+    .sort((left, right) => right.total - left.total || left.name.localeCompare(right.name, getIntlLocale()))
     .slice(0, limit);
 }
 
@@ -807,7 +809,7 @@ function mergeOptions(current: string[], incoming: string[]) {
 type SeriesStatus = { label: string; tone: string };
 
 function seriesStatus(series: TokenSeries, statuses: Map<string, SeriesStatus>): SeriesStatus {
-  return statuses.get(series.name) ?? { label: "状态未知", tone: "neutral" };
+  return statuses.get(series.name) ?? { label: t("common.unknown_status"), tone: "neutral" };
 }
 
 function seriesStatusRank(status: SeriesStatus) {
@@ -815,38 +817,38 @@ function seriesStatusRank(status: SeriesStatus) {
 }
 
 function collectorState(status?: string) {
-  if (["ok", "healthy"].includes(status ?? "")) return { label: "采集正常", tone: "success" };
-  if (["starting", "degraded"].includes(status ?? "")) return { label: status === "starting" ? "采集启动中" : "采集降级", tone: "warning" };
-  if (!status) return { label: "等待采集", tone: "neutral" };
-  return { label: "采集异常", tone: "danger" };
+  if (["ok", "healthy"].includes(status ?? "")) return { label: t("admin.collection_healthy"), tone: "success" };
+  if (["starting", "degraded"].includes(status ?? "")) return { label: status === "starting" ? t("admin.collector_starting") : t("admin.collection_degraded"), tone: "warning" };
+  if (!status) return { label: t("admin.waiting_for_collection"), tone: "neutral" };
+  return { label: t("admin.collection_error"), tone: "danger" };
 }
 
 function jobStatus(status: RuntimeJob["status"]) {
   const labels: Record<RuntimeJob["status"], { label: string; tone: string }> = {
-    queued: { label: "排队中", tone: "neutral" },
-    running: { label: "运行中", tone: "warning" },
-    cancelling: { label: "取消中", tone: "warning" },
-    succeeded: { label: "成功", tone: "success" },
-    failed: { label: "失败", tone: "danger" },
-    cancelled: { label: "已取消", tone: "neutral" }
+    queued: { label: t("admin.queued"), tone: "neutral" },
+    running: { label: t("admin.running_2"), tone: "warning" },
+    cancelling: { label: t("admin.cancelling"), tone: "warning" },
+    succeeded: { label: t("common.succeeded"), tone: "success" },
+    failed: { label: t("common.failed"), tone: "danger" },
+    cancelled: { label: t("common.cancelled"), tone: "neutral" }
   };
   return labels[status];
 }
 
 function actionLabel(action: RuntimeJob["action"]) {
   const labels: Record<RuntimeJob["action"], string> = {
-    start: "启动服务",
-    stop: "停止服务",
-    restart: "重启服务",
-    login: "OAuth 授权",
-    "image-pull": "拉取镜像",
-    "image-update": "更新 CPA 镜像"
+    start: t("admin.start_service"),
+    stop: t("admin.stop_service"),
+    restart: t("admin.restart_service"),
+    login: t("admin.oauth_authorization"),
+    "image-pull": t("admin.pull_image"),
+    "image-update": t("admin.update_cpa_image")
   };
   return labels[action];
 }
 
 export function formatOverviewUsageRange(startAt: number, endAt: number, timezone = getSiteTimezone()) {
-  if (!Number.isFinite(startAt) || !Number.isFinite(endAt) || startAt <= 0 || endAt < startAt) return "统计边界暂不可用";
+  if (!Number.isFinite(startAt) || !Number.isFinite(endAt) || startAt <= 0 || endAt < startAt) return t("admin.usage_boundaries_unavailable");
   return `${formatOverviewUsageBoundary(startAt, timezone)} — ${formatOverviewUsageBoundary(endAt, timezone)}`;
 }
 
@@ -855,8 +857,8 @@ export function formatOverviewUsageBoundary(timestamp: number, timezone = getSit
 }
 
 function formatBucketInterval(seconds: number) {
-  if (seconds < 60) return `${seconds} 秒`;
-  if (seconds < 3600) return `${Math.round(seconds / 60)} 分钟`;
-  if (seconds < 86400) return `${Math.round(seconds / 3600)} 小时`;
-  return `${Math.round(seconds / 86400)} 天`;
+  if (seconds < 60) return t("admin.sec", [seconds]);
+  if (seconds < 3600) return t("admin.min", [Math.round(seconds / 60)]);
+  if (seconds < 86400) return t("admin.hours", [Math.round(seconds / 3600)]);
+  return t("admin.days", [Math.round(seconds / 86400)]);
 }

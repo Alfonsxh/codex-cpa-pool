@@ -1,0 +1,1051 @@
+{
+  "version": 2,
+  "generated_at": 1787500800,
+  "field_count": 78,
+  "groups": [
+    {
+      "name": "Brand & identity",
+      "description": "Brand, domains and client configuration.",
+      "fields": [
+        {
+          "key": "branding.product_name",
+          "label": "Product name",
+          "description": "Product name shown on pages.",
+          "type": "text",
+          "value": "Codex CPA Pool",
+          "default": "Codex CPA Pool",
+          "apply_mode": "live",
+          "editable": true,
+          "min_length": 2,
+          "max_length": 64
+        },
+        {
+          "key": "branding.short_name",
+          "label": "Short name",
+          "description": "Short name displayed in clients.",
+          "type": "text",
+          "value": "CCPA",
+          "default": "CCPA",
+          "apply_mode": "live",
+          "editable": true,
+          "min_length": 2,
+          "max_length": 32
+        },
+        {
+          "key": "branding.environment_label",
+          "label": "Environment label",
+          "description": "Portal environment label; may be left blank.",
+          "type": "optional_text",
+          "value": "本地模拟预览",
+          "default": "Self-hosted service",
+          "apply_mode": "live",
+          "editable": true,
+          "max_length": 64
+        },
+        {
+          "key": "branding.public_base_url",
+          "label": "Public URL",
+          "description": "URL used in notifications and exports; leave blank to use the current site.",
+          "type": "base_url",
+          "value": "",
+          "default": "",
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "identity.allowed_email_domains",
+          "label": "Allowed email domains",
+          "description": "Separate with commas. Configure at least one domain before creating users.",
+          "type": "domain_list",
+          "value": [
+            "example.com"
+          ],
+          "default": [],
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "identity.key_prefix",
+          "label": "New key prefix",
+          "description": "Prefix for new keys, ending with an underscore.",
+          "type": "key_prefix",
+          "value": "ccpa_",
+          "default": "ccpa_",
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "portal.provider_name",
+          "label": "Client provider name",
+          "description": "Client provider name.",
+          "type": "text",
+          "value": "Codex CPA Pool",
+          "default": "Codex CPA Pool",
+          "apply_mode": "live",
+          "editable": true,
+          "min_length": 2,
+          "max_length": 48
+        },
+        {
+          "key": "portal.api_key_env",
+          "label": "Client key environment variable",
+          "description": "Shell variable for the key.",
+          "type": "env_name",
+          "value": "CCPA_API_KEY",
+          "default": "CCPA_API_KEY",
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "portal.default_model",
+          "label": "Default client model",
+          "description": "Default client model.",
+          "type": "text",
+          "value": "gpt-5.6-sol",
+          "default": "gpt-5.6-sol",
+          "apply_mode": "live",
+          "editable": true,
+          "min_length": 1,
+          "max_length": 128
+        }
+      ]
+    },
+    {
+      "name": "System settings",
+      "description": "Shared time and date boundaries across the site.",
+      "fields": [
+        {
+          "key": "system.timezone",
+          "label": "System timezone",
+          "description": "Used for page times, daily usage, calendar-week quotas and notification scheduling. Changing it recalculates this week's usage.",
+          "type": "timezone",
+          "value": "Asia/Shanghai",
+          "default": "Asia/Shanghai",
+          "apply_mode": "collector",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "CPA requests",
+      "description": "CPA request and proxy settings.",
+      "fields": [
+        {
+          "key": "cpa.proxy_enabled",
+          "label": "Enable default upstream proxy",
+          "description": "Used only by CPAs that inherit the default proxy.",
+          "type": "boolean",
+          "value": false,
+          "default": false,
+          "apply_mode": "accounts",
+          "editable": true
+        },
+        {
+          "key": "cpa.proxy_url",
+          "label": "Default upstream proxy URL",
+          "description": "Default proxy URL (HTTP/HTTPS/SOCKS5).",
+          "type": "proxy_url_secret",
+          "value": "",
+          "default": "",
+          "apply_mode": "accounts",
+          "editable": true,
+          "configured": false
+        },
+        {
+          "key": "cpa.request_retry",
+          "label": "Request retries",
+          "description": "Retries after upstream failures.",
+          "type": "integer",
+          "value": 2,
+          "default": 2,
+          "apply_mode": "accounts",
+          "editable": true,
+          "min": 0,
+          "max": 10
+        },
+        {
+          "key": "cpa.disable_image_generation",
+          "label": "Image tool policy",
+          "description": "Image tool availability policy.",
+          "type": "choice",
+          "value": "chat",
+          "default": "chat",
+          "apply_mode": "accounts",
+          "editable": true,
+          "choices": [
+            {
+              "value": "chat",
+              "label": "Disable in regular chats only (recommended)"
+            },
+            {
+              "value": "true",
+              "label": "Disable all"
+            },
+            {
+              "value": "false",
+              "label": "Enable all"
+            }
+          ]
+        },
+        {
+          "key": "cpa.max_retry_credentials",
+          "label": "Maximum credential retries",
+          "description": "Maximum credential switches per attempt.",
+          "type": "integer",
+          "value": 1,
+          "default": 1,
+          "apply_mode": "accounts",
+          "editable": true,
+          "min": 1,
+          "max": 10
+        },
+        {
+          "key": "cpa.max_retry_interval",
+          "label": "Maximum retry wait",
+          "description": "Maximum wait for credentials in cooldown.",
+          "type": "integer",
+          "value": 12,
+          "default": 12,
+          "apply_mode": "accounts",
+          "editable": true,
+          "unit": "sec",
+          "min": 1,
+          "max": 300,
+          "unit_code": "second"
+        },
+        {
+          "key": "cpa.transient_error_cooldown_seconds",
+          "label": "Transient error cooldown",
+          "description": "Cooldown after transient errors.",
+          "type": "integer",
+          "value": 10,
+          "default": 10,
+          "apply_mode": "accounts",
+          "editable": true,
+          "unit": "sec",
+          "min": 1,
+          "max": 300,
+          "unit_code": "second"
+        },
+        {
+          "key": "cpa.session_affinity",
+          "label": "Session affinity",
+          "description": "Reuse session credentials.",
+          "type": "boolean",
+          "value": true,
+          "default": true,
+          "apply_mode": "accounts",
+          "editable": true
+        },
+        {
+          "key": "cpa.session_affinity_ttl",
+          "label": "Session affinity duration",
+          "description": "Credential reuse duration, such as 30s.",
+          "type": "duration",
+          "value": "1h",
+          "default": "1h",
+          "apply_mode": "accounts",
+          "editable": true
+        },
+        {
+          "key": "cpa.debug",
+          "label": "Debug logging",
+          "description": "Enable for troubleshooting; increases log volume.",
+          "type": "boolean",
+          "value": false,
+          "default": false,
+          "apply_mode": "accounts",
+          "editable": true
+        },
+        {
+          "key": "cpa.logging_to_file",
+          "label": "Write CPA log files",
+          "description": "Save CPA logs to files.",
+          "type": "boolean",
+          "value": true,
+          "default": true,
+          "apply_mode": "accounts",
+          "editable": true
+        },
+        {
+          "key": "cpa.logs_max_total_size_mb",
+          "label": "Log capacity per CPA",
+          "description": "Per-CPA limit. Oldest logs are deleted when exceeded.",
+          "type": "integer",
+          "value": 64,
+          "default": 64,
+          "apply_mode": "accounts",
+          "editable": true,
+          "unit": "MiB",
+          "min": 16,
+          "max": 1024,
+          "unit_code": "MiB"
+        },
+        {
+          "key": "cpa.error_logs_max_files",
+          "label": "Error file limit per CPA",
+          "description": "Maximum error log files per CPA.",
+          "type": "integer",
+          "value": 10,
+          "default": 10,
+          "apply_mode": "accounts",
+          "editable": true,
+          "unit": "items",
+          "min": 1,
+          "max": 100,
+          "unit_code": "items"
+        }
+      ]
+    },
+    {
+      "name": "Usage & quotas",
+      "description": "Quotas and usage collection.",
+      "fields": [
+        {
+          "key": "cpa.usage_statistics_enabled",
+          "label": "Official usage events",
+          "description": "Disabling stops collection of new token usage.",
+          "type": "boolean",
+          "value": true,
+          "default": true,
+          "apply_mode": "accounts",
+          "editable": true
+        },
+        {
+          "key": "cpa.usage_queue_retention_seconds",
+          "label": "Usage queue retention",
+          "description": "Event retention during interruptions.",
+          "type": "integer",
+          "value": 3600,
+          "default": 3600,
+          "apply_mode": "accounts",
+          "editable": true,
+          "unit": "sec",
+          "min": 60,
+          "max": 604800,
+          "unit_code": "second"
+        },
+        {
+          "key": "usage.quota_cache_seconds",
+          "label": "Official quota cache",
+          "description": "Official quota cache duration.",
+          "type": "integer",
+          "value": 60,
+          "default": 60,
+          "apply_mode": "live",
+          "editable": true,
+          "unit": "sec",
+          "min": 30,
+          "max": 3600,
+          "unit_code": "second"
+        },
+        {
+          "key": "usage.upstream_timeout_seconds",
+          "label": "Official API timeout",
+          "description": "Official API request timeout.",
+          "type": "integer",
+          "value": 20,
+          "default": 20,
+          "apply_mode": "live",
+          "editable": true,
+          "unit": "sec",
+          "min": 5,
+          "max": 120,
+          "unit_code": "second"
+        }
+      ]
+    },
+    {
+      "name": "Automatic account switching",
+      "description": "Automatic migration when quota is low.",
+      "fields": [
+        {
+          "key": "account_failover.mode",
+          "label": "Automatic switching mode",
+          "description": "Automatically move users when official weekly quota is exhausted.",
+          "type": "choice",
+          "value": "active",
+          "default": "active",
+          "apply_mode": "live",
+          "editable": true,
+          "choices": [
+            {
+              "value": "off",
+              "label": "Close"
+            },
+            {
+              "value": "active",
+              "label": "Automatic"
+            }
+          ]
+        },
+        {
+          "key": "account_failover.poll_seconds",
+          "label": "Quota check interval",
+          "description": "Official quota check interval.",
+          "type": "integer",
+          "value": 60,
+          "default": 60,
+          "apply_mode": "live",
+          "editable": true,
+          "unit": "sec",
+          "min": 30,
+          "max": 3600,
+          "unit_code": "second"
+        },
+        {
+          "key": "account_failover.reserve_percent",
+          "label": "Target account safety reserve",
+          "description": "Accounts at or below this remaining quota do not receive users.",
+          "type": "number",
+          "value": 5,
+          "default": 5,
+          "apply_mode": "live",
+          "editable": true,
+          "unit": "%",
+          "min": 0,
+          "max": 50,
+          "unit_code": "percent"
+        },
+        {
+          "key": "account_failover.stale_after_seconds",
+          "label": "Quota data expiry",
+          "description": "Stop migration when quota data expires.",
+          "type": "integer",
+          "value": 120,
+          "default": 120,
+          "apply_mode": "live",
+          "editable": true,
+          "unit": "sec",
+          "min": 60,
+          "max": 7200,
+          "unit_code": "second"
+        }
+      ]
+    },
+    {
+      "name": "User quotas",
+      "description": "User quotas and failure policies.",
+      "fields": [
+        {
+          "key": "user_quota.default_weekly_tokens",
+          "label": "Default weekly quota per user",
+          "description": "Weighted limit per user per calendar week. Blank means unlimited; personal policies take priority.",
+          "type": "nullable_integer",
+          "value": null,
+          "default": null,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "Token",
+          "min": 1,
+          "max": 1000000000000,
+          "unit_code": "token"
+        },
+        {
+          "key": "user_quota.preserve_personal_weekly_on_new_week",
+          "label": "Preserve personal quota changes",
+          "description": "Applies to all users. When off, this week's quota stays unchanged and the organization default resumes next Monday at 00:00 in the system timezone. When on, personal quotas persist. Weekly usage still resets and temporary bonuses still expire at rollover.",
+          "type": "boolean",
+          "value": false,
+          "default": false,
+          "apply_mode": "quota",
+          "editable": true
+        },
+        {
+          "key": "user_quota.fail_open_after_seconds",
+          "label": "Quota failure grace period",
+          "description": "Allow requests and alert after a prolonged collection failure.",
+          "type": "integer",
+          "value": 300,
+          "default": 300,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "sec",
+          "min": 30,
+          "max": 3600,
+          "unit_code": "second"
+        }
+      ]
+    },
+    {
+      "name": "Reasoning effort policy",
+      "description": "Model and reasoning effort together determine the user quota token multiplier. Colors affect display only.",
+      "fields": [
+        {
+          "key": "user_quota.model_multiplier.codex-auto-review",
+          "label": "codex-auto-review model multiplier",
+          "description": "Model token multiplier for newly collected events.",
+          "type": "number",
+          "value": 1,
+          "default": 1,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "×",
+          "min": 0.1,
+          "max": 10,
+          "unit_code": "multiplier"
+        },
+        {
+          "key": "user_quota.model_multiplier.gpt-5.3-codex-spark",
+          "label": "gpt-5.3-codex-spark model multiplier",
+          "description": "Model token multiplier for newly collected events.",
+          "type": "number",
+          "value": 1,
+          "default": 1,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "×",
+          "min": 0.1,
+          "max": 10,
+          "unit_code": "multiplier"
+        },
+        {
+          "key": "user_quota.model_multiplier.gpt-5.4",
+          "label": "gpt-5.4 model multiplier",
+          "description": "Model token multiplier for newly collected events.",
+          "type": "number",
+          "value": 1,
+          "default": 1,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "×",
+          "min": 0.1,
+          "max": 10,
+          "unit_code": "multiplier"
+        },
+        {
+          "key": "user_quota.model_multiplier.gpt-5.4-mini",
+          "label": "gpt-5.4-mini model multiplier",
+          "description": "Model token multiplier for newly collected events.",
+          "type": "number",
+          "value": 1,
+          "default": 1,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "×",
+          "min": 0.1,
+          "max": 10,
+          "unit_code": "multiplier"
+        },
+        {
+          "key": "user_quota.model_multiplier.gpt-5.5",
+          "label": "gpt-5.5 model multiplier",
+          "description": "Model token multiplier for newly collected events.",
+          "type": "number",
+          "value": 1,
+          "default": 1,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "×",
+          "min": 0.1,
+          "max": 10,
+          "unit_code": "multiplier"
+        },
+        {
+          "key": "user_quota.model_multiplier.gpt-5.6-luna",
+          "label": "gpt-5.6-luna model multiplier",
+          "description": "Model token multiplier for newly collected events.",
+          "type": "number",
+          "value": 1,
+          "default": 1,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "×",
+          "min": 0.1,
+          "max": 10,
+          "unit_code": "multiplier"
+        },
+        {
+          "key": "user_quota.model_multiplier.gpt-5.6-sol",
+          "label": "gpt-5.6-sol model multiplier",
+          "description": "Model token multiplier for newly collected events.",
+          "type": "number",
+          "value": 1,
+          "default": 1,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "×",
+          "min": 0.1,
+          "max": 10,
+          "unit_code": "multiplier"
+        },
+        {
+          "key": "user_quota.model_multiplier.gpt-5.6-terra",
+          "label": "gpt-5.6-terra model multiplier",
+          "description": "Model token multiplier for newly collected events.",
+          "type": "number",
+          "value": 1,
+          "default": 1,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "×",
+          "min": 0.1,
+          "max": 10,
+          "unit_code": "multiplier"
+        },
+        {
+          "key": "user_quota.model_multiplier.gpt-6-astra",
+          "label": "gpt-6-astra model multiplier",
+          "description": "Model token multiplier for newly collected events.",
+          "type": "number",
+          "value": 4,
+          "default": 4,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "×",
+          "min": 0.1,
+          "max": 10,
+          "unit_code": "multiplier"
+        },
+        {
+          "key": "user_quota.model_multiplier.gpt-image-1.5",
+          "label": "gpt-image-1.5 model multiplier",
+          "description": "Model token multiplier for newly collected events.",
+          "type": "number",
+          "value": 1,
+          "default": 1,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "×",
+          "min": 0.1,
+          "max": 10,
+          "unit_code": "multiplier"
+        },
+        {
+          "key": "user_quota.model_multiplier.gpt-image-2",
+          "label": "gpt-image-2 model multiplier",
+          "description": "Model token multiplier for newly collected events.",
+          "type": "number",
+          "value": 1,
+          "default": 1,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "×",
+          "min": 0.1,
+          "max": 10,
+          "unit_code": "multiplier"
+        },
+        {
+          "key": "user_quota.model_multiplier.unknown",
+          "label": "其他 / 未匹配模型 model multiplier",
+          "description": "Token multiplier for newly collected events with an unmatched model.",
+          "type": "number",
+          "value": 1,
+          "default": 1,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "×",
+          "min": 0.1,
+          "max": 10,
+          "unit_code": "multiplier"
+        },
+        {
+          "key": "user_quota.reasoning_multiplier.none",
+          "label": "None reasoning effort multiplier",
+          "description": "Token multiplier for newly collected events.",
+          "type": "number",
+          "value": 1,
+          "default": 1,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "×",
+          "min": 0.1,
+          "max": 10,
+          "unit_code": "multiplier"
+        },
+        {
+          "key": "user_quota.reasoning_multiplier.minimal",
+          "label": "Minimal reasoning effort multiplier",
+          "description": "Token multiplier for newly collected events.",
+          "type": "number",
+          "value": 1,
+          "default": 1,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "×",
+          "min": 0.1,
+          "max": 10,
+          "unit_code": "multiplier"
+        },
+        {
+          "key": "user_quota.reasoning_multiplier.low",
+          "label": "Low reasoning effort multiplier",
+          "description": "Token multiplier for newly collected events.",
+          "type": "number",
+          "value": 1,
+          "default": 1,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "×",
+          "min": 0.1,
+          "max": 10,
+          "unit_code": "multiplier"
+        },
+        {
+          "key": "user_quota.reasoning_multiplier.medium",
+          "label": "Medium reasoning effort multiplier",
+          "description": "Token multiplier for newly collected events.",
+          "type": "number",
+          "value": 1,
+          "default": 1,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "×",
+          "min": 0.1,
+          "max": 10,
+          "unit_code": "multiplier"
+        },
+        {
+          "key": "user_quota.reasoning_multiplier.high",
+          "label": "High reasoning effort multiplier",
+          "description": "Token multiplier for newly collected events.",
+          "type": "number",
+          "value": 1,
+          "default": 1,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "×",
+          "min": 0.1,
+          "max": 10,
+          "unit_code": "multiplier"
+        },
+        {
+          "key": "user_quota.reasoning_multiplier.xhigh",
+          "label": "Xhigh reasoning effort multiplier",
+          "description": "Token multiplier for newly collected events.",
+          "type": "number",
+          "value": 1,
+          "default": 1,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "×",
+          "min": 0.1,
+          "max": 10,
+          "unit_code": "multiplier"
+        },
+        {
+          "key": "user_quota.reasoning_multiplier.max",
+          "label": "Max reasoning effort multiplier",
+          "description": "Token multiplier for newly collected events.",
+          "type": "number",
+          "value": 2,
+          "default": 2,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "×",
+          "min": 0.1,
+          "max": 10,
+          "unit_code": "multiplier"
+        },
+        {
+          "key": "user_quota.reasoning_multiplier.ultra",
+          "label": "Ultra reasoning effort multiplier",
+          "description": "Token multiplier for newly collected events.",
+          "type": "number",
+          "value": 3,
+          "default": 3,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "×",
+          "min": 0.1,
+          "max": 10,
+          "unit_code": "multiplier"
+        },
+        {
+          "key": "user_quota.reasoning_multiplier.auto",
+          "label": "Auto reasoning effort multiplier",
+          "description": "Token multiplier for newly collected events.",
+          "type": "number",
+          "value": 1,
+          "default": 1,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "×",
+          "min": 0.1,
+          "max": 10,
+          "unit_code": "multiplier"
+        },
+        {
+          "key": "user_quota.reasoning_multiplier.unknown",
+          "label": "Unknown reasoning effort multiplier",
+          "description": "Token multiplier for newly collected events.",
+          "type": "number",
+          "value": 1,
+          "default": 1,
+          "apply_mode": "quota",
+          "editable": true,
+          "unit": "×",
+          "min": 0.1,
+          "max": 10,
+          "unit_code": "multiplier"
+        },
+        {
+          "key": "admin.account_usage.reasoning_effort_color.none",
+          "label": "None reasoning effort color",
+          "description": "Display color in account details.",
+          "type": "color",
+          "value": "#7d8490",
+          "default": "#7d8490",
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "admin.account_usage.reasoning_effort_color.minimal",
+          "label": "Minimal reasoning effort color",
+          "description": "Display color in account details.",
+          "type": "color",
+          "value": "#84929a",
+          "default": "#84929a",
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "admin.account_usage.reasoning_effort_color.low",
+          "label": "Low reasoning effort color",
+          "description": "Display color in account details.",
+          "type": "color",
+          "value": "#4b8ccf",
+          "default": "#4b8ccf",
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "admin.account_usage.reasoning_effort_color.medium",
+          "label": "Medium reasoning effort color",
+          "description": "Display color in account details.",
+          "type": "color",
+          "value": "#7653a6",
+          "default": "#7653a6",
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "admin.account_usage.reasoning_effort_color.high",
+          "label": "High reasoning effort color",
+          "description": "Display color in account details.",
+          "type": "color",
+          "value": "#2f73d9",
+          "default": "#2f73d9",
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "admin.account_usage.reasoning_effort_color.xhigh",
+          "label": "Xhigh reasoning effort color",
+          "description": "Display color in account details.",
+          "type": "color",
+          "value": "#5965c7",
+          "default": "#5965c7",
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "admin.account_usage.reasoning_effort_color.max",
+          "label": "Max reasoning effort color",
+          "description": "Display color in account details.",
+          "type": "color",
+          "value": "#b2731e",
+          "default": "#b2731e",
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "admin.account_usage.reasoning_effort_color.ultra",
+          "label": "Ultra reasoning effort color",
+          "description": "Display color in account details.",
+          "type": "color",
+          "value": "#9b5f9d",
+          "default": "#9b5f9d",
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "admin.account_usage.reasoning_effort_color.auto",
+          "label": "Auto reasoning effort color",
+          "description": "Display color in account details.",
+          "type": "color",
+          "value": "#5e708a",
+          "default": "#5e708a",
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "admin.account_usage.reasoning_effort_color.unknown",
+          "label": "Unknown reasoning effort color",
+          "description": "Display color in account details.",
+          "type": "color",
+          "value": "#687287",
+          "default": "#687287",
+          "apply_mode": "live",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "WeCom notifications",
+      "description": "Quota reports and alerts.",
+      "fields": [
+        {
+          "key": "notification.enabled",
+          "label": "Enable WeCom notifications",
+          "description": "Send WeCom notifications.",
+          "type": "boolean",
+          "value": false,
+          "default": false,
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "notification.daily_times",
+          "label": "Daily delivery times",
+          "description": "HH:MM format; separate multiple times with commas.",
+          "type": "time_list",
+          "value": "09:00,14:00,18:00",
+          "default": "09:00,14:00,18:00",
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "notification.schedule_grace_minutes",
+          "label": "Missed delivery window",
+          "description": "How long a missed scheduled notification may still be sent.",
+          "type": "integer",
+          "value": 15,
+          "default": 15,
+          "apply_mode": "live",
+          "editable": true,
+          "unit": "minutes",
+          "min": 0,
+          "max": 120,
+          "unit_code": "minutes"
+        },
+        {
+          "key": "notification.quota_alert_enabled",
+          "label": "Enable weekly quota alerts",
+          "description": "Send weekly quota alerts.",
+          "type": "boolean",
+          "value": true,
+          "default": true,
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "notification.weekly_threshold_percent",
+          "label": "Weekly quota alert threshold",
+          "description": "Alert when account weekly usage reaches this percentage.",
+          "type": "number",
+          "value": 90,
+          "default": 90,
+          "apply_mode": "live",
+          "editable": true,
+          "unit": "%",
+          "min": 1,
+          "max": 100,
+          "unit_code": "percent"
+        }
+      ]
+    },
+    {
+      "name": "Sessions & collection",
+      "description": "Session and collection settings.",
+      "fields": [
+        {
+          "key": "portal.session_ttl_seconds",
+          "label": "Usage Center session duration",
+          "description": "Affects only sessions created after saving.",
+          "type": "integer",
+          "value": 43200,
+          "default": 43200,
+          "apply_mode": "live",
+          "editable": true,
+          "unit": "sec",
+          "min": 3600,
+          "max": 43200,
+          "unit_code": "second"
+        },
+        {
+          "key": "collector.interval_seconds",
+          "label": "Collection polling interval",
+          "description": "Collection polling interval.",
+          "type": "number",
+          "value": 2,
+          "default": 2,
+          "apply_mode": "collector",
+          "editable": true,
+          "unit": "sec",
+          "min": 0.5,
+          "max": 60,
+          "unit_code": "second"
+        },
+        {
+          "key": "collector.batch_size",
+          "label": "Events per batch",
+          "description": "Maximum events collected per CPA in each batch.",
+          "type": "integer",
+          "value": 100,
+          "default": 100,
+          "apply_mode": "collector",
+          "editable": true,
+          "min": 1,
+          "max": 500
+        }
+      ]
+    },
+    {
+      "name": "Account provisioning",
+      "description": "Port range for new CPAs.",
+      "fields": [
+        {
+          "key": "accounts.port_start",
+          "label": "New account port start",
+          "description": "Start port for new CPAs.",
+          "type": "integer",
+          "value": 18319,
+          "default": 18319,
+          "apply_mode": "future",
+          "editable": true,
+          "min": 1024,
+          "max": 65535
+        },
+        {
+          "key": "accounts.port_end",
+          "label": "New account port end",
+          "description": "End port for new CPAs; must not be below the start port.",
+          "type": "integer",
+          "value": 18999,
+          "default": 18999,
+          "apply_mode": "future",
+          "editable": true,
+          "min": 1024,
+          "max": 65535
+        }
+      ]
+    },
+    {
+      "name": "Accounts & releases",
+      "description": "CPA listen address and update image.",
+      "fields": [
+        {
+          "key": "accounts.listen_address",
+          "label": "CPA listen address",
+          "description": "Only host loopback addresses are allowed.",
+          "type": "ip",
+          "value": "127.0.0.1",
+          "default": "127.0.0.1",
+          "apply_mode": "deployment",
+          "editable": true
+        },
+        {
+          "key": "runtime.cliproxy_image",
+          "label": "CLIProxyAPI image",
+          "description": "Pull and verify updates in Accounts.",
+          "type": "image",
+          "value": "docker.m.daocloud.io/eceasy/cli-proxy-api:latest",
+          "default": "docker.m.daocloud.io/eceasy/cli-proxy-api:latest",
+          "apply_mode": "deployment",
+          "editable": true
+        }
+      ]
+    }
+  ]
+}

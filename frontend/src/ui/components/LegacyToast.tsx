@@ -41,7 +41,7 @@ export function LegacyToastRegion({ toasts }: { toasts: LegacyToastItem[] }) {
     <div className="toast-region" aria-live="polite">
       {toasts.map((toast) => (
         <div className={`toast${toast.kind === "error" ? " error" : ""}`} key={toast.id}>
-          {toast.message}
+ {(toast.message)}
         </div>
       ))}
     </div>

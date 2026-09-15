@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/Alfonsxh/codex-cpa-pool/internal/branding"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,7 +26,7 @@ func (server *Server) brandingLogo(c *gin.Context) {
 		return
 	}
 	if !found {
-		writeError(c, http.StatusNotFound, "未配置自定义 Logo", "not_found")
+		writeError(c, http.StatusNotFound, i18n.M("admin.no_custom_logo_configured"), "not_found")
 		return
 	}
 	c.Header("ETag", `"`+asset.SHA256+`"`)
@@ -34,18 +36,18 @@ func (server *Server) brandingLogo(c *gin.Context) {
 func (server *Server) updateBrandingLogo(c *gin.Context) {
 	var body brandingPayload
 	if err := c.ShouldBindJSON(&body); err != nil || body.Confirm != "save" || strings.TrimSpace(body.DataBase64) == "" {
-		writeError(c, http.StatusBadRequest, "Logo 参数无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_logo_parameters"), "invalid_request")
 		return
 	}
 	content, err := base64.StdEncoding.Strict().DecodeString(body.DataBase64)
 	if err != nil {
-		writeError(c, http.StatusBadRequest, "Logo 文件编码无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_logo_file_encoding"), "invalid_request")
 		return
 	}
 	logo, err := branding.ValidateLogo(body.Filename, body.ContentType, content)
 	if err != nil {
 		if errors.Is(err, branding.ErrInvalidLogo) {
-			writeError(c, http.StatusBadRequest, "Logo 文件无效", "invalid_logo")
+			writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_logo_file"), "invalid_logo")
 			return
 		}
 		server.internalError(c, "validate branding logo", err)
@@ -62,8 +64,8 @@ func (server *Server) updateBrandingLogo(c *gin.Context) {
 		server.internalError(c, "write branding logo", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Logo 已更新",
+	httpi18n.JSON(c, http.StatusOK, gin.H{
+		"message": i18n.M("admin.logo_updated"),
 		"logo": gin.H{
 			"custom":       true,
 			"url":          "/branding/logo",
@@ -78,7 +80,7 @@ func (server *Server) deleteBrandingLogo(c *gin.Context) {
 		Confirm string `json:"confirm" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil || body.Confirm != "reset" {
-		writeError(c, http.StatusBadRequest, "请确认恢复默认 Logo", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.confirm_restoring_the_default_logo"), "invalid_request")
 		return
 	}
 	_, existed, err := server.store.ReadBrandingAsset(c.Request.Context(), "logo")
@@ -90,11 +92,11 @@ func (server *Server) deleteBrandingLogo(c *gin.Context) {
 		server.internalError(c, "delete branding logo", err)
 		return
 	}
-	message := "当前已使用默认 Logo"
+	message := httpi18n.Text(c, "admin.the_default_logo_is_already_in_use")
 	if existed {
-		message = "已恢复默认 Logo"
+		message = httpi18n.Text(c, "admin.default_logo_restored")
 	}
-	c.JSON(http.StatusOK, gin.H{
+	httpi18n.JSON(c, http.StatusOK, gin.H{
 		"message": message,
 		"logo": gin.H{
 			"custom": false,

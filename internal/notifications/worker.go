@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Alfonsxh/codex-cpa-pool/internal/controlplane"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/quota"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/usage"
 	"golang.org/x/sync/errgroup"
@@ -152,9 +153,9 @@ func (worker *Worker) RunOnce(ctx context.Context) (RunResult, error) {
 	scheduledSent := false
 	if len(dueKeys) > 0 {
 		content, buildError := BuildMarkdownV2(
-			snapshot, config.ShortName+" · 账号额度报告", config.Timezone,
+			snapshot, config.ShortName+i18n.Text(config.Language, "admin.account_quota_report"), config.Timezone,
 			threshold, nowTime, nil, transitionEvents, UsageCenterURL(config.PublicBaseURL),
-			ReportOptions{PreviousWindows: previousWindows},
+			ReportOptions{PreviousWindows: previousWindows, Language: config.Language},
 		)
 		if buildError != nil {
 			return result, worker.recordError(ctx, state, buildError)
@@ -170,7 +171,7 @@ func (worker *Worker) RunOnce(ctx context.Context) (RunResult, error) {
 		scheduledSent = true
 	}
 	if len(transitionEvents) > 0 && !scheduledSent {
-		title, label := transitionTitle(config.ShortName, transitionEvents)
+		title, label := transitionTitle(config.ShortName, transitionEvents, config.Language)
 		var onlyKeys map[string]struct{}
 		if !weeklyRefreshDetected {
 			onlyKeys = make(map[string]struct{}, len(transitionEvents))
@@ -181,7 +182,7 @@ func (worker *Worker) RunOnce(ctx context.Context) (RunResult, error) {
 		content, buildError := BuildMarkdownV2(
 			snapshot, title, config.Timezone, threshold, nowTime,
 			onlyKeys, transitionEvents, UsageCenterURL(config.PublicBaseURL),
-			ReportOptions{PreviousWindows: previousWindows},
+			ReportOptions{PreviousWindows: previousWindows, Language: config.Language},
 		)
 		if buildError != nil {
 			return result, worker.recordError(ctx, state, buildError)
@@ -227,9 +228,10 @@ func (worker *Worker) RunOnce(ctx context.Context) (RunResult, error) {
 		state.LastSuccessAt = int64Pointer(nowUnix)
 	}
 	state.LastError = ""
+	state.LastErrorMessage = nil
 	fields := []string{
 		"heartbeat_at", "scheduled", "next_schedule_at", "quota_windows",
-		"quota_checked_at", "quota_alerts", "last_error",
+		"quota_checked_at", "quota_alerts", "last_error", "last_error_message",
 	}
 	if len(result.Sent) > 0 {
 		fields = append(fields, "last_success_at")
@@ -313,14 +315,14 @@ func CollectSnapshot(
 }
 
 func (worker *Worker) recordError(ctx context.Context, state RuntimeState, runError error) error {
-	state.LastError = boundedError(RedactWebhook(runError), 500)
+	state.LastError, state.LastErrorMessage = FailureRecord(runError)
 	finalizeContext, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
 	defer cancel()
 	if writeError := worker.patchState(
 		finalizeContext,
 		state,
 		"heartbeat_at", "scheduled", "next_schedule_at", "quota_windows",
-		"quota_checked_at", "last_error",
+		"quota_checked_at", "last_error", "last_error_message",
 	); writeError != nil {
 		return errors.Join(runError, writeError)
 	}
@@ -353,6 +355,8 @@ func (worker *Worker) patchState(ctx context.Context, state RuntimeState, fields
 			values[field] = state.LastSuccessAt
 		case "last_error":
 			values[field] = state.LastError
+		case "last_error_message":
+			values[field] = state.LastErrorMessage
 		case "next_schedule_at":
 			values[field] = state.NextScheduleAt
 		case "quota_checked_at":
@@ -418,24 +422,24 @@ func regularSignalKey(key string) bool {
 	return found && strings.HasPrefix(strings.ToLower(window), "default:")
 }
 
-func transitionTitle(shortName string, transitions map[string]string) (string, string) {
+func transitionTitle(shortName string, transitions map[string]string, languages ...i18n.Language) (string, string) {
 	types := make(map[string]struct{})
 	for _, value := range transitions {
 		types[value] = struct{}{}
 	}
 	switch {
 	case reflect.DeepEqual(types, map[string]struct{}{"warning": {}}):
-		return "🟠 " + shortName + " · 周额度预警", "quota_alert"
+		return "🟠 " + shortName + i18n.Text(i18n.Selected(languages), "notifications.weekly_quota_warning"), "quota_alert"
 	case reflect.DeepEqual(types, map[string]struct{}{"exhausted": {}}):
-		return "🔴 " + shortName + " · 周额度耗尽", "quota_exhausted"
+		return "🔴 " + shortName + i18n.Text(i18n.Selected(languages), "notifications.weekly_quota_exhausted"), "quota_exhausted"
 	case reflect.DeepEqual(types, map[string]struct{}{"recovered_warning": {}}):
-		return "🟠 " + shortName + " · 额度恢复，仍处于预警范围", "quota_recovered"
+		return "🟠 " + shortName + i18n.Text(i18n.Selected(languages), "notifications.quota_recovered_still_within_the_warning_range_2"), "quota_recovered"
 	case subset(types, "recovered", "recovered_warning"):
-		return "🟢 " + shortName + " · 额度恢复", "quota_recovered"
+		return "🟢 " + shortName + i18n.Text(i18n.Selected(languages), "notifications.quota_recovered_2"), "quota_recovered"
 	case reflect.DeepEqual(types, map[string]struct{}{"refreshed": {}}):
-		return "🔄 " + shortName + " · 周额度已重置", "quota_refreshed"
+		return "🔄 " + shortName + i18n.Text(i18n.Selected(languages), "notifications.weekly_quota_reset_2"), "quota_refreshed"
 	default:
-		return shortName + " · 账号额度变更", "quota_transition"
+		return shortName + i18n.Text(i18n.Selected(languages), "notifications.account_quota_changed"), "quota_transition"
 	}
 }
 

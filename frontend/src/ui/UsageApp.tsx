@@ -1,3 +1,5 @@
+import { LanguageSelect } from "./LanguageSelect";
+import { t } from "../i18n";
 import { DownOutlined, LockOutlined, LogoutOutlined } from "@ant-design/icons";
 import { Button, Dropdown, Result } from "antd";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -68,9 +70,9 @@ export function UsageApp() {
       <main className="centered-state">
         <Result
           status="warning"
-          title="使用中心暂时不可用"
-          subTitle={session.error instanceof Error ? session.error.message : "无法确认用户会话"}
-          extra={<Button type="primary" onClick={() => void session.refetch()}>重试</Button>}
+          title={t("common.usage_center_unavailable")}
+          subTitle={session.error instanceof Error ? session.error.message : t("common.unable_to_verify_the_user_session")}
+          extra={<Button type="primary" onClick={() => void session.refetch()}>{t("common.retry")}</Button>}
         />
       </main>
     );
@@ -92,8 +94,8 @@ export function UsageApp() {
           <section className="usage-password-required">
             <div>
               <span className="eyebrow">SECURITY CHECK</span>
-              <h1>先设置你的个人密码</h1>
-              <p>初始密码仅用于首次登录。完成修改后再加载 API Key 与个人本周用量。</p>
+              <h1>{t("common.set_your_personal_password_first")}</h1>
+              <p>{t("common.the_initial_password_is_for_first_sign_in_only_after")}</p>
             </div>
             <PortalPasswordModal
               open
@@ -122,43 +124,43 @@ function UsageAuthenticationBoundary() {
         <div className="usage-preview-brand">
           <UsageBrand />
           <span className="usage-heading">
-            <strong>使用中心</strong>
+            <strong>{t("common.usage_center")}</strong>
             <span className="usage-heading-subtitle" lang="en">USAGE CENTER</span>
           </span>
         </div>
-        <ThemeToggle />
+        <LanguageSelect /><ThemeToggle />
       </header>
       <main className="usage-main usage-preview" aria-hidden="true">
         <section className="usage-preview-summary">
           <div className="usage-preview-key">
-            <span>我的 API Key</span>
-            <code>出于安全，仅在需要时读取</code>
+            <span>{t("common.my_api_key")}</span>
+            <code>{t("common.loaded_only_when_needed")}</code>
             <div>
-              {['管理 API Key', '配置 Codex', '配置 Claude Code', '导入 CC Switch'].map((label) => (
+              {[t("common.manage_api_key"), t("common.configure_codex"), t("common.configure_claude_code"), t("common.import_to_cc_switch")].map((label) => (
                 <button type="button" disabled key={label}>{label}</button>
               ))}
             </div>
           </div>
           <div className="usage-preview-stat-grid">
-            <PreviewStat title="当前账号" value="尚未选择" detail="选择可用账号后显示" />
-            <PreviewStat title="个人本周用量" value="—" detail="本周额度正在读取…" />
-            <PreviewStat title="今日 Token" value="—" />
+            <PreviewStat title={t("common.current_account")} value={t("common.not_selected")} detail={t("common.shown_after_selecting_an_available_account")} />
+            <PreviewStat title={t("common.my_weekly_usage")} value="—" detail={t("common.loading_weekly_quota")} />
+            <PreviewStat title={t("common.today_s_tokens")} value="—" />
           </div>
         </section>
         <section className="usage-preview-accounts">
           <div className="usage-preview-toolbar">
-            <h2>账号明细</h2>
+            <h2>{t("common.account_details")}</h2>
             <div>
-              {['1 小时', '今日', '24 小时', '7 天', '本周', '刷新'].map((label) => (
+              {[t("common.1h"), t("common.today"), t("common.24h"), t("common.7d"), t("common.this_week"), t("common.refresh")].map((label) => (
                 <button type="button" disabled key={label}>{label}</button>
               ))}
             </div>
           </div>
-          <NativeTableViewport className="usage-preview-table-wrap" aria-label="账号明细加载预览">
+          <NativeTableViewport className="usage-preview-table-wrap" aria-label={t("common.account_details_loading_preview")}>
             <table>
               <thead>
                 <tr>
-                  {['序号', '当前账号', 'CPA 账号', '账号周额度', '活跃用户', '账号状态', '我的请求', '我的 Token', '最后使用', '使用明细'].map((label) => <th key={label}>{label}</th>)}
+                  {[t("common.no"), t("common.current_account"), t("common.cpa_account"), t("common.account_weekly_quota"), t("common.active_users"), t("common.account_status"), t("common.my_requests"), t("common.my_tokens"), t("common.last_used"), t("common.usage_details")].map((label) => <th key={label}>{label}</th>)}
                 </tr>
               </thead>
               <tbody>
@@ -185,7 +187,7 @@ function UsageBrand() {
   });
   const productName = publicSite.data?.product_name ?? defaultPublicSiteConfiguration.product_name;
   return (
-    <a className="usage-product-brand" href={applicationHref("portal")} aria-label={`${productName} 服务入口`} title={productName}>
+    <a className="usage-product-brand" href={applicationHref("portal")} aria-label={t("common.service_portal", [productName])} title={productName}>
       <img
         className="usage-brand-logo"
         src={`/portal/assets/codex-cpa-pool-mark${theme === "dark" ? "-dark" : ""}.svg`}
@@ -228,12 +230,12 @@ function UsageShell({
         <div className="usage-brand-block">
           <UsageBrand />
           <div className="usage-heading">
-            <h1>使用中心</h1>
+            <h1>{t("common.usage_center")}</h1>
             <span className="usage-heading-subtitle" lang="en">USAGE CENTER</span>
           </div>
         </div>
         <div className="usage-user-actions">
-          <ThemeToggle className="usage-theme-toggle" />
+          <LanguageSelect /><ThemeToggle className="usage-theme-toggle" />
           <Dropdown
             trigger={["click"]}
             placement="bottomRight"
@@ -244,10 +246,10 @@ function UsageShell({
             destroyOnHidden
             classNames={{ root: "usage-user-menu" }}
             menu={{
-              "aria-label": "用户操作",
+              "aria-label": t("common.user_actions"),
               items: [
-                { key: "password", label: "修改密码", icon: <LockOutlined aria-hidden="true" />, disabled: loggingOut },
-                { key: "logout", label: "退出", icon: <LogoutOutlined aria-hidden="true" />, disabled: loggingOut }
+                { key: "password", label: t("common.change_password"), icon: <LockOutlined aria-hidden="true" />, disabled: loggingOut },
+                { key: "logout", label: t("common.sign_out"), icon: <LogoutOutlined aria-hidden="true" />, disabled: loggingOut }
               ],
               onClick: ({ key }) => {
                 setUserMenuOpen(false);
@@ -261,12 +263,12 @@ function UsageShell({
               className="usage-user-badge"
               type="button"
               title={user}
-              aria-label={`用户菜单：${user}`}
+              aria-label={t("common.user_menu", [user])}
               aria-haspopup="menu"
               aria-expanded={userMenuOpen && !loggingOut}
               disabled={loggingOut}
             >
-              <span className="usage-user-name">{loggingOut ? "退出中…" : user}</span>
+              <span className="usage-user-name">{loggingOut ? t("common.signing_out_2") : user}</span>
               <DownOutlined className="usage-user-menu-arrow" aria-hidden="true" />
             </button>
           </Dropdown>
@@ -279,7 +281,7 @@ function UsageShell({
 
 function UsageLoading() {
   return (
-    <div className="usage-loading" aria-label="正在加载使用中心">
+    <div className="usage-loading" aria-label={t("common.loading_usage_center")}>
       <div className="skeleton skeleton-title" />
       <div className="skeleton skeleton-line" />
       <div className="skeleton skeleton-table" />

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Alfonsxh/codex-cpa-pool/internal/controlplane"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/quota"
 )
 
@@ -34,15 +35,24 @@ type WindowRecord struct {
 }
 
 type RuntimeState struct {
-	Version        int                        `json:"version"`
-	Scheduled      map[string]ScheduledRecord `json:"scheduled"`
-	QuotaAlerts    map[string]AlertRecord     `json:"quota_alerts"`
-	QuotaWindows   map[string]WindowRecord    `json:"quota_windows"`
-	HeartbeatAt    *int64                     `json:"heartbeat_at"`
-	LastSuccessAt  *int64                     `json:"last_success_at"`
-	LastError      string                     `json:"last_error"`
-	NextScheduleAt *int64                     `json:"next_schedule_at"`
-	QuotaCheckedAt *int64                     `json:"quota_checked_at"`
+	Version          int                        `json:"version"`
+	Scheduled        map[string]ScheduledRecord `json:"scheduled"`
+	QuotaAlerts      map[string]AlertRecord     `json:"quota_alerts"`
+	QuotaWindows     map[string]WindowRecord    `json:"quota_windows"`
+	HeartbeatAt      *int64                     `json:"heartbeat_at"`
+	LastSuccessAt    *int64                     `json:"last_success_at"`
+	LastError        string                     `json:"last_error"`
+	LastErrorMessage *MessageRecord             `json:"last_error_message,omitempty"`
+	NextScheduleAt   *int64                     `json:"next_schedule_at"`
+	QuotaCheckedAt   *int64                     `json:"quota_checked_at"`
+}
+
+// MessageRecord keeps an authored failure renderable after it is persisted, so
+// the status text can follow the reader's language. LastError stays alongside it
+// as the redacted diagnostic text.
+type MessageRecord struct {
+	ID     string      `json:"id"`
+	Params i18n.Params `json:"params,omitempty"`
 }
 
 type AccountSnapshot struct {
@@ -96,6 +106,7 @@ type SendResult struct {
 }
 
 type Config struct {
+	Language           i18n.Language
 	Enabled            bool
 	Timezone           *time.Location
 	TimezoneName       string

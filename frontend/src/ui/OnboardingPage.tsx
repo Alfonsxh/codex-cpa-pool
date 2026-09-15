@@ -1,3 +1,6 @@
+import "../i18n/admin";
+import { LanguageSelect } from "./LanguageSelect";
+import { t } from "../i18n";
 import {
   ArrowLeftOutlined,
   ArrowRightOutlined,
@@ -30,17 +33,17 @@ import { TimezoneSelect } from "./components/TimezoneSelect";
 import { defaultSiteTimezone, formatSiteTimestamp, useSiteTimezone } from "./site-time";
 
 const requiredLabels: Record<string, string> = {
-  email_domains: "访问范围",
-  initial_password: "初始密码"
+  email_domains: t("admin.access_scope"),
+  initial_password: t("common.initial_password")
 };
 
 const recommendationLabels: Record<string, string> = {
-  public_base_url: "访问地址",
-  quota_timezone: "系统时区",
-  weekly_quota: "默认额度",
-  notifications: "通知",
-  branding: "品牌",
-  proxy: "上游代理"
+  public_base_url: t("admin.public_address"),
+  quota_timezone: t("common.system_timezone"),
+  weekly_quota: t("admin.default_quota"),
+  notifications: t("admin.notifications"),
+  branding: t("admin.brand"),
+  proxy: t("admin.upstream_proxy")
 };
 
 type OnboardingDrafts = {
@@ -104,7 +107,7 @@ export function OnboardingPage({ csrfToken }: { csrfToken: string }) {
 
   useEffect(() => setRefreshing(onboarding.isFetching || catalog.isFetching), [catalog.isFetching, onboarding.isFetching, setRefreshing]);
   useEffect(() => {
-    if (onboarding.data) setRefreshLabel(`初始化状态更新于 ${formatSiteTimestamp(onboarding.data.generated_at)}`);
+    if (onboarding.data) setRefreshLabel(t("admin.setup_status_updated", [formatSiteTimestamp(onboarding.data.generated_at)]));
     return () => setRefreshLabel("");
   }, [onboarding.data, setRefreshLabel, siteTimezone]);
   useEffect(() => {
@@ -146,14 +149,14 @@ export function OnboardingPage({ csrfToken }: { csrfToken: string }) {
     ),
     onSuccess: (result, update) => {
       queryClient.setQueryData(onboardingQueryKey, result);
-      setNotice("初始化偏好已保存");
+      setNotice(t("admin.setup_preferences_saved"));
       if (update.advanceAfterSave) advanceAfterSave();
     }
   });
   const configuration = useMutation({
     mutationFn: (values: Record<string, unknown>) => saveConfiguration(values, csrfToken),
     onSuccess: async (result) => {
-      setNotice(`${result.message}，完成状态已重新检查`);
+      setNotice(t("admin.completion_status_has_been_checked_again", [result.message]));
       await Promise.all([
         catalog.refetch(),
         queryClient.invalidateQueries({ queryKey: onboardingQueryKey, exact: true }),
@@ -166,14 +169,14 @@ export function OnboardingPage({ csrfToken }: { csrfToken: string }) {
     mutationFn: () => saveNotificationWebhook(drafts.webhookURL.trim(), csrfToken),
     onSuccess: async (result) => {
       setDrafts((current) => ({ ...current, webhookURL: "" }));
-      setNotice(`${result.message}，完成状态已重新检查`);
+      setNotice(t("admin.completion_status_has_been_checked_again", [result.message]));
       await queryClient.invalidateQueries({ queryKey: onboardingQueryKey, exact: true });
       advanceAfterSave();
     }
   });
   if (onboarding.isPending) {
     return (
-      <section className="page-content onboarding-page" aria-label="正在加载首次设置">
+      <section className="page-content onboarding-page" aria-label={t("admin.loading_initial_setup")}>
         <div className="onboarding-shell"><Skeleton active paragraph={{ rows: 12 }} /></div>
       </section>
     );
@@ -183,10 +186,10 @@ export function OnboardingPage({ csrfToken }: { csrfToken: string }) {
       <section className="page-content onboarding-page">
         <Result
           status="warning"
-          title="首次设置状态暂时不可用"
-          subTitle={onboarding.error instanceof Error ? onboarding.error.message : "无法读取首次设置状态，请稍后重试。"}
+          title={t("admin.initial_setup_status_unavailable")}
+          subTitle={onboarding.error instanceof Error ? onboarding.error.message : t("admin.unable_to_read_setup_status_please_try_again_later")}
           extra={[
-            <Button key="retry" type="primary" onClick={() => void onboarding.refetch()}>重新加载</Button>
+            <Button key="retry" type="primary" onClick={() => void onboarding.refetch()}>{t("common.reload")}</Button>
           ]}
         />
       </section>
@@ -219,13 +222,14 @@ export function OnboardingPage({ csrfToken }: { csrfToken: string }) {
       <div className="onboarding-shell">
         <header className="onboarding-hero">
           <div>
-            <h2>完成基础配置</h2>
-            <p>集中设置访问范围、初始密码和运行参数；其他业务操作可在对应管理页面中完成。</p>
+            <h2>{t("admin.complete_basic_setup")}</h2>
+            <p>{t("admin.configure_access_initial_passwords_and_runtime_settings_here_other_operations")}</p>
           </div>
           <div className="onboarding-hero-actions">
+            <LanguageSelect />
             <div className="onboarding-progress-card">
               <strong>{completedCount}<span>/{totalCount}</span></strong>
-              <div><span>配置进度</span><Progress percent={completionPercent} showInfo={false} size="small" /></div>
+              <div><span>{t("admin.setup_progress")}</span><Progress percent={completionPercent} showInfo={false} size="small" /></div>
             </div>
           </div>
         </header>
@@ -236,15 +240,15 @@ export function OnboardingPage({ csrfToken }: { csrfToken: string }) {
             className="page-alert"
             type="error"
             showIcon
-            title="设置未保存"
+            title={t("admin.settings_were_not_saved")}
             description={(preferences.error ?? configuration.error ?? notificationWebhook.error) instanceof Error
               ? (preferences.error ?? configuration.error ?? notificationWebhook.error as Error).message
-              : "请稍后重试"}
+              : t("common.please_try_again_later")}
           />
         ) : null}
 
         <div className="onboarding-workspace">
-          <aside className="onboarding-steps" aria-label="初始化配置">
+          <aside className="onboarding-steps" aria-label={t("admin.setup")}>
             <OnboardingStepList
               steps={steps}
               selectedID={selected.id}
@@ -255,8 +259,8 @@ export function OnboardingPage({ csrfToken }: { csrfToken: string }) {
           <main className="onboarding-step-panel">
             <div className="onboarding-step-heading">
               <div>
-                <h3>{selected.title}</h3>
-                <p>{selected.description}</p>
+                <h3>{(selected.title)}</h3>
+                <p>{(selected.description)}</p>
               </div>
               <StepStatusTag status={selected.status} />
             </div>
@@ -281,20 +285,20 @@ export function OnboardingPage({ csrfToken }: { csrfToken: string }) {
             />
 
             <footer className="onboarding-step-footer">
-              <Button icon={<ArrowLeftOutlined />} disabled={selectedIndex <= 0} onClick={() => jump(selectedIndex - 1)}>上一步</Button>
-              <span>第 {selectedIndex + 1} 步，共 {steps.length} 步</span>
+              <Button icon={<ArrowLeftOutlined />} disabled={selectedIndex <= 0} onClick={() => jump(selectedIndex - 1)}>{t("admin.previous_step")}</Button>
+              <span>{t("admin.step")} {selectedIndex + 1} {t("admin.of")} {steps.length} {t("admin.steps")}</span>
               <div className="onboarding-step-footer-actions">
                 {selected.kind === "recommended" && selected.status !== "complete" ? (
                   selected.status === "skipped" ? (
-                    <Button disabled={preferences.isPending} onClick={() => updateSkipped(selected.id, false)}>重新设置</Button>
+                    <Button disabled={preferences.isPending} onClick={() => updateSkipped(selected.id, false)}>{t("admin.configure_again")}</Button>
                   ) : (
-                    <Button disabled={preferences.isPending} onClick={() => updateSkipped(selected.id, true)}>暂时跳过</Button>
+                    <Button disabled={preferences.isPending} onClick={() => updateSkipped(selected.id, true)}>{t("admin.skip_for_now")}</Button>
                   )
                 ) : null}
                 {selectedIndex < steps.length - 1 ? (
-                  <Button type="primary" onClick={() => jump(selectedIndex + 1)}>下一步<ArrowRightOutlined /></Button>
+                  <Button type="primary" onClick={() => jump(selectedIndex + 1)}>{t("admin.next_step")}<ArrowRightOutlined /></Button>
                 ) : (
-                  <Button type="primary" onClick={() => navigate("/overview")}>进入运行总览<ArrowRightOutlined /></Button>
+                  <Button type="primary" onClick={() => navigate("/overview")}>{t("admin.open_overview")}<ArrowRightOutlined /></Button>
                 )}
               </div>
             </footer>
@@ -328,7 +332,7 @@ function OnboardingStepList({
 }) {
   return (
     <section className="onboarding-step-group">
-      <nav aria-label="初始化配置">
+      <nav aria-label={t("admin.setup")}>
         {steps.map((step, index) => (
           <button
             key={step.id}
@@ -340,7 +344,7 @@ function OnboardingStepList({
             <span className={`onboarding-step-index status-${step.status}`} aria-hidden="true">
               {step.status === "complete" ? <CheckOutlined /> : index + 1}
             </span>
-            <span><strong>{requiredLabels[step.id] ?? recommendationLabels[step.id] ?? step.title}</strong><small>{step.title}</small></span>
+            <span><strong>{requiredLabels[step.id] ?? recommendationLabels[step.id] ?? step.title}</strong><small>{(step.title)}</small></span>
             <i className={`onboarding-step-dot status-${step.status}`} aria-label={stepStatusLabel(step.status)} />
           </button>
         ))}
@@ -385,15 +389,15 @@ function OnboardingStepAction({
   onNavigate: () => void;
 }) {
   if (step.status === "complete") {
-    return <div className="onboarding-complete-state"><CheckOutlined /><div><strong>此步骤已完成</strong><p>状态来自控制面实时检查，无需重复配置。</p></div></div>;
+    return <div className="onboarding-complete-state"><CheckOutlined /><div><strong>{t("admin.this_step_is_complete")}</strong><p>{t("admin.status_is_checked_live_by_the_control_plane_no_repeat")}</p></div></div>;
   }
   if (step.id === "email_domains") {
     return (
       <div className="onboarding-inline-form">
-        <label htmlFor="onboarding-email-domains">允许的邮箱域名</label>
+        <label htmlFor="onboarding-email-domains">{t("admin.allowed_email_domains")}</label>
         <Input.TextArea id="onboarding-email-domains" value={domains} onChange={(event) => onDomainsChange(event.target.value)} autoSize={{ minRows: 2, maxRows: 4 }} placeholder="example.com, example.org" />
-        <small>使用逗号、空格或换行分隔。未列入的邮箱无法创建或登录。</small>
-        <Button type="primary" loading={pending} disabled={!domains.trim()} onClick={onSaveDomains}>保存并检查</Button>
+        <small>{t("admin.separate_with_commas_spaces_or_newlines_emails_outside_these_domains")}</small>
+        <Button type="primary" loading={pending} disabled={!domains.trim()} onClick={onSaveDomains}>{t("admin.save_check")}</Button>
       </div>
     );
   }
@@ -401,8 +405,8 @@ function OnboardingStepAction({
     return (
       <div className="onboarding-action-card">
         <SettingOutlined aria-hidden="true" />
-        <div><strong>密码只写入、不回显</strong><p>设置后，新建或重置用户时由系统交付该初始密码。</p></div>
-        <Button type="primary" onClick={onOpenInitialPassword}>设置初始密码</Button>
+        <div><strong>{t("admin.the_password_is_write_only_and_never_displayed_again")}</strong><p>{t("admin.once_set_the_system_uses_this_initial_password_when_creating")}</p></div>
+        <Button type="primary" onClick={onOpenInitialPassword}>{t("admin.set_initial_password")}</Button>
       </div>
     );
   }
@@ -410,20 +414,20 @@ function OnboardingStepAction({
     return (
       <div className="onboarding-action-card">
         <SettingOutlined aria-hidden="true" />
-        <div><strong>前往现有管理流程</strong><p>完成后返回此页面，系统会重新读取真实状态。</p></div>
-        <Button type="primary" onClick={onNavigate}>前往设置<ArrowRightOutlined /></Button>
+        <div><strong>{t("admin.open_the_management_page")}</strong><p>{t("admin.return_here_after_finishing_the_system_will_read_the_current")}</p></div>
+        <Button type="primary" onClick={onNavigate}>{t("admin.open_settings")}<ArrowRightOutlined /></Button>
       </div>
     );
   }
   if (configurationPending) {
-    return <div className="onboarding-inline-form onboarding-form-state" aria-label="正在读取配置"><Skeleton active title={false} paragraph={{ rows: 3 }} /></div>;
+    return <div className="onboarding-inline-form onboarding-form-state" aria-label={t("admin.loading_configuration")}><Skeleton active title={false} paragraph={{ rows: 3 }} /></div>;
   }
   if (configurationError) {
     return (
       <div className="onboarding-action-card">
         <SettingOutlined aria-hidden="true" />
-        <div><strong>配置暂时不可用</strong><p>{configurationError instanceof Error ? configurationError.message : "无法读取当前配置，请稍后重试。"}</p></div>
-        <Button type="primary" onClick={onRetryConfiguration}>重新读取</Button>
+        <div><strong>{t("admin.configuration_unavailable")}</strong><p>{configurationError instanceof Error ? configurationError.message : t("admin.unable_to_read_current_configuration_please_try_again_later")}</p></div>
+        <Button type="primary" onClick={onRetryConfiguration}>{t("common.read_again")}</Button>
       </div>
     );
   }
@@ -431,20 +435,20 @@ function OnboardingStepAction({
     const valid = /^https?:\/\/[^\s]+$/i.test(drafts.publicURL.trim());
     return (
       <div className="onboarding-inline-form">
-        <label htmlFor="onboarding-public-url">公开访问地址</label>
+        <label htmlFor="onboarding-public-url">{t("admin.public_url")}</label>
         <Input id="onboarding-public-url" type="url" value={drafts.publicURL} onChange={(event) => onDraftChange("publicURL", event.target.value)} placeholder="https://cpa.example.com" />
-        <small>默认使用当前浏览器地址；通知和客户端配置导出会引用此地址。</small>
-        <Button type="primary" loading={pending} disabled={!valid} onClick={() => onSaveConfiguration({ "branding.public_base_url": drafts.publicURL.trim() })}>使用此地址</Button>
+        <small>{t("admin.defaults_to_the_current_browser_address_notifications_and_exported_client")}</small>
+        <Button type="primary" loading={pending} disabled={!valid} onClick={() => onSaveConfiguration({ "branding.public_base_url": drafts.publicURL.trim() })}>{t("admin.use_this_address")}</Button>
       </div>
     );
   }
   if (step.id === "quota_timezone") {
     return (
       <div className="onboarding-inline-form">
-        <label htmlFor="onboarding-system-timezone">系统时区</label>
+        <label htmlFor="onboarding-system-timezone">{t("common.system_timezone")}</label>
         <TimezoneSelect id="onboarding-system-timezone" value={drafts.quotaTimezone} onChange={(value) => onDraftChange("quotaTimezone", value)} disabled={pending} />
-        <small>页面时间、用量统计、自然周额度和通知统一使用此时区。今日从 00:00 开始，自然周从周一 00:00 开始；夏令时自动调整。</small>
-        <Button type="primary" loading={pending} disabled={!drafts.quotaTimezone.trim()} onClick={() => onSaveConfiguration({ "system.timezone": drafts.quotaTimezone.trim() })}>保存时区</Button>
+        <small>{t("admin.page_times_usage_calendar_week_quotas_and_notifications_use_this")}</small>
+        <Button type="primary" loading={pending} disabled={!drafts.quotaTimezone.trim()} onClick={() => onSaveConfiguration({ "system.timezone": drafts.quotaTimezone.trim() })}>{t("admin.save_timezone")}</Button>
       </div>
     );
   }
@@ -452,10 +456,10 @@ function OnboardingStepAction({
     const valid = drafts.weeklyQuota !== null && Number.isInteger(drafts.weeklyQuota) && drafts.weeklyQuota > 0 && drafts.weeklyQuota <= 1_000_000_000_000;
     return (
       <div className="onboarding-inline-form">
-        <label htmlFor="onboarding-weekly-quota">新用户默认周额度</label>
-        <InputNumber id="onboarding-weekly-quota" aria-label="新用户默认周额度" min={1} max={1_000_000_000_000} precision={0} suffix="Token" value={drafts.weeklyQuota} onChange={(value) => onDraftChange("weeklyQuota", typeof value === "number" ? value : null)} placeholder="20000000" />
-        <small>按自然周统计加权 Token；例如 15,000,000 表示 1,500 万 Token。留空表示不设默认限额，可直接跳过。</small>
-        <Button type="primary" loading={pending} disabled={!valid} onClick={() => onSaveConfiguration({ "user_quota.default_weekly_tokens": drafts.weeklyQuota })}>保存默认额度</Button>
+        <label htmlFor="onboarding-weekly-quota">{t("admin.default_weekly_quota_for_new_users")}</label>
+        <InputNumber id="onboarding-weekly-quota" aria-label={t("admin.default_weekly_quota_for_new_users")} min={1} max={1_000_000_000_000} precision={0} suffix="Token" value={drafts.weeklyQuota} onChange={(value) => onDraftChange("weeklyQuota", typeof value === "number" ? value : null)} placeholder="20000000" />
+        <small>{t("admin.weighted_tokens_per_calendar_week_for_example_15_000_000")}</small>
+        <Button type="primary" loading={pending} disabled={!valid} onClick={() => onSaveConfiguration({ "user_quota.default_weekly_tokens": drafts.weeklyQuota })}>{t("admin.save_default_quota")}</Button>
       </div>
     );
   }
@@ -463,10 +467,10 @@ function OnboardingStepAction({
     const valid = drafts.webhookURL.trim().startsWith("https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=");
     return (
       <div className="onboarding-inline-form">
-        <label htmlFor="onboarding-notification-webhook">企业微信群 Webhook</label>
+        <label htmlFor="onboarding-notification-webhook">{t("admin.wecom_group_webhook")}</label>
         <Input.Password id="onboarding-notification-webhook" value={drafts.webhookURL} onChange={(event) => onDraftChange("webhookURL", event.target.value)} autoComplete="new-password" visibilityToggle={{ tabIndex: -1 }} placeholder="https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=..." />
-        <small>地址只写入加密存储，不会通过初始化状态接口或浏览器缓存回显。</small>
-        <Button type="primary" loading={pending} disabled={!valid} onClick={onSaveNotification}>保存 Webhook</Button>
+        <small>{t("admin.the_url_is_written_to_encrypted_storage_setup_status_responses")}</small>
+        <Button type="primary" loading={pending} disabled={!valid} onClick={onSaveNotification}>{t("admin.save_webhook")}</Button>
       </div>
     );
   }
@@ -479,12 +483,12 @@ function OnboardingStepAction({
     return (
       <div className="onboarding-inline-form onboarding-inline-form-multi">
         <div className="onboarding-form-fields onboarding-branding-fields">
-          <label htmlFor="onboarding-product-name"><span>产品名称</span><Input id="onboarding-product-name" maxLength={64} value={drafts.productName} onChange={(event) => onDraftChange("productName", event.target.value)} /></label>
-          <label htmlFor="onboarding-short-name"><span>产品简称</span><Input id="onboarding-short-name" maxLength={32} value={drafts.shortName} onChange={(event) => onDraftChange("shortName", event.target.value)} /></label>
-          <label htmlFor="onboarding-environment-label"><span>环境说明</span><Input id="onboarding-environment-label" maxLength={64} value={drafts.environmentLabel} onChange={(event) => onDraftChange("environmentLabel", event.target.value)} placeholder="例如：研发团队专用" /></label>
+          <label htmlFor="onboarding-product-name"><span>{t("admin.product_name")}</span><Input id="onboarding-product-name" maxLength={64} value={drafts.productName} onChange={(event) => onDraftChange("productName", event.target.value)} /></label>
+          <label htmlFor="onboarding-short-name"><span>{t("admin.short_name")}</span><Input id="onboarding-short-name" maxLength={32} value={drafts.shortName} onChange={(event) => onDraftChange("shortName", event.target.value)} /></label>
+          <label htmlFor="onboarding-environment-label"><span>{t("admin.environment_label")}</span><Input id="onboarding-environment-label" maxLength={64} value={drafts.environmentLabel} onChange={(event) => onDraftChange("environmentLabel", event.target.value)} placeholder={t("admin.e_g_engineering_team")} /></label>
         </div>
-        <small>至少修改一项才会标记为已配置；保持默认品牌时可跳过此推荐项。</small>
-        <Button type="primary" loading={pending} disabled={!valid || !changed} onClick={() => onSaveConfiguration({ "branding.product_name": productName, "branding.short_name": shortName, "branding.environment_label": environmentLabel })}>保存品牌信息</Button>
+        <small>{t("admin.change_at_least_one_field_to_mark_this_step_complete")}</small>
+        <Button type="primary" loading={pending} disabled={!valid || !changed} onClick={() => onSaveConfiguration({ "branding.product_name": productName, "branding.short_name": shortName, "branding.environment_label": environmentLabel })}>{t("admin.save_branding")}</Button>
       </div>
     );
   }
@@ -493,10 +497,10 @@ function OnboardingStepAction({
     const valid = proxyConfigured ? !proxyURL || /^(?:https?|socks5):\/\/[^\s]+$/i.test(proxyURL) : /^(?:https?|socks5):\/\/[^\s]+$/i.test(proxyURL);
     return (
       <div className="onboarding-inline-form">
-        <label htmlFor="onboarding-proxy-url">默认上游代理 URL</label>
-        <Input.Password id="onboarding-proxy-url" value={drafts.proxyURL} onChange={(event) => onDraftChange("proxyURL", event.target.value)} autoComplete="new-password" visibilityToggle={{ tabIndex: -1 }} placeholder={proxyConfigured ? "已加密保存；留空直接启用现有代理" : "socks5://user:password@proxy.example.com:1080"} />
-        <small>保存后会启用默认代理，并应用到所有选择“继承默认”的 CPA；密钥不会回显。</small>
-        <Button type="primary" loading={pending} disabled={!valid} onClick={() => onSaveConfiguration({ "cpa.proxy_enabled": true, ...(proxyURL ? { "cpa.proxy_url": proxyURL } : {}) })}>保存并启用代理</Button>
+        <label htmlFor="onboarding-proxy-url">{t("admin.default_upstream_proxy_url")}</label>
+        <Input.Password id="onboarding-proxy-url" value={drafts.proxyURL} onChange={(event) => onDraftChange("proxyURL", event.target.value)} autoComplete="new-password" visibilityToggle={{ tabIndex: -1 }} placeholder={proxyConfigured ? t("admin.saved_encrypted_leave_blank_to_enable_the_existing_proxy") : "socks5://user:password@proxy.example.com:1080"} />
+        <small>{t("admin.saving_enables_the_default_proxy_for_all_cpas_set_to")}</small>
+        <Button type="primary" loading={pending} disabled={!valid} onClick={() => onSaveConfiguration({ "cpa.proxy_enabled": true, ...(proxyURL ? { "cpa.proxy_url": proxyURL } : {}) })}>{t("admin.save_enable_proxy")}</Button>
       </div>
     );
   }
@@ -516,11 +520,11 @@ function StepStatusTag({ status }: { status: OnboardingStep["status"] }) {
 
 function stepStatusLabel(status: OnboardingStep["status"]) {
   return ({
-    complete: "已完成",
-    incomplete: "待设置",
-    blocked: "等待前置步骤",
-    skipped: "已跳过",
-    unavailable: "状态暂不可用"
+    complete: t("admin.complete"),
+    incomplete: t("admin.needs_setup"),
+    blocked: t("admin.waiting_for_prerequisites"),
+    skipped: t("common.skipped"),
+    unavailable: t("admin.status_unavailable")
   } as const)[status];
 }
 

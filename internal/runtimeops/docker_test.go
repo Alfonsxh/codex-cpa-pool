@@ -104,7 +104,7 @@ func TestManagerReadsBoundedRedactedMultiplexedLogs(t *testing.T) {
 	}
 	if !result.Truncated || !strings.Contains(result.Output, "Bearer [REDACTED]") ||
 		!strings.Contains(result.Output, "key_[REDACTED]") || strings.Contains(result.Output, "secret-token") ||
-		strings.Contains(result.Output, "0123456789abcdef") || !strings.Contains(result.Output, "输出已截断") {
+		strings.Contains(result.Output, "0123456789abcdef") || !strings.Contains(result.Output, "Output truncated") {
 		t.Fatalf("logs = %#v", result)
 	}
 	if client.logOptions.Tail != "200" || !client.logOptions.ShowStdout || !client.logOptions.ShowStderr {

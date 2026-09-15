@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/alitto/pond/v2"
 	"github.com/google/uuid"
 )
@@ -407,7 +408,7 @@ func (manager *JobManager) appendOutput(id string, payload string) {
 	combined := job.Output + payload
 	const limit = 2 * 1024 * 1024
 	if len(combined) > limit {
-		combined = combined[:limit] + "\n[输出已截断]\n"
+		combined = combined[:limit] + i18n.Text(i18n.English, "runtimeops.output_truncated")
 	}
 	job.Output = Sanitize(strings.ToValidUTF8(combined, "�"))
 }
@@ -467,31 +468,31 @@ func (manager *JobManager) trimLocked() {
 	}
 }
 
-func jobName(action, target string) string {
+func jobName(action, target string, languages ...i18n.Language) string {
 	switch action {
 	case "start":
-		return "启动服务"
+		return i18n.Text(i18n.Selected(languages), "runtimeops.start_service")
 	case "stop":
-		return "停止服务"
+		return i18n.Text(i18n.Selected(languages), "runtimeops.stop_service")
 	case "restart":
-		return "重启服务"
+		return i18n.Text(i18n.Selected(languages), "runtimeops.restart_service")
 	case "login":
-		return "OAuth 授权"
+		return i18n.Text(i18n.Selected(languages), "runtimeops.oauth_authorization")
 	case "image-pull":
-		return "拉取 CPA 镜像"
+		return i18n.Text(i18n.Selected(languages), "runtimeops.pull_cpa_image")
 	case "image-update":
 		if target == "all" {
-			return "更新全部 CPA 镜像"
+			return i18n.Text(i18n.Selected(languages), "runtimeops.update_all_cpa_images")
 		}
-		return "更新 CPA 镜像"
+		return i18n.Text(i18n.Selected(languages), "runtimeops.update_cpa_image")
 	case "health":
-		return "健康检查"
+		return i18n.Text(i18n.Selected(languages), "runtimeops.health_check")
 	case "verify-routing":
-		return "路由验证"
+		return i18n.Text(i18n.Selected(languages), "runtimeops.verify_routes")
 	case "render":
-		return "渲染并校验配置"
+		return i18n.Text(i18n.Selected(languages), "runtimeops.render_and_validate_configuration")
 	default:
-		return "运行维护"
+		return i18n.Text(i18n.Selected(languages), "runtimeops.maintenance")
 	}
 }
 
@@ -519,4 +520,9 @@ func cloneJob(job *Job) Job {
 
 func isTerminalJobStatus(status string) bool {
 	return status == "succeeded" || status == "failed" || status == "cancelled"
+}
+
+func (job Job) WithLanguage(lang i18n.Language) Job {
+	job.Name = jobName(job.Action, job.Target, lang)
+	return job
 }

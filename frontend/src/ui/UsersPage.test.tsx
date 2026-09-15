@@ -594,7 +594,7 @@ describe("create user email suffix selector", () => {
     const fetchMock = withDomains([]);
     vi.stubGlobal("fetch", fetchMock);
     renderUsers("/users?create=1");
-    expect(await screen.findByRole("link", { name: "系统配置" })).toHaveAttribute("href", "/configuration?group=品牌与身份&key=identity.allowed_email_domains");
+    expect(await screen.findByRole("link", { name: "系统配置" })).toHaveAttribute("href", "/configuration?section=identity&key=identity.allowed_email_domains");
     expect(screen.getByRole("button", { name: "创建用户" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "邮箱后缀：暂无可用后缀" })).toBeDisabled();
     expect(request(fetchMock, "/admin/api/users", "POST")).toBeUndefined();

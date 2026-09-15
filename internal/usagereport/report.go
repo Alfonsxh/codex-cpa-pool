@@ -4,11 +4,11 @@ package usagereport
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 	"strings"
 	"time"
 
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/usage"
 )
 
@@ -29,7 +29,7 @@ func ResolvePeriod(weekStart string, now time.Time, zone *time.Location) (Period
 		start, err = time.ParseInLocation(time.DateOnly, weekStart, zone)
 		if err != nil || start.Format(time.DateOnly) != weekStart || start.Weekday() != time.Monday ||
 			start.Year() < 1970 || start.After(monday) {
-			return Period{}, errors.New("请选择有效的周一日期，且不能晚于本周")
+			return Period{}, i18n.M("usagereport.select_a_valid_monday_no_later_than_the_current_week")
 		}
 	}
 	end := start.AddDate(0, 0, 7)
@@ -43,8 +43,8 @@ func ResolvePeriod(weekStart string, now time.Time, zone *time.Location) (Period
 
 func (period Period) Partial() bool { return period.End.Before(period.WeekEnd) }
 
-func (period Period) Filename() string {
-	return fmt.Sprintf("CCPA_Token周报_%s_%s.xlsx", period.Start.Format(time.DateOnly), period.WeekEnd.AddDate(0, 0, -1).Format(time.DateOnly))
+func (period Period) Filename(languages ...i18n.Language) string {
+	return i18n.M("usagereport.ccpa_token_report_xlsx", i18n.Params{"Start": period.Start.Format(time.DateOnly), "End": period.WeekEnd.AddDate(0, 0, -1).Format(time.DateOnly)}).Render(i18n.Selected(languages))
 }
 
 type reportDay struct {
@@ -180,7 +180,7 @@ func sortedEntries(entries map[string]*entryAccumulator) []Entry {
 
 // Build reconciles every row into all three dimensions, including unknown or
 // removed users/accounts. Both comparison periods use the same current catalog.
-func Build(period Period, catalog Catalog, rows []usage.ReportUsageRow) (Report, error) {
+func Build(period Period, catalog Catalog, rows []usage.ReportUsageRow, languages ...i18n.Language) (Report, error) {
 	if len(catalog.Teams) > 20_000 || len(catalog.Accounts) > 20_000 || len(catalog.UserTeams) > 20_000 {
 		return Report{}, usage.ErrReportTooLarge
 	}
@@ -197,7 +197,7 @@ func Build(period Period, catalog Catalog, rows []usage.ReportUsageRow) (Report,
 		if name, found := catalog.Teams[id]; found && id != "" {
 			return id, name
 		}
-		return "", "未分配"
+		return "", i18n.Text(i18n.Selected(languages), "usagereport.unassigned")
 	}
 	for id, name := range catalog.Teams {
 		ensureEntry(teams, id, name, "")
@@ -219,7 +219,7 @@ func Build(period Period, catalog Catalog, rows []usage.ReportUsageRow) (Report,
 		accountName := catalog.Accounts[row.Account]
 		userName := row.User
 		if userName == "" {
-			userName = "未识别用户"
+			userName = i18n.Text(i18n.Selected(languages), "usagereport.unidentified_user")
 		}
 		entries := []*entryAccumulator{
 			ensureEntry(teams, teamID, teamName, ""),

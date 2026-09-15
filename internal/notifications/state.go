@@ -3,8 +3,11 @@ package notifications
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
+
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 )
 
 func DefaultRuntimeState() RuntimeState {
@@ -41,10 +44,55 @@ func ReadRuntimeState(ctx context.Context, store interface {
 	decodeField(fields["heartbeat_at"], &state.HeartbeatAt)
 	decodeField(fields["last_success_at"], &state.LastSuccessAt)
 	decodeField(fields["last_error"], &state.LastError)
+	decodeField(fields["last_error_message"], &state.LastErrorMessage)
 	decodeField(fields["next_schedule_at"], &state.NextScheduleAt)
 	decodeField(fields["quota_checked_at"], &state.QuotaCheckedAt)
 	return state, true, nil
 }
+
+// FailureRecord pairs the redacted diagnostic text of a failure with the
+// authored message that produced it. Parameters are bounded like the
+// diagnostic, because upstream text and provider error bodies are untrusted in
+// size.
+func FailureRecord(err error) (string, *MessageRecord) {
+	text := boundedError(RedactWebhook(err), maximumRecordedError)
+	var message *i18n.Message
+	if errors.As(err, &message) {
+		return text, &MessageRecord{ID: message.ID, Params: boundedParams(message.Params)}
+	}
+	return text, nil
+}
+
+// ErrorText renders the recorded failure in the reader's language. Failures
+// without an authored message keep their diagnostic text.
+func (state RuntimeState) ErrorText(lang i18n.Language) string {
+	if state.LastErrorMessage != nil && state.LastErrorMessage.ID != "" {
+		return boundedError(i18n.M(state.LastErrorMessage.ID, state.LastErrorMessage.Params).Render(lang), maximumRecordedError)
+	}
+	return boundedError(state.LastError, maximumRecordedError)
+}
+
+func boundedParams(params i18n.Params) i18n.Params {
+	if len(params) == 0 {
+		return nil
+	}
+	bounded := make(i18n.Params, len(params))
+	for key, value := range params {
+		switch typed := value.(type) {
+		case string:
+			bounded[key] = boundedError(typed, maximumRecordedError)
+		case int, int64, float64, bool, nil:
+			bounded[key] = value
+		default:
+			// Nested messages and errors cannot be rendered again after the JSON
+			// round trip, so their redacted text is recorded instead.
+			bounded[key] = boundedError(RedactWebhook(typed), maximumRecordedError)
+		}
+	}
+	return bounded
+}
+
+const maximumRecordedError = 500
 
 func decodeField(raw json.RawMessage, destination any) bool {
 	return len(raw) > 0 && json.Unmarshal(raw, destination) == nil

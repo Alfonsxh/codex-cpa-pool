@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -41,17 +42,29 @@ func ValidateWebhookURL(value string) (string, error) {
 	if err != nil || len(raw) > maximumWebhookURLLength || parsed.Scheme != "https" ||
 		!strings.EqualFold(parsed.Hostname(), webhookHost) || parsed.Port() != "" ||
 		parsed.Path != webhookPath || parsed.User != nil || parsed.Fragment != "" {
-		return "", errors.New("Webhook 地址必须是企业微信消息推送 HTTPS 地址")
+		return "", i18n.M("notifications.webhook_url_must_be_a_wecom_message_delivery_https_url")
 	}
 	query, err := url.ParseQuery(parsed.RawQuery)
 	if err != nil || len(query) != 1 || len(query["key"]) != 1 || !webhookKeyPattern.MatchString(query["key"][0]) {
-		return "", errors.New("Webhook 地址必须是企业微信消息推送 HTTPS 地址")
+		return "", i18n.M("notifications.webhook_url_must_be_a_wecom_message_delivery_https_url")
 	}
 	return raw, nil
 }
 
 func RedactWebhook(value any) string {
 	return webhookRedactor.ReplaceAllString(fmt.Sprint(value), "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=[REDACTED]")
+}
+
+// ResponseError keeps authored messages renderable in the request language while
+// arbitrary errors, which may embed the webhook credential, are redacted. Every
+// message parameter carrying external text is redacted where the message is
+// built, so an authored message is safe to render as-is.
+func ResponseError(err error) any {
+	var message *i18n.Message
+	if errors.As(err, &message) {
+		return message
+	}
+	return RedactWebhook(err)
 }
 
 // MaskedWebhookURL is display-only. Never return the complete credential to a
@@ -78,17 +91,17 @@ func (sender *WebhookSender) Configured(ctx context.Context) (bool, error) {
 }
 
 var (
-	ErrWebhookNotConfigured = errors.New("尚未配置企业微信 Webhook")
-	ErrWebhookInvalid       = errors.New("企业微信 Webhook 配置无效")
+	ErrWebhookNotConfigured = i18n.M("admin.no_wecom_webhook_configured")
+	ErrWebhookInvalid       = i18n.M("notifications.invalid_wecom_webhook_configuration")
 )
 
 func (sender *WebhookSender) webhookURL(ctx context.Context) (string, error) {
 	if sender == nil || sender.Store == nil {
-		return "", errors.New("企业微信发送器缺少密钥存储")
+		return "", i18n.M("notifications.wecom_sender_requires_a_secret_store")
 	}
 	value, found, err := sender.Store.ReadSecret(ctx, "wecom_webhook")
 	if err != nil {
-		return "", fmt.Errorf("读取企业微信 Webhook: %w", err)
+		return "", i18n.M("notifications.read_wecom_webhook", i18n.Params{"Detail": RedactWebhook(err)}).WithCause(err)
 	}
 	if !found || strings.TrimSpace(value) == "" {
 		return "", ErrWebhookNotConfigured
@@ -102,7 +115,7 @@ func (sender *WebhookSender) webhookURL(ctx context.Context) (string, error) {
 
 func (sender *WebhookSender) Send(ctx context.Context, content string) (SendResult, error) {
 	if len([]byte(content)) > MarkdownV2MaximumSize {
-		return SendResult{}, errors.New("企业微信 markdown_v2 内容超过 4096 字节")
+		return SendResult{}, i18n.M("notifications.wecom_markdown_v2_content_exceeds_4096_bytes")
 	}
 	webhook, err := sender.webhookURL(ctx)
 	if err != nil {
@@ -130,24 +143,24 @@ func (sender *WebhookSender) Send(ctx context.Context, content string) (SendResu
 		}).
 		Post(webhook)
 	if err != nil {
-		return SendResult{}, fmt.Errorf("企业微信消息发送失败：%s", RedactWebhook(err))
+		return SendResult{}, i18n.M("notifications.wecom_message_delivery_failed", i18n.Params{"Value": RedactWebhook(err)})
 	}
 	if response.StatusCode() < 200 || response.StatusCode() >= 300 {
-		return SendResult{}, fmt.Errorf("企业微信消息发送失败：HTTP %d", response.StatusCode())
+		return SendResult{}, i18n.M("notifications.wecom_message_delivery_failed_http", i18n.Params{"Status": response.StatusCode()})
 	}
 	var payload struct {
 		ErrorCode *int   `json:"errcode"`
 		Message   string `json:"errmsg"`
 	}
 	if err := json.Unmarshal(response.Body(), &payload); err != nil || payload.ErrorCode == nil {
-		return SendResult{}, errors.New("企业微信消息发送失败：响应无效")
+		return SendResult{}, i18n.M("notifications.wecom_message_delivery_failed_invalid_response")
 	}
 	if *payload.ErrorCode != 0 {
 		message := strings.TrimSpace(RedactWebhook(payload.Message))
 		if message == "" {
-			message = "响应无效"
+			return SendResult{}, i18n.M("notifications.wecom_message_delivery_failed_invalid_response")
 		}
-		return SendResult{}, fmt.Errorf("企业微信消息发送失败：%s", message)
+		return SendResult{}, i18n.M("notifications.wecom_message_delivery_failed", i18n.Params{"Value": message})
 	}
 	message := strings.TrimSpace(payload.Message)
 	if message == "" {

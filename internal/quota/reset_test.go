@@ -102,7 +102,7 @@ func TestResetterRevalidatesCreditAndWindowBeforeSingleConsume(t *testing.T) {
 				t.Fatalf("Reset: %v", err)
 			}
 			if consumed != 1 || result.Account != "alpha" || result.WindowsReset != 1 || len(result.Windows) != 1 ||
-				result.Windows[0].Label != "常规周限额" || result.Credit.Title != "Full reset" || result.Credit.Status != "redeemed" {
+				result.Windows[0].Label != "Weekly limit" || result.Credit.Title != "Full reset" || result.Credit.Status != "redeemed" {
 				t.Fatalf("reset result = %#v, consumed=%d", result, consumed)
 			}
 			raw, _ := json.Marshal(result)

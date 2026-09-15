@@ -14,8 +14,8 @@ import (
 )
 
 func TestConfigurationDefinitionsMatchCompleteGoContract(t *testing.T) {
-	if len(configurationDefinitions) != 79 {
-		t.Fatalf("configuration definition count = %d, want 79", len(configurationDefinitions))
+	if len(configurationDefinitions) != 80 {
+		t.Fatalf("configuration definition count = %d, want 80", len(configurationDefinitions))
 	}
 	if len(configurationPresentationByKey) != len(configurationDefinitions) {
 		t.Fatalf("configuration presentation count = %d, want %d", len(configurationPresentationByKey), len(configurationDefinitions))
@@ -76,13 +76,13 @@ func TestConfigurationCatalogReturnsCompleteMetadataWithoutProxySecret(t *testin
 	}
 
 	response := performAdminRequest(server, http.MethodGet, "/admin/api/settings/configuration", nil,
-		map[string]string{"X-Management-Key": "test-management-key"}, nil)
+		map[string]string{"X-Management-Key": "test-management-key", "Accept-Language": "zh-CN"}, nil)
 	if response.Code != http.StatusOK || strings.Contains(response.Body.String(), "catalog-secret") {
 		t.Fatalf("configuration catalog = %d %s", response.Code, response.Body.String())
 	}
 	var catalog configurationCatalogResponse
 	decodeAdminResponse(t, response, &catalog)
-	if catalog.Version != 2 || catalog.FieldCount != 79 || len(catalog.Groups) != 11 || catalog.GeneratedAt <= 0 {
+	if catalog.Version != 3 || catalog.FieldCount != 80 || len(catalog.Groups) != 11 || catalog.GeneratedAt <= 0 {
 		t.Fatalf("configuration catalog summary = %#v", catalog)
 	}
 	groupNames := make([]string, 0, len(catalog.Groups))
@@ -102,7 +102,7 @@ func TestConfigurationCatalogReturnsCompleteMetadataWithoutProxySecret(t *testin
 			fields[field.Key] = field
 		}
 	}
-	if len(fields) != 79 {
+	if len(fields) != 80 {
 		t.Fatalf("configuration catalog fields = %d", len(fields))
 	}
 	proxy := fields["cpa.proxy_url"]
@@ -153,7 +153,7 @@ func TestConfigurationQuotaRetentionPreservesLegacySettingsAndRoundTrips(t *test
 	}
 	t.Cleanup(server.Close)
 	ctx := context.Background()
-	headers := map[string]string{"X-Management-Key": "test-management-key"}
+	headers := map[string]string{"X-Management-Key": "test-management-key", "Accept-Language": "zh-CN"}
 	readRetention := func(want bool) {
 		t.Helper()
 		response := performAdminRequest(server, http.MethodGet, "/admin/api/settings/configuration", nil, headers, nil)
@@ -273,7 +273,7 @@ func TestConfigurationEndpointPersistsExplicitDefaultSelection(t *testing.T) {
 	t.Cleanup(server.Close)
 	response := performAdminRequest(server, http.MethodPost, "/admin/api/settings/configuration", map[string]any{
 		"confirm": "save", "values": map[string]any{"system.timezone": "Asia/Shanghai"},
-	}, map[string]string{"X-Management-Key": "test-management-key"}, nil)
+	}, map[string]string{"X-Management-Key": "test-management-key", "Accept-Language": "zh-CN"}, nil)
 	if response.Code != http.StatusOK {
 		t.Fatalf("explicit default update = %d %s", response.Code, response.Body.String())
 	}
@@ -299,7 +299,7 @@ func TestConfigurationEndpointPersistsExplicitDefaultSelection(t *testing.T) {
 
 func TestConfigurationEndpointsPreserveOnboardingPreferences(t *testing.T) {
 	server, store := newTestAdmin(t)
-	headers := map[string]string{"X-Management-Key": "test-management-key"}
+	headers := map[string]string{"X-Management-Key": "test-management-key", "Accept-Language": "zh-CN"}
 	preference := performAdminRequest(server, http.MethodPut, "/admin/api/onboarding/preferences", map[string]any{
 		"confirm": "save", "skipped_recommended": []string{"branding"},
 	}, headers, nil)
@@ -334,7 +334,7 @@ func TestConfigurationCatalogStillRejectsUnownedUnknownSettings(t *testing.T) {
 		t.Fatalf("write unknown setting fixture: %v", err)
 	}
 	response := performAdminRequest(server, http.MethodGet, "/admin/api/settings/configuration", nil,
-		map[string]string{"X-Management-Key": "test-management-key"}, nil)
+		map[string]string{"X-Management-Key": "test-management-key", "Accept-Language": "zh-CN"}, nil)
 	assertAdminError(t, response, http.StatusInternalServerError, "internal_error")
 }
 
@@ -353,7 +353,7 @@ func TestConfigurationEndpointAppliesModesKeepsProxySecretOutOfSettingsAndRollsB
 		t.Fatalf("New configuration Admin: %v", err)
 	}
 	t.Cleanup(server.Close)
-	headers := map[string]string{"X-Management-Key": "test-management-key"}
+	headers := map[string]string{"X-Management-Key": "test-management-key", "Accept-Language": "zh-CN"}
 
 	response := performAdminRequest(server, http.MethodPost, "/admin/api/settings/configuration", map[string]any{
 		"confirm": "", "values": map[string]any{"cpa.debug": true},
@@ -442,7 +442,7 @@ func TestConfigurationUpdateMigratesObserveAndLegacyProxyOutOfSettings(t *testin
 	t.Cleanup(server.Close)
 	response := performAdminRequest(server, http.MethodPost, "/admin/api/settings/configuration", map[string]any{
 		"confirm": "save", "values": map[string]any{"cpa.debug": false},
-	}, map[string]string{"X-Management-Key": "test-management-key"}, nil)
+	}, map[string]string{"X-Management-Key": "test-management-key", "Accept-Language": "zh-CN"}, nil)
 	if response.Code != http.StatusOK {
 		t.Fatalf("configuration normalization = %d %s", response.Code, response.Body.String())
 	}

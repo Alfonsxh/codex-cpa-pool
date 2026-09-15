@@ -42,11 +42,25 @@ export type ErrorEnvelope = {
 
 export type ErrorDetail = {
     code: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     message: string;
     type?: string;
 };
 
 export type MessageResponse = {
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     message: string;
 };
 
@@ -285,6 +299,13 @@ export type AccountModelTestResult = {
     upstream_status: number;
     code: string;
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
 };
 
 export type AccountCatalog = {
@@ -334,6 +355,13 @@ export type AccountCreateResult = {
 
 export type AccountCreateResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     account: AccountCreateResult;
 };
 
@@ -361,6 +389,13 @@ export type AccountUpdateResult = {
 
 export type AccountUpdateResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     account: AccountUpdateResult;
 };
 
@@ -384,6 +419,13 @@ export type AccountClearAuthResult = {
 
 export type AccountClearAuthResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     account: AccountClearAuthResult;
 };
 
@@ -406,6 +448,13 @@ export type AccountDeleteResult = {
 
 export type AccountDeleteResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     account: AccountDeleteResult;
 };
 
@@ -441,6 +490,13 @@ export type RebalanceResult = {
 
 export type RebalanceResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     rebalance: RebalanceResult;
 };
 
@@ -507,16 +563,34 @@ export type RuntimeJobResponse = {
 
 export type RuntimeJobSubmissionResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     job: RuntimeJob;
     reused: boolean;
 };
 
 export type RuntimeJobCancelResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     job: RuntimeJob;
 };
 
 export type LegacyRuntimeJob = {
+    /**
+     * Stable operation identifier
+     */
+    action?: string;
     id: string;
     name: string;
     target: string;
@@ -538,12 +612,26 @@ export type LegacyRuntimeJobResponse = {
 
 export type LegacyRuntimeJobSubmissionResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     job: LegacyRuntimeJob;
     reused: boolean;
 };
 
 export type LegacyRuntimeJobCancelResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     job: LegacyRuntimeJob;
 };
 
@@ -581,6 +669,13 @@ export type TeamUpdateInput = TeamInput & {
 
 export type TeamMutationResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     team: Team;
 };
 
@@ -684,6 +779,13 @@ export type UserOneTimeKey = {
 
 export type UserCreateResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     keys: Array<UserOneTimeKey>;
     initial_password: string;
     team_id: string | null;
@@ -699,11 +801,25 @@ export type UserKeyActionRequest = {
 
 export type UserKeyRotationResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     keys: Array<UserOneTimeKey>;
 };
 
 export type UserPasswordResetResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     user: string;
     initial_password: string;
     password_change_required: boolean;
@@ -779,6 +895,13 @@ export type UserQuotaResult = {
     weekly_quota: UserWeeklyQuota;
     adjustments: Array<UserQuotaAdjustment>;
     message?: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
 };
 
 export type GeneralSettingsValues = {
@@ -820,6 +943,13 @@ export type GeneralSettingsUpdateRequest = {
 
 export type GeneralSettingsMutationResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     settings: GeneralSettings;
 };
 
@@ -855,6 +985,13 @@ export type InitialPasswordRequest = {
 
 export type InitialPasswordResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     configured: true;
 };
 
@@ -902,6 +1039,13 @@ export type NotificationSettingsUpdateRequest = {
 
 export type NotificationSettingsMutationResponse = NotificationSettings & {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
 };
 
 export type NotificationWebhookRequest = {
@@ -914,11 +1058,25 @@ export type ConfirmClearRequest = {
 
 export type NotificationWebhookResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     notifications: NotificationStatus;
 };
 
 export type SendNotificationResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     format: 'markdown_v2';
 };
 
@@ -1113,6 +1271,13 @@ export type PortalPasswordRequest = {
 
 export type PortalPasswordResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     password_change_required: false;
 };
 
@@ -1122,6 +1287,13 @@ export type PortalRouteRequest = {
 
 export type PortalRouteMutationResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     current_group: string;
     changed: boolean;
     snapshot_generation?: string;
@@ -1133,6 +1305,13 @@ export type PortalRotateKeyRequest = {
 
 export type PortalRotateKeyResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     api_key: string;
     snapshot_generation: string;
 };
@@ -1225,6 +1404,13 @@ export type RebalanceEvacuationResult = {
 
 export type RebalanceAccountResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     rebalance: RebalanceEvacuationResult;
 };
 
@@ -1266,6 +1452,13 @@ export type ResetAccountQuotaInspection = {
 
 export type ResetAccountQuotaResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     account: string;
     windows: Array<ResetQuotaWindow>;
     windows_reset: number;
@@ -1446,6 +1639,13 @@ export type UserQuotaActionResponse = {
     created_at?: number;
     changed_policies?: number;
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     quota_operations: UserQuotaOperationSummary;
 };
 
@@ -1468,6 +1668,13 @@ export type BrandingLogoState = {
 
 export type BrandingLogoMutationResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     logo: BrandingLogoState;
 };
 
@@ -1487,6 +1694,10 @@ export type ConfigurationField = {
     default: ConfigurationValue;
     apply_mode: 'live' | 'accounts' | 'collector' | 'future' | 'deployment' | 'quota';
     editable: true;
+    /**
+     * Stable unit identifier independent of the localized label
+     */
+    unit_code?: string;
     unit?: string;
     min?: number;
     max?: number;
@@ -1498,13 +1709,17 @@ export type ConfigurationField = {
 };
 
 export type ConfigurationGroup = {
+    /**
+     * Stable language-independent group identifier
+     */
+    id?: string;
     name: string;
     description: string;
     fields: Array<ConfigurationField>;
 };
 
 export type ConfigurationCatalog = {
-    version: 1;
+    version: number;
     generated_at: number;
     field_count: number;
     groups: Array<ConfigurationGroup>;
@@ -1522,6 +1737,13 @@ export type ConfigurationUpdateRequest = {
 
 export type ConfigurationUpdateResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     changed: Array<string>;
     applied: Array<'live' | 'accounts' | 'collector' | 'quota'>;
     pending_deployment: boolean;
@@ -1539,6 +1761,13 @@ export type ManagementKeyRotationResult = {
 
 export type ManagementKeyRotationResponse = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     result: ManagementKeyRotationResult;
 };
 
@@ -1681,6 +1910,13 @@ export type NotificationSettingsUpdateRequestWritable = {
 
 export type NotificationSettingsMutationResponseWritable = NotificationSettingsWritable & {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
 };
 
 export type NotificationWebhookRequestWritable = {
@@ -1690,6 +1926,13 @@ export type NotificationWebhookRequestWritable = {
 
 export type NotificationWebhookResponseWritable = {
     message: string;
+    /**
+     * Stable authored message identifier
+     */
+    message_key?: string;
+    message_params?: {
+        [key: string]: unknown;
+    };
     notifications: NotificationStatusWritable;
 };
 

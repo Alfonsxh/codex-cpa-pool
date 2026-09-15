@@ -19,13 +19,17 @@ import (
 	"github.com/Alfonsxh/codex-cpa-pool/internal/accountconfig"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/accountlifecycle"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/controlplane"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/containerd/errdefs"
 	"github.com/go-resty/resty/v2"
 	"github.com/google/uuid"
 	"github.com/moby/moby/api/pkg/stdcopy"
+
 	containertypes "github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/mount"
+
 	networktypes "github.com/moby/moby/api/types/network"
+
 	dockerclient "github.com/moby/moby/client"
 )
 
@@ -265,7 +269,7 @@ func (runtime *AccountRuntime) Login(
 		return OperationResult{}, err
 	}
 	if oauthSnapshotsEqual(before, after) {
-		return OperationResult{}, errors.New("OAuth 授权未完成：没有检测到新增或更新的认证文件")
+		return OperationResult{}, i18n.M("runtimeops.oauth_authorization_did_not_complete_no_new_or_updated_authentication")
 	}
 	return OperationResult{Action: "login", Target: accountID, Services: []Service{}}, nil
 }

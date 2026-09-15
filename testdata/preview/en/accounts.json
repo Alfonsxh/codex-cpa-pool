@@ -1,0 +1,348 @@
+{
+  "generated_at": 1787500800,
+  "window": "today",
+  "window_start_at": 1787500800,
+  "window_end_at": 1787500800,
+  "window_seconds": null,
+  "window_timezone": "Asia/Shanghai",
+  "warnings": [],
+  "quota_generated_at": 1787500800,
+  "quota_cached": true,
+  "quota_refreshing": false,
+  "quota_cache_ttl_seconds": 60,
+  "accounts": [
+    {
+      "id": "cpa-main",
+      "group_name": "cpa-main",
+      "email": "main@example.com",
+      "port": 19001,
+      "created_at": 1779724800,
+      "group_enabled": true,
+      "default_group": true,
+      "proxy_mode": "inherit",
+      "proxy_source": "direct",
+      "proxy_display": "direct",
+      "enabled": true,
+      "default": true,
+      "runtime_state": "running",
+      "oauth_configured": true,
+      "proxy_configured": false,
+      "service": "cliproxy-cpa-main",
+      "container_state": "running",
+      "container_status": "Up 8 days (healthy)",
+      "container_health": "healthy",
+      "auth_files": 1,
+      "auth_state": "configured",
+      "associated_users": 5,
+      "routed_users": 2,
+      "active_users_1h": 5,
+      "active_user_emails_1h": [
+        "lin.chen@example.com",
+        "mei.zhao@example.com",
+        "kai.wang@example.com",
+        "rui.sun@example.com",
+        "yan.liu@example.com"
+      ],
+      "reset_credit_count": 2,
+      "resettable": true,
+      "reset_window_labels": [
+        "常规周限额"
+      ],
+      "quota": {
+        "status": "ok",
+        "allowed": true,
+        "limit_reached": false,
+        "weekly": {
+          "used_percent": 48.2,
+          "remaining_percent": 51.8,
+          "reset_at": 1787846400,
+          "resettable": true
+        },
+        "weekly_windows": [
+          {
+            "key": "primary",
+            "label": "Weekly limit",
+            "used_percent": 48.2,
+            "remaining_percent": 51.8,
+            "reset_at": 1787846400,
+            "resettable": true
+          }
+        ],
+        "reset_credits": {
+          "available_count": 2,
+          "credits": [
+            {
+              "id": "preview-credit",
+              "title": "Full reset",
+              "expires_at": 1790092800
+            }
+          ]
+        }
+      },
+      "usage": {
+        "request_count": 211,
+        "success_count": 208,
+        "failed_count": 3,
+        "input_tokens": 10738400,
+        "output_tokens": 3637200,
+        "reasoning_tokens": 1905200,
+        "cached_tokens": 1039200,
+        "total_tokens": 17320000,
+        "weighted_tokens": 20437600,
+        "last_used_at": 1787500500
+      },
+      "usage_available": true,
+      "usage_window_start_at": 1787414400,
+      "usage_window_available": true,
+      "runtime": {
+        "state": "available",
+        "error_count": 3,
+        "rate_429_count": 0,
+        "error_log_status": "ok",
+        "error_log_files": 0
+      },
+      "operational_status": {
+        "code": "available",
+        "label": "Available",
+        "tone": "success",
+        "reason": "容器、OAuth 与额度均正常",
+        "selectable": true
+      },
+      "state_available": true,
+      "account_state": {
+        "account": "cpa-main",
+        "eligible": true,
+        "exhausted": false,
+        "reason": "available",
+        "used_percent": 48.2,
+        "remaining_percent": 51.8,
+        "headroom": 46.8,
+        "reset_at": 1787846400,
+        "observed_at": 1787500780
+      }
+    },
+    {
+      "id": "cpa-lab",
+      "group_name": "cpa-lab",
+      "email": "lab@example.com",
+      "port": 19002,
+      "created_at": 1779724800,
+      "group_enabled": true,
+      "default_group": false,
+      "proxy_mode": "inherit",
+      "proxy_source": "direct",
+      "proxy_display": "direct",
+      "enabled": true,
+      "default": false,
+      "runtime_state": "running",
+      "oauth_configured": true,
+      "proxy_configured": false,
+      "service": "cliproxy-cpa-lab",
+      "container_state": "running",
+      "container_status": "Up 8 days (healthy)",
+      "container_health": "healthy",
+      "auth_files": 1,
+      "auth_state": "configured",
+      "associated_users": 5,
+      "routed_users": 2,
+      "active_users_1h": 3,
+      "active_user_emails_1h": [
+        "lin.chen@example.com",
+        "mei.zhao@example.com",
+        "kai.wang@example.com"
+      ],
+      "reset_credit_count": 2,
+      "resettable": true,
+      "reset_window_labels": [
+        "常规周限额"
+      ],
+      "quota": {
+        "status": "ok",
+        "allowed": true,
+        "limit_reached": false,
+        "weekly": {
+          "used_percent": 71.4,
+          "remaining_percent": 28.599999999999994,
+          "reset_at": 1787846400,
+          "resettable": true
+        },
+        "weekly_windows": [
+          {
+            "key": "primary",
+            "label": "Weekly limit",
+            "used_percent": 71.4,
+            "remaining_percent": 28.599999999999994,
+            "reset_at": 1787846400,
+            "resettable": true
+          }
+        ],
+        "reset_credits": {
+          "available_count": 2,
+          "credits": [
+            {
+              "id": "preview-credit",
+              "title": "Full reset",
+              "expires_at": 1790092800
+            }
+          ]
+        }
+      },
+      "usage": {
+        "request_count": 101,
+        "success_count": 100,
+        "failed_count": 1,
+        "input_tokens": 4873200,
+        "output_tokens": 1650600,
+        "reasoning_tokens": 864600,
+        "cached_tokens": 471600,
+        "total_tokens": 7860000,
+        "weighted_tokens": 9274800,
+        "last_used_at": 1787500500
+      },
+      "usage_available": true,
+      "usage_window_start_at": 1787414400,
+      "usage_window_available": true,
+      "runtime": {
+        "state": "available",
+        "error_count": 1,
+        "rate_429_count": 0,
+        "error_log_status": "ok",
+        "error_log_files": 0
+      },
+      "operational_status": {
+        "code": "available",
+        "label": "Available",
+        "tone": "success",
+        "reason": "容器、OAuth 与额度均正常",
+        "selectable": true
+      },
+      "state_available": true,
+      "account_state": {
+        "account": "cpa-lab",
+        "eligible": true,
+        "exhausted": false,
+        "reason": "available",
+        "used_percent": 71.4,
+        "remaining_percent": 28.599999999999994,
+        "headroom": 23.599999999999994,
+        "reset_at": 1787846400,
+        "observed_at": 1787500780
+      }
+    },
+    {
+      "id": "cpa-edge",
+      "group_name": "cpa-edge",
+      "email": "edge@example.com",
+      "port": 19003,
+      "created_at": 1779724800,
+      "group_enabled": true,
+      "default_group": false,
+      "proxy_mode": "inherit",
+      "proxy_source": "direct",
+      "proxy_display": "direct",
+      "enabled": true,
+      "default": false,
+      "runtime_state": "running",
+      "oauth_configured": true,
+      "proxy_configured": false,
+      "service": "cliproxy-cpa-edge",
+      "container_state": "running",
+      "container_status": "Up 8 days (healthy)",
+      "container_health": "healthy",
+      "auth_files": 1,
+      "auth_state": "configured",
+      "associated_users": 5,
+      "routed_users": 2,
+      "active_users_1h": 1,
+      "active_user_emails_1h": [
+        "lin.chen@example.com"
+      ],
+      "reset_credit_count": 2,
+      "resettable": true,
+      "reset_window_labels": [
+        "常规周限额"
+      ],
+      "quota": {
+        "status": "ok",
+        "allowed": true,
+        "limit_reached": false,
+        "weekly": {
+          "used_percent": 22.8,
+          "remaining_percent": 77.2,
+          "reset_at": 1787846400,
+          "resettable": true
+        },
+        "weekly_windows": [
+          {
+            "key": "primary",
+            "label": "Weekly limit",
+            "used_percent": 22.8,
+            "remaining_percent": 77.2,
+            "reset_at": 1787846400,
+            "resettable": true
+          }
+        ],
+        "reset_credits": {
+          "available_count": 2,
+          "credits": [
+            {
+              "id": "preview-credit",
+              "title": "Full reset",
+              "expires_at": 1790092800
+            }
+          ]
+        }
+      },
+      "usage": {
+        "request_count": 56,
+        "success_count": 54,
+        "failed_count": 2,
+        "input_tokens": 2052200,
+        "output_tokens": 695100,
+        "reasoning_tokens": 364100,
+        "cached_tokens": 198600,
+        "total_tokens": 3310000,
+        "weighted_tokens": 3905800,
+        "last_used_at": 1787500500
+      },
+      "usage_available": true,
+      "usage_window_start_at": 1787414400,
+      "usage_window_available": true,
+      "runtime": {
+        "state": "available",
+        "error_count": 2,
+        "rate_429_count": 0,
+        "error_log_status": "ok",
+        "error_log_files": 0
+      },
+      "operational_status": {
+        "code": "available",
+        "label": "Available",
+        "tone": "success",
+        "reason": "容器、OAuth 与额度均正常",
+        "selectable": true
+      },
+      "state_available": true,
+      "account_state": {
+        "account": "cpa-edge",
+        "eligible": true,
+        "exhausted": false,
+        "reason": "available",
+        "used_percent": 22.8,
+        "remaining_percent": 77.2,
+        "headroom": 72.2,
+        "reset_at": 1787846400,
+        "observed_at": 1787500780
+      }
+    }
+  ],
+  "collector": {
+    "status": "healthy",
+    "heartbeat_at": 1787500790,
+    "last_error": "",
+    "event_count": 1842,
+    "collection_started_at": 1783612800,
+    "usage_breakdown_started_at": 1783612800,
+    "last_event_at": 1787500782
+  }
+}

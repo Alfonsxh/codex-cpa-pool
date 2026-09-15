@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { Button, Input, Modal, Tooltip, type InputRef } from "antd";
 import { useEffect, useId, useRef, useState } from "react";
 
@@ -19,7 +20,7 @@ export function SecretRevealModal({ value, onClose }: {
 
   const user = value.passwordUser || value.keys[0]?.user || "";
   const secrets = [
-    ...(value.password ? [{ id: "password", label: "初始密码", value: value.password }] : []),
+    ...(value.password ? [{ id: "password", label: t("common.initial_password"), value: value.password }] : []),
     ...value.keys.map((key, index) => ({
       id: `key-${index}`,
       label: value.keys.length > 1 ? `API Key ${index + 1}` : "API Key",
@@ -28,15 +29,15 @@ export function SecretRevealModal({ value, onClose }: {
   ];
   const kind = value.kind ?? (value.password ? (value.keys.length ? "created" : "password-reset") : "rotated");
   const resultText = {
-    created: "用户已创建",
-    rotated: "API Key 已更新",
-    "password-reset": "密码已重置"
-  }[kind] ?? "凭据已生成";
+    created: t("common.user_created"),
+    rotated: t("common.api_key_updated"),
+    "password-reset": t("common.password_reset")
+  }[kind] ?? t("common.credentials_generated");
   const hint = value.password
-    ? (value.keys.length ? "请保存 API Key，首次登录需修改密码。" : "下次登录需修改密码。")
-    : "请保存本次生成的 API Key。";
+    ? (value.keys.length ? t("common.save_the_api_key_the_password_must_be_changed_on") : t("common.the_password_must_be_changed_on_the_next_sign_in"))
+    : t("common.save_the_generated_api_key");
   const allSecrets = [
-    ...(user ? [`用户：${user}`] : []),
+    ...(user ? [t("common.user_2", [user])] : []),
     ...secrets.map((secret) => `${secret.label}：${secret.value}`)
   ].join("\n");
 
@@ -45,7 +46,7 @@ export function SecretRevealModal({ value, onClose }: {
       className="legacy-secret-modal"
       title={(
         <div className="secret-dialog-title">
-          <strong>用户凭据</strong>
+          <strong>{t("common.user_credentials")}</strong>
           <span aria-hidden="true">ONE-TIME SECRET</span>
         </div>
       )}
@@ -59,8 +60,8 @@ export function SecretRevealModal({ value, onClose }: {
       destroyOnHidden
       mask={{ closable: false }}
       footer={[
-        <SecretCopyButton key="copy-all" text={allSecrets} label="复制全部" />,
-        <Button key="saved" type="primary" onClick={onClose}>我已保存</Button>
+        <SecretCopyButton key="copy-all" text={allSecrets} label={t("common.copy_all")} />,
+        <Button key="saved" type="primary" onClick={onClose}>{t("common.i_have_saved_it")}</Button>
       ]}
     >
       <div className="secret-user-summary">
@@ -123,7 +124,7 @@ function SecretField({ label, value }: { label: string; value: string }) {
           }}
         />
       </div>
-      <SecretCopyButton text={value} label="复制" accessibleLabel={`复制${label}`} />
+      <SecretCopyButton text={value} label={t("common.copy")} accessibleLabel={t("common.copy_2", [label])} />
     </div>
   );
 }
@@ -160,10 +161,10 @@ function SecretCopyButton({ text, label, accessibleLabel = label }: {
       if (currentRequest === request.current) setFeedback(null);
     }, 2_000);
   };
-  const feedbackLabel = status === "copied" ? "已复制" : status === "failed" ? "复制失败" : "";
+  const feedbackLabel = status === "copied" ? t("common.copied_2") : status === "failed" ? t("common.copy_failed") : "";
 
   return (
-    <Tooltip title={status === "failed" ? "请显示凭据后手动复制" : "复制完整内容"}>
+    <Tooltip title={status === "failed" ? t("common.reveal_the_credentials_and_copy_them_manually") : t("common.copy_full_content")}>
       <Button
         className="secret-copy-action"
         size="small"

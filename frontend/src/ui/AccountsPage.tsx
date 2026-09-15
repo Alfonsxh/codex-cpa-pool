@@ -1,3 +1,5 @@
+import "../i18n/admin";
+import { t, getIntlLocale } from "../i18n";
 import { useSiteTimezone, formatSiteTimestamp, getSiteTimezone } from "./site-time";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -218,10 +220,10 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
       });
       setRefreshLabel(accountRefreshLabel(catalog));
       showToast(catalog.quota_refreshing
-        ? "表格已刷新，额度正在后台更新"
-        : "数据已刷新");
+        ? t("admin.table_refreshed_quotas_are_updating_in_the_background")
+        : t("admin.data_refreshed"));
     } catch (error) {
-      setRefreshLabel("刷新失败");
+      setRefreshLabel(t("admin.refresh_failed"));
       throw error;
     }
   }, [queryClient, setRefreshLabel, showToast, usageRange]);
@@ -246,8 +248,8 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
   useEffect(() => {
     if (!accounts.isError || reportedCatalogError.current === accounts.error) return;
     reportedCatalogError.current = accounts.error;
-    setRefreshLabel("刷新失败");
-    showToast(accounts.error instanceof Error ? accounts.error.message : "账号数据加载失败", "error");
+    setRefreshLabel(t("admin.refresh_failed"));
+    showToast(accounts.error instanceof Error ? accounts.error.message : t("admin.unable_to_load_account_data"), "error");
   }, [accounts.error, accounts.isError, setRefreshLabel, showToast]);
   useEffect(() => () => {
     setRefreshing(false);
@@ -374,10 +376,10 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
     mutationFn: async (account: Account) => ({ account, jobs: await listLegacyRuntimeJobs() }),
     onSuccess: ({ account, jobs }) => {
       const existing = jobs.jobs.find((job) => (
-        job.name === "OAuth 授权" && job.target === account.id && ["running", "queued"].includes(job.status)
+        job.action === "login" && job.target === account.id && ["running", "queued"].includes(job.status)
       ));
       if (existing) {
-        showToast("该账号已有 OAuth 授权任务，已直接打开");
+        showToast(t("admin.an_oauth_task_already_exists_for_this_account_it_has"));
         setTaskPollError(null);
         setCompletedTaskJobID("");
         setTaskJob(existing);
@@ -385,7 +387,7 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
       }
       setOAuthAccount(account);
     },
-    onError: (error) => showToast(errorMessage(error, "OAuth 任务状态读取失败"), "error")
+    onError: (error) => showToast(errorMessage(error, t("admin.unable_to_read_oauth_task_status")), "error")
   });
   const oauthMutation = useMutation({
     gcTime: 0,
@@ -440,7 +442,7 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
   useEffect(() => {
     if (!taskJob || isActiveRuntimeJob(taskJob) || completedTaskJobID === taskJob.id) return;
     setCompletedTaskJobID(taskJob.id);
-    showToast(taskJob.status === "succeeded" ? "任务执行成功" : "任务执行失败", taskJob.status === "succeeded" ? "success" : "error");
+    showToast(taskJob.status === "succeeded" ? t("admin.task_completed") : t("admin.task_failed"), taskJob.status === "succeeded" ? "success" : "error");
     void Promise.all([
       queryClient.invalidateQueries({ queryKey: accountsQueryKey }),
       queryClient.invalidateQueries({ queryKey: runtimeJobsQueryKey, exact: true }),
@@ -525,20 +527,20 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
     return true;
   }).sort((left, right) => compareAccountsForSort(left, right, accountSort));
   const visibleImageStatus = accounts.data ? imageStatus.data : undefined;
-  const imageTarget = visibleImageStatus?.update_channel || visibleImageStatus?.target_image || "正在读取…";
+  const imageTarget = visibleImageStatus?.update_channel || visibleImageStatus?.target_image || t("common.loading_2");
   const localImage = visibleImageStatus?.local_image;
   const imageStatusLabel = !accounts.data
-    ? "未知"
+    ? t("common.unknown")
     : imageStatus.isError
-    ? "未知"
+    ? t("common.unknown")
     : !localImage?.available
-      ? "尚未拉取"
-      : (visibleImageStatus?.outdated_count ?? 0) > 0 ? "待更新" : "已同步";
+      ? t("admin.not_pulled")
+      : (visibleImageStatus?.outdated_count ?? 0) > 0 ? t("admin.update_available") : t("admin.up_to_date");
   const imageSummary = !accounts.data
     ? "—"
     : localImage?.available
-      ? `${localImage.version || "镜像未提供可识别版本"} · ${localImage.short_id || "摘要未知"} · ${visibleImageStatus?.current_count ?? 0}/${visibleImageStatus?.running_count ?? 0} 个运行中的已启用 CPA`
-      : `${runningEnabledAccounts} 个已启用 CPA 运行中`;
+      ? t("admin.enabled_cpas_running", [localImage.version || t("admin.image_has_no_recognizable_version"), localImage.short_id || t("admin.unknown_digest"), visibleImageStatus?.current_count ?? 0, visibleImageStatus?.running_count ?? 0])
+      : t("admin.enabled_cpas_running_2", [runningEnabledAccounts]);
 
   const rangeBoundary = (timestamp: number | null | undefined, empty = "—") => {
     if (accounts.isFetching) return "…";
@@ -551,26 +553,26 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
       <div className="account-management-panel">
         <div className="account-management-toolbar management-toolbar">
           <ManagementUsageTimeFilter
-            value={usageWindow} options={usageWindowOptions} label="账号用量"
+            value={usageWindow} options={usageWindowOptions} label={t("admin.account_usage")}
             onChange={setUsageWindow} onCustomSelect={() => setCustomUsageRangeOpen(true)}
-            start={rangeBoundary(usageWindow === "since_reset" ? null : accounts.data?.window_start_at, usageWindow === "since_reset" ? "各账号重置时间" : usageWindow === "all" ? "不限" : "—")}
+            start={rangeBoundary(usageWindow === "since_reset" ? null : accounts.data?.window_start_at, usageWindow === "since_reset" ? t("admin.each_account_s_reset_time") : usageWindow === "all" ? t("admin.unlimited") : "—")}
             end={rangeBoundary(accounts.data?.window_end_at)} updating={accounts.isFetching}
           />
           <div className="account-time-filter-actions">
-            <AccountFilter label="搜索账号">
+            <AccountFilter label={t("admin.search_accounts")}>
               <Input
                 className="account-search-input"
-                aria-label="搜索 CPA 账号"
+                aria-label={t("admin.search_cpa_accounts")}
                 prefix={<span className="account-search-legacy-icon" aria-hidden="true" />}
-                placeholder="账号、名称或邮箱"
+                placeholder={t("admin.account_name_or_email")}
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
               />
             </AccountFilter>
             <div className="account-filter-actions">
-              <AccountFilter label="运行状态">
+              <AccountFilter label={t("admin.runtime_status")}>
                 <WideSelect<AccountRuntimeFilter>
-                  aria-label="运行状态"
+                  aria-label={t("admin.runtime_status")}
                   value={runtimeFilter}
                   options={runtimeFilterOptions}
                   onChange={setRuntimeFilter}
@@ -585,20 +587,19 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
                 />
               </AccountFilter>
               <Button type="primary" onClick={() => openEditor("create")}>
-                添加 CPA
-              </Button>
+ {t("admin.add_cpa")} </Button>
             </div>
           </div>
         </div>
 
         <div className="account-control-strip">
           <div className="account-control-copy">
-            <h3>更新通道</h3>
+            <h3>{t("admin.update_channel")}</h3>
             <code>{imageTarget}</code>
             <small>{imageSummary}</small>
           </div>
           <div className="account-control-status-region">
-            <Tag className={`account-control-status ${imageStatusLabel === "已同步" ? "success" : imageStatusLabel === "未知" ? "neutral" : "warning"}`}>{imageStatusLabel}</Tag>
+            <Tag className={`account-control-status ${imageStatusLabel === t("admin.up_to_date") ? "success" : imageStatusLabel === t("common.unknown") ? "neutral" : "warning"}`}>{imageStatusLabel}</Tag>
           </div>
           <Space className="account-control-actions" size={8}>
             <Button
@@ -608,7 +609,7 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
                 imageMutation.reset();
                 imageMutation.mutate({ action: "image-pull", target: "all" });
               }}
-            >拉取镜像</Button>
+            >{t("admin.pull_image")}</Button>
             <Button
               type="primary"
               disabled={imageMutation.isPending || Boolean(accounts.data && (
@@ -618,7 +619,7 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
                 imageMutation.reset();
                 setImageUpdateTarget("all");
               }}
-            >更新全部 CPA</Button>
+            >{t("admin.update_all_cpas")}</Button>
             <Button
               className="account-rebalance-all-button"
               disabled={enabledAccounts < 2}
@@ -626,7 +627,7 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
                 rebalance.reset();
                 setConfirmOpen(true);
               }}
-            >一键负载均衡</Button>
+            >{t("admin.balance_all_users")}</Button>
           </Space>
         </div>
 
@@ -660,7 +661,7 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
             rowClassName={(account) => expandedAccountIDs.includes(account.id) ? "account-summary-row expanded" : "account-summary-row"}
             onRow={(account) => ({
               tabIndex: 0,
-              "aria-label": `${expandedAccountIDs.includes(account.id) ? "收起" : "展开"} ${account.id}`,
+              "aria-label": `${expandedAccountIDs.includes(account.id) ? t("admin.collapse") : t("admin.expand")} ${account.id}`,
               "aria-expanded": expandedAccountIDs.includes(account.id),
               onClick: (event) => {
                 if (!isInteractiveRowTarget(event.target)) toggleExpandedAccount(account.id);
@@ -703,8 +704,8 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
           {!accounts.isPending && !accounts.isError && !filteredAccounts.length ? (
             <div className="account-empty-state">
               <div className="account-empty-icon" aria-hidden="true">▣</div>
-              <h3>{catalog.accounts.length ? "没有匹配的 CPA" : "还没有 CPA 账号"}</h3>
-              <Button type="primary" onClick={() => openEditor("create")}>添加 CPA</Button>
+              <h3>{catalog.accounts.length ? t("admin.no_matching_cpas") : t("admin.no_cpa_accounts_yet")}</h3>
+              <Button type="primary" onClick={() => openEditor("create")}>{t("admin.add_cpa")}</Button>
             </div>
           ) : null}
         </div>
@@ -713,7 +714,7 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
       {modelTestAccount ? <AccountModelTestModal account={modelTestAccount} csrfToken={csrfToken} onClose={() => setModelTestAccount(null)} /> : null}
       <CustomUsageRangeModal
         open={customUsageRangeOpen}
-        title="账号信息自定义统计范围"
+        title={t("admin.custom_account_usage_range")}
         range={customUsageRange}
         onCancel={() => setCustomUsageRangeOpen(false)}
         onApply={(range) => {
@@ -745,9 +746,9 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
         }}
       />
       <LegacyConfirmModal
-        title={pendingAccountUpdate?.renamed ? "修改业务 CPA？" : "修改出口代理？"}
+        title={pendingAccountUpdate?.renamed ? t("admin.update_cpa_account") : t("admin.update_outbound_proxy")}
         open={pendingAccountUpdate !== null}
-        okText="确认修改"
+        okText={t("admin.confirm_update")}
         onCancel={() => setPendingAccountUpdate(null)}
         onOk={() => {
           const command = pendingAccountUpdate?.command;
@@ -756,12 +757,12 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
         }}
       >
         <Paragraph>
-          {pendingAccountUpdate ? `${[
+          {pendingAccountUpdate ? t("admin.affected_containers_will_restart_briefly_oauth_logs_and_key_associations", [[
             pendingAccountUpdate.renamed
-              ? `${pendingAccountUpdate.command.request.id} 将迁移为 ${pendingAccountUpdate.command.request.new_id}`
+              ? t("admin.will_be_renamed_to", [pendingAccountUpdate.command.request.id, pendingAccountUpdate.command.request.new_id])
               : "",
-            pendingAccountUpdate.proxyChanged ? "出口代理设置将更新" : ""
-          ].filter(Boolean).join("；")}。相关容器会短暂重启，OAuth、日志和 Key 关联会保留。` : ""}
+            pendingAccountUpdate.proxyChanged ? t("admin.outbound_proxy_settings_will_be_updated") : ""
+          ].filter(Boolean).join("；")]) : ""}
         </Paragraph>
       </LegacyConfirmModal>
       <AccountPolicyModal
@@ -812,11 +813,11 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
         onSubmit={(creditID) => quotaResetAccount && quotaReset.mutate({ account: quotaResetAccount.id, creditID })}
       />
       <Modal
-        title="一键负载均衡所有账号"
+        title={t("admin.balance_users_across_all_accounts")}
         open={confirmOpen}
         confirmLoading={rebalance.isPending}
-        okText="确认开始均衡"
-        cancelText="取消"
+        okText={t("admin.start_balancing")}
+        cancelText={t("common.cancel")}
         okButtonProps={{ danger: true }}
         onCancel={() => !rebalance.isPending && setConfirmOpen(false)}
         onOk={() => rebalance.mutate()}
@@ -826,20 +827,19 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
           <Alert
             type="warning"
             showIcon
-            title="这会修改用户当前路由"
-            description="系统会按账号可用额度重新分布全部有效用户，并尽量减少迁移数量。任一用户不满足统一 Key 安全条件时，整批操作都会拒绝。"
+            title={t("admin.this_changes_users_current_routes")}
+            description={t("admin.users_will_be_redistributed_according_to_available_account_quotas_with")}
           />
           <Paragraph>
-            路由写入后必须等待 Gateway 激活新的鉴权快照；失败时自动恢复原路由并发布回滚快照。成功后会立即重新查询配置窗口内活跃用户数。
-          </Paragraph>
-          {rebalance.isError ? <MutationError error={rebalance.error} title="负载均衡未执行" /> : null}
+ {t("admin.after_routes_are_saved_the_gateway_must_activate_the_new")} </Paragraph>
+          {rebalance.isError ? <MutationError error={rebalance.error} title={t("admin.load_balancing_was_not_performed")} /> : null}
         </Space>
       </Modal>
       <LegacyConfirmModal
-        title={rebalanceTarget ? `迁移 ${rebalanceTarget.id} 的全部用户？` : "迁移全部用户？"}
+        title={rebalanceTarget ? t("admin.move_all_users_from", [rebalanceTarget.id]) : t("admin.move_all_users_3")}
         open={rebalanceTarget !== null}
         confirmLoading={accountRebalance.isPending}
-        okText="确认迁移"
+        okText={t("admin.confirm_move")}
         okDisabled={!rebalanceTarget || rebalanceTarget.routed_users <= 0 || catalog.accounts.length < 2}
         onCancel={() => !accountRebalance.isPending && setRebalanceTarget(null)}
         onOk={() => {
@@ -851,15 +851,15 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
         <Space orientation="vertical" size={14} className="rebalance-confirmation">
           <Paragraph>
             {rebalanceTarget
-              ? `系统会先刷新所有账号的官方额度，再将当前 ${formatNumber(rebalanceTarget.routed_users)} 位用户按自动切换算法分配到其他可用账号。已经开始的请求不会被重放。`
-              : "系统会先刷新所有账号的官方额度，再按自动切换算法迁移用户。已经开始的请求不会被重放。"}
+              ? t("admin.official_quotas_will_be_refreshed_first_then_users_will_be", [formatNumber(rebalanceTarget.routed_users)])
+              : t("admin.official_quotas_will_be_refreshed_first_users_will_then_be")}
           </Paragraph>
         </Space>
       </LegacyConfirmModal>
       <LegacyConfirmModal
-        title={runtimeOperation?.action === "stop" ? "停止服务？" : "重启服务？"}
+        title={runtimeOperation?.action === "stop" ? t("admin.stop_service_2") : t("admin.restart_service_2")}
         open={runtimeOperation !== null}
-        okText={runtimeOperation?.action === "stop" ? "确认停止" : "确认重启"}
+        okText={runtimeOperation?.action === "stop" ? t("admin.confirm_stop") : t("admin.confirm_restart")}
         danger={runtimeOperation?.action === "stop"}
         confirmLoading={runtimeMutation.isPending}
         onCancel={() => !runtimeMutation.isPending && setRuntimeOperation(null)}
@@ -873,14 +873,14 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
           runtimeImpact.isPending ? <Skeleton active paragraph={{ rows: 2 }} /> : (
             <Paragraph>
               {runtimeImpact.isError || runtimeImpact.data?.routed_users === null
-                ? `将停止 ${runtimeOperation.account.id}；影响范围暂不可确认。`
+                ? t("admin.will_be_stopped_the_impact_cannot_currently_be_determined", [runtimeOperation.account.id])
                 : runtimeImpact.data?.routed_users
-                  ? `将停止 ${runtimeOperation.account.id}，当前有 ${formatNumber(runtimeImpact.data.routed_users)} 个用户路由到该账号。`
-                  : `将停止 ${runtimeOperation.account.id}，当前没有用户路由到该账号。`}
+                  ? t("admin.will_be_stopped_users_are_currently_routed_to_this_account", [runtimeOperation.account.id, formatNumber(runtimeImpact.data.routed_users)])
+                  : t("admin.will_be_stopped_no_users_are_currently_routed_to_this", [runtimeOperation.account.id])}
             </Paragraph>
           )
         ) : (
-          <Paragraph>{runtimeOperation ? `将重启 ${runtimeOperation.account.id}。` : ""}</Paragraph>
+          <Paragraph>{runtimeOperation ? t("admin.will_be_restarted", [runtimeOperation.account.id]) : ""}</Paragraph>
         )}
       </LegacyConfirmModal>
       <RuntimeLogsModal
@@ -889,10 +889,10 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
         onClose={() => setLogTarget(null)}
       />
       <LegacyConfirmModal
-        title="更新 CPA 镜像？"
+        title={t("admin.update_cpa_image_2")}
         open={imageUpdateTarget !== null}
         confirmLoading={imageMutation.isPending}
-        okText={imageUpdateTarget === "all" ? "更新全部 CPA" : "更新此 CPA"}
+        okText={imageUpdateTarget === "all" ? t("admin.update_all_cpas") : t("admin.update_this_cpa")}
         onCancel={() => !imageMutation.isPending && setImageUpdateTarget(null)}
         onOk={() => {
           const target = imageUpdateTarget === "all" ? "all" : imageUpdateTarget?.id;
@@ -902,9 +902,9 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
       >
         <Paragraph>
           {imageUpdateTarget === "all"
-            ? "将使用已拉取并锁定版本与摘要的目标镜像逐个重建运行中的已启用 CPA，停用账号会跳过；失败时自动恢复原镜像。"
+            ? t("admin.running_enabled_cpas_will_be_recreated_one_at_a_time")
             : imageUpdateTarget
-              ? `将使用已锁定版本与摘要的目标镜像重建 ${imageUpdateTarget.id}；失败时自动恢复原镜像。`
+              ? t("admin.will_be_recreated_using_the_image_with_its_pinned_version", [imageUpdateTarget.id])
               : ""}
         </Paragraph>
       </LegacyConfirmModal>
@@ -926,13 +926,13 @@ function accountColumns({
 }): TableColumnsType<Account> {
   return [
     {
-      title: "序号",
+      title: t("common.no"),
       width: "4%",
       align: "center",
       render: (_, __, index) => index + 1
     },
     {
-      title: <span className="sr-only">展开</span>,
+      title: <span className="sr-only">{t("admin.expand")}</span>,
       width: "4%",
       align: "center",
       render: () => (
@@ -942,7 +942,7 @@ function accountColumns({
       )
     },
     {
-      ...accountSortHeader("account", "CPA 账号", sort, onSort),
+      ...accountSortHeader("account", t("common.cpa_account"), sort, onSort),
       dataIndex: "id",
       width: "15%",
       render: (_, account) => (
@@ -955,7 +955,7 @@ function accountColumns({
       )
     },
     {
-      ...accountSortHeader("runtime", "账号状态", sort, onSort),
+      ...accountSortHeader("runtime", t("common.account_status"), sort, onSort),
       align: "center",
       width: "9%",
       render: (_, account) => (
@@ -975,7 +975,7 @@ function accountColumns({
       )
     },
     {
-      ...accountSortHeader("quota", "额度与重置", sort, onSort),
+      ...accountSortHeader("quota", t("admin.quota_reset"), sort, onSort),
       width: "24%",
       render: (_, account) => {
         const used = account.account_state.used_percent;
@@ -985,12 +985,12 @@ function accountColumns({
               <div className="account-quota-overview">
                 <div className="account-quota-main">
                   <div className="account-quota-unavailable">
-                    <span className="table-secondary quota-unavailable">暂不可用</span>
+                    <span className="table-secondary quota-unavailable">{t("admin.unavailable")}</span>
                   </div>
                 </div>
                 <div className="account-quota-reset-cell">
                   <span>{accountResetCreditLabel(account)}</span>
-                  <Button size="small" disabled>重置</Button>
+                  <Button size="small" disabled>{t("admin.reset")}</Button>
                 </div>
               </div>
             </div>
@@ -1004,8 +1004,8 @@ function accountColumns({
               <div className="account-quota-main">
                 <div className="account-quota-cell quota-cell">
                   <div><strong>{formatPercent(bounded)}</strong></div>
-                  <progress className={quotaTone} max="100" value={bounded} aria-label={`已使用 ${formatPercent(bounded)}`} />
-                  <small>{account.account_state.reset_at ? `下次重置 ${formatSiteTimestamp(account.account_state.reset_at)}` : "重置时间未知"}</small>
+                  <progress className={quotaTone} max="100" value={bounded} aria-label={t("common.used", [formatPercent(bounded)])} />
+                  <small>{account.account_state.reset_at ? t("admin.next_reset_2", [formatSiteTimestamp(account.account_state.reset_at)]) : t("common.unknown_reset_time")}</small>
                 </div>
               </div>
               <div className="account-quota-reset-cell quota-reset-cell">
@@ -1013,11 +1013,11 @@ function accountColumns({
                 <button
                   className="quota-reset-action"
                   type="button"
-                  aria-label="重置"
+                  aria-label={t("admin.reset")}
                   disabled={!account.resettable}
-                  title={account.resettable ? `重置 ${account.reset_window_labels?.join("、") || "周限额"}` : account.reset_credit_count === 0 ? "没有剩余重置次数" : "周额度尚未耗尽或状态待刷新"}
+                  title={account.resettable ? t("admin.reset_2", [account.reset_window_labels?.join("、") || t("admin.weekly_limit")]) : account.reset_credit_count === 0 ? t("admin.no_resets_remaining") : t("admin.weekly_quota_is_not_exhausted_or_its_status_needs_refreshing")}
                   onClick={() => onResetQuota(account)}
-                >重置</button>
+                >{t("admin.reset")}</button>
               </div>
             </div>
           </div>
@@ -1025,7 +1025,7 @@ function accountColumns({
       }
     },
     {
-      ...accountSortHeader("activity", "使用情况", sort, onSort),
+      ...accountSortHeader("activity", t("admin.usage"), sort, onSort),
       width: "20%",
       render: (_, account) => (
         <div className="account-cell-content"><AccountActivity account={account} windowSeconds={windowSeconds} /></div>
@@ -1040,7 +1040,7 @@ function accountColumns({
       )
     },
     {
-      ...accountSortHeader("last_used", "最后使用", sort, onSort),
+      ...accountSortHeader("last_used", t("common.last_used"), sort, onSort),
       align: "center",
       width: "7%",
       render: (_, account) => {
@@ -1076,8 +1076,8 @@ function accountSortHeader(
         data-account-sort={field}
         data-direction={active ? sort.direction : undefined}
         aria-label={active
-          ? `${label}，当前${sort.direction === "asc" ? "升序" : "降序"}，点击切换排序方向`
-          : `${label}，点击排序`}
+          ? t("admin.currently_click_to_reverse_the_sort_order", [label, sort.direction === "asc" ? t("common.ascending") : t("common.descending")])
+          : t("admin.click_to_sort", [label])}
         onClick={() => onSort(field)}
       >{label}</button>
     ),
@@ -1144,96 +1144,95 @@ function AccountExpandedRow({
     || !imageStatus.data?.local_image?.available
     || image.using_target;
   const imageUpdateTitle = !account.enabled
-    ? "CPA 账号已停用；启用后再更新镜像"
+    ? t("admin.this_cpa_account_is_disabled_enable_it_before_updating_the")
     : !image?.running
-      ? "CPA 未运行；拉取镜像后下次启动会使用目标镜像"
+      ? t("admin.this_cpa_is_not_running_after_pulling_the_target_image")
       : !imageStatus.data?.local_image?.available
-        ? "请先拉取目标镜像"
+        ? t("admin.pull_the_target_image_first")
         : image.using_target
-          ? "当前 CPA 已使用目标镜像"
-          : "使用目标镜像重建此 CPA";
+          ? t("admin.this_cpa_already_uses_the_target_image")
+          : t("admin.recreate_this_cpa_using_the_target_image");
   return (
     <div className="account-expanded-panel">
       <div className="account-detail-facts account-runtime-facts">
-        <AccountDetailFact label="上游邮箱" value={account.email} />
+        <AccountDetailFact label={t("admin.upstream_email")} value={account.email} />
         <AccountDetailFact
-          label="容器"
+          label={t("admin.container")}
           value={account.service || image?.service || `cliproxy-${account.id}`}
           note={account.container_status || runtimeStateLabel[account.runtime_state]}
         />
         <AccountDetailFact
-          label="账号状态"
-          value={account.operational_status?.label || accountStatusLabel(account)}
+          label={t("common.account_status")}
+          value={(account.operational_status?.label || accountStatusLabel(account))}
           note={account.operational_status ? accountRuntimeDetail(account) : (stateLabels[account.account_state.reason] ?? account.account_state.reason)}
         />
         <AccountDetailFact
-          label="OAuth 文件"
+          label={t("admin.oauth_files")}
           value={account.auth_files ?? (account.oauth_configured === null ? "—" : account.oauth_configured ? 1 : 0)}
         />
         <AccountDetailFact
-          label="镜像版本"
-          value={image?.version || (imageStatus.isPending ? "读取中" : "—")}
-          note={image?.image_short_id ? `SHA ${image.image_short_id}` : imageStatus.isError ? "镜像状态暂不可用" : ""}
+          label={t("admin.image_version")}
+          value={image?.version || (imageStatus.isPending ? t("common.loading_3") : "—")}
+          note={image?.image_short_id ? `SHA ${image.image_short_id}` : imageStatus.isError ? t("admin.image_status_unavailable") : ""}
         />
         <AccountDetailFact
-          label="出口代理"
-          value={account.proxy_source === "account" ? "账号自定义" : account.proxy_source === "default" ? "控制面默认" : "强制直连"}
+          label={t("admin.outbound_proxy")}
+          value={account.proxy_source === "account" ? t("admin.account_override") : account.proxy_source === "default" ? t("admin.control_plane_default") : t("admin.direct_connection")}
           note={account.proxy_display || "direct"}
         />
       </div>
 
       {account.usage_available ? <AccountUsageFacts usage={account.usage} /> : (
         <div className="account-usage-unavailable" role="status">
-          <strong>当前范围用量暂不可用</strong>
-          <span>请刷新账号数据后重试。</span>
+          <strong>{t("admin.usage_for_this_range_is_unavailable")}</strong>
+          <span>{t("admin.refresh_account_data_and_try_again")}</span>
         </div>
       )}
 
       <AccountModelUsage query={usageDetail} />
 
       <div className="account-detail-actions">
-        <div className="account-detail-action-group" role="group" aria-label="常用操作">
-          <button className="button ghost" type="button" disabled={!running} title={!running ? "请先启动账号容器" : undefined} onClick={() => onModelTest(account)}>模型通信测试</button>
-          <button className="button ghost" type="button" onClick={() => onOpenLogs(account.id)}>查看日志</button>
-          <button className="button ghost" type="button" aria-label={`编辑 ${account.id}`} onClick={() => onEdit(account)}>编辑账号</button>
+        <div className="account-detail-action-group" role="group" aria-label={t("admin.common_actions")}>
+          <button className="button ghost" type="button" disabled={!running} title={!running ? t("admin.start_the_account_container_first") : undefined} onClick={() => onModelTest(account)}>{t("common.test_model_connection")}</button>
+          <button className="button ghost" type="button" onClick={() => onOpenLogs(account.id)}>{t("admin.view_logs")}</button>
+          <button className="button ghost" type="button" aria-label={t("admin.edit_2", [account.id])} onClick={() => onEdit(account)}>{t("admin.edit_account")}</button>
           <button className="button ghost" type="button" onClick={() => onOAuth(account)}>
-            {account.oauth_configured === true ? "重新 OAuth" : "开始 OAuth"}
+            {account.oauth_configured === true ? t("admin.reauthorize_oauth") : t("admin.start_oauth")}
           </button>
         </div>
-        <div className="account-detail-action-group" role="group" aria-label="容器维护">
+        <div className="account-detail-action-group" role="group" aria-label={t("admin.container_maintenance")}>
           <button
             className="button ghost"
             type="button"
             disabled={imageUpdateDisabled}
             title={imageUpdateTitle}
             onClick={() => onUpdateImage(account)}
-          >{image?.using_target ? "镜像已同步" : "更新镜像"}</button>
+          >{image?.using_target ? t("admin.image_up_to_date") : t("admin.update_image")}</button>
           <button className="button ghost" type="button" onClick={() => onRuntimeOperation({ action: running ? "restart" : "start", account })}>
-            {running ? "重启容器" : "启动容器"}
+            {running ? t("admin.restart_container") : t("admin.start_container")}
           </button>
         </div>
-        <div className="account-detail-action-group account-detail-action-group-risk" role="group" aria-label="风险操作">
+        <div className="account-detail-action-group account-detail-action-group-risk" role="group" aria-label={t("admin.sensitive_actions")}>
           <button
             className="button account-rebalance-action"
             type="button"
             disabled={account.routed_users <= 0}
-            title={account.routed_users <= 0 ? "当前账号没有需要迁移的用户" : `将 ${formatNumber(account.routed_users)} 个已路由用户按自动切换算法分配到其他可用账号`}
-            aria-label={`迁移全部用户：${account.routed_users <= 0 ? "当前账号没有需要迁移的用户" : `将 ${formatNumber(account.routed_users)} 个已路由用户按自动切换算法分配到其他可用账号`}`}
+            title={account.routed_users <= 0 ? t("admin.this_account_has_no_users_to_move") : t("admin.assign_routed_users_to_other_available_accounts_using_the_automatic", [formatNumber(account.routed_users)])}
+            aria-label={t("admin.move_all_users_2", [account.routed_users <= 0 ? t("admin.this_account_has_no_users_to_move") : t("admin.assign_routed_users_to_other_available_accounts_using_the_automatic", [formatNumber(account.routed_users)])])}
             onClick={() => onRebalance(account)}
           >
-            迁移全部用户
-          </button>
+ {t("admin.move_all_users")} </button>
           {running ? (
-            <button className="button danger-outline" type="button" onClick={() => onRuntimeOperation({ action: "stop", account })}>停止容器</button>
+            <button className="button danger-outline" type="button" onClick={() => onRuntimeOperation({ action: "stop", account })}>{t("admin.stop_container")}</button>
           ) : null}
           <button
             className={`button ${account.enabled ? "danger-outline is-enabled" : "secondary"} account-policy-action`}
             type="button"
             disabled={account.enabled && !availableOtherAccounts}
-            title={account.enabled && !availableOtherAccounts ? "至少保留一个可用 CPA" : undefined}
+            title={account.enabled && !availableOtherAccounts ? t("admin.keep_at_least_one_available_cpa") : undefined}
             onClick={() => onPolicy(account)}
           >
-            {account.enabled ? "停用账号" : "启用账号"}
+            {account.enabled ? t("admin.disable_account") : t("admin.enable_account")}
           </button>
         </div>
       </div>
@@ -1260,20 +1259,20 @@ function AccountDetailFact({ label, value, note = "", className }: {
 function AccountUsageFacts({ usage }: { usage: Account["usage"] }) {
   return (
     <div className="account-detail-facts account-usage-facts">
-      <AccountDetailFact className="account-request-fact" label="成功请求" value={formatNumber(usage.success_count)} />
-      <AccountDetailFact className="account-request-fact" label="失败请求" value={formatNumber(usage.failed_count)} />
-      <AccountDetailFact className="account-token-fact" label="输入 Token" value={<LegacyTokenUsage value={usage.input_tokens} />} />
-      <AccountDetailFact className="account-token-fact" label="输出 Token" value={<LegacyTokenUsage value={usage.output_tokens} />} />
-      <AccountDetailFact className="account-token-fact" label="推理 Token" value={<LegacyTokenUsage value={usage.reasoning_tokens} />} />
+      <AccountDetailFact className="account-request-fact" label={t("common.successful_requests")} value={formatNumber(usage.success_count)} />
+      <AccountDetailFact className="account-request-fact" label={t("common.failed_requests")} value={formatNumber(usage.failed_count)} />
+      <AccountDetailFact className="account-token-fact" label={t("common.input_tokens")} value={<LegacyTokenUsage value={usage.input_tokens} />} />
+      <AccountDetailFact className="account-token-fact" label={t("common.output_tokens")} value={<LegacyTokenUsage value={usage.output_tokens} />} />
+      <AccountDetailFact className="account-token-fact" label={t("common.reasoning_tokens")} value={<LegacyTokenUsage value={usage.reasoning_tokens} />} />
       <div className="account-cache-fact account-token-fact">
         <div className="account-cache-head">
-          <small title="缓存 Token ÷ 输入 Token">缓存率 {formatRatio(usage.cached_tokens, usage.input_tokens)}</small>
-          <span>缓存 Token</span>
+          <small title={t("common.cached_tokens_input_tokens")}>{t("common.cache_rate")} {formatRatio(usage.cached_tokens, usage.input_tokens)}</small>
+          <span>{t("common.cached_tokens")}</span>
         </div>
         <LegacyTokenUsage value={usage.cached_tokens} />
       </div>
       <div className="account-token-total-fact account-token-fact">
-        <span>Token 总计</span>
+        <span>{t("admin.total_tokens")}</span>
         <LegacyTokenUsage value={usage.total_tokens} />
       </div>
     </div>
@@ -1297,14 +1296,14 @@ function LegacyTokenUsage({ value }: { value: number }) {
 function AccountModelUsage({ query }: { query: UseQueryResult<UsageBreakdown> }) {
   const models = groupAccountModels(query.data?.combinations ?? []);
   return (
-    <section className="account-model-usage" aria-label="模型与推理强度 Token 明细">
-      <div className="account-model-usage-title">模型 × 推理强度 Token 明细</div>
+    <section className="account-model-usage" aria-label={t("admin.tokens_by_model_and_reasoning_effort")}>
+      <div className="account-model-usage-title">{t("admin.model_reasoning_effort_tokens")}</div>
       {query.isPending ? (
-        <div className="account-model-usage-skeleton" aria-label="正在加载模型 Token 明细"><span /><span /></div>
+        <div className="account-model-usage-skeleton" aria-label={t("admin.loading_model_token_details")}><span /><span /></div>
       ) : query.isError ? (
         <div className="account-model-usage-message error" role="alert">
-          <span>{query.error instanceof Error ? query.error.message : "模型 Token 明细加载失败"}</span>
-          <Button size="small" onClick={() => void query.refetch()}>重试</Button>
+          <span>{query.error instanceof Error ? query.error.message : t("admin.unable_to_load_model_token_details")}</span>
+          <Button size="small" onClick={() => void query.refetch()}>{t("common.retry")}</Button>
         </div>
       ) : models.length ? (
         <div className="account-model-usage-list">
@@ -1314,7 +1313,7 @@ function AccountModelUsage({ query }: { query: UseQueryResult<UsageBreakdown> })
                 <strong title={model.model}>{model.model}</strong>
                 <LegacyTokenUsage value={model.totalTokens} />
               </div>
-              <div className="account-model-progress" role="group" aria-label={`${model.model} 各推理强度 Token 占比`}>
+              <div className="account-model-progress" role="group" aria-label={t("common.token_share_by_reasoning_effort", [model.model])}>
                 {model.efforts.map((effort) => {
                   const share = formatModelShare(effort.sharePercent);
                   const shareUnits = Math.max(1, Math.min(100, Math.round(effort.sharePercent)));
@@ -1337,7 +1336,7 @@ function AccountModelUsage({ query }: { query: UseQueryResult<UsageBreakdown> })
           ))}
         </div>
       ) : (
-        <div className="account-model-usage-message">当前范围暂无可展示的模型 Token 数据。</div>
+        <div className="account-model-usage-message">{t("admin.no_model_token_data_for_this_range")}</div>
       )}
     </section>
   );
@@ -1346,12 +1345,12 @@ function AccountModelUsage({ query }: { query: UseQueryResult<UsageBreakdown> })
 function accountModelTooltip(model: string, effort: AccountModelEffort) {
   return [
     `${model} · ${effort.reasoning_effort}`,
-    `调用：${formatNumber(effort.request_count)}`,
-    `输入：${formatNumber(effort.input_tokens)}`,
-    `输出：${formatNumber(effort.output_tokens)}`,
-    `推理：${formatNumber(effort.reasoning_tokens)}`,
-    `缓存：${formatNumber(effort.cached_tokens)}`,
-    `总 Token：${formatNumber(effort.total_tokens)}`
+    t("admin.requests_2", [formatNumber(effort.request_count)]),
+    t("admin.input_2", [formatNumber(effort.input_tokens)]),
+    t("admin.output_2", [formatNumber(effort.output_tokens)]),
+    t("admin.reasoning_2", [formatNumber(effort.reasoning_tokens)]),
+    t("admin.cached_2", [formatNumber(effort.cached_tokens)]),
+    t("admin.total_tokens_3", [formatNumber(effort.total_tokens)])
   ];
 }
 
@@ -1382,7 +1381,7 @@ function formatLegacyTokenUsage(input: number) {
 }
 
 function formatModelShare(value: number) {
-  return `${new Intl.NumberFormat("zh-CN", { maximumFractionDigits: 1 }).format(value)}%`;
+  return `${new Intl.NumberFormat(getIntlLocale(), { maximumFractionDigits: 1 }).format(value)}%`;
 }
 
 type AccountModelEffort = UsageCombination & { sharePercent: number };
@@ -1418,13 +1417,13 @@ function effortColorKey(effort: string) {
 
 function formatRatio(numerator: number, denominator: number) {
   if (!denominator) return "0%";
-  return `${new Intl.NumberFormat("zh-CN", { maximumFractionDigits: 1 }).format(numerator * 100 / denominator)}%`;
+  return `${new Intl.NumberFormat(getIntlLocale(), { maximumFractionDigits: 1 }).format(numerator * 100 / denominator)}%`;
 }
 
 function AccountOAuthStatus({ account }: { account: Account }) {
   const configured = accountOAuthConfigured(account);
-  if (configured === null) return <span className="status-chip neutral">未知</span>;
-  return <span className={`status-chip ${configured ? "success" : "warning"}`}>{configured ? "已授权" : "待授权"}</span>;
+  if (configured === null) return <span className="status-chip neutral">{t("common.unknown")}</span>;
+  return <span className={`status-chip ${configured ? "success" : "warning"}`}>{configured ? t("admin.authorized") : t("admin.authorization_required")}</span>;
 }
 
 function AccountActivity({ account, windowSeconds }: { account: Account; windowSeconds: number }) {
@@ -1432,21 +1431,21 @@ function AccountActivity({ account, windowSeconds }: { account: Account; windowS
   const activeUsers = account.active_users_1h;
   const activeValue = activeUsers === null ? "—" : formatNumber(activeUsers);
   const windowLabel = formatActiveUserWindow(windowSeconds);
-  const activeDetail = activeUsers === null ? "数据暂不可用" : activeUsers === 0 ? `${windowLabel} 无请求` : windowLabel;
-  const activeHelp = `过去${windowLabel}内至少发起 1 次业务请求的去重用户；成功和失败请求均计入。`;
+  const activeDetail = activeUsers === null ? t("admin.data_unavailable") : activeUsers === 0 ? t("admin.no_requests_in", [windowLabel]) : windowLabel;
+  const activeHelp = t("admin.unique_users_with_at_least_one_request_in_the_past", [windowLabel]);
   return (
     <div className="account-activity account-activity-cell">
       <div className="active">
         <span>
-          活跃 {activeUsers !== null && activeUsers > 0 && activeEmails.length ? (
+ {t("admin.active")} {activeUsers !== null && activeUsers > 0 && activeEmails.length ? (
             <span
               className="account-active-users"
               tabIndex={0}
-              aria-label={`${windowLabel}活跃使用者：${activeEmails.join("，")}`}
+              aria-label={t("admin.active_users_in", [windowLabel, activeEmails.join("，")])}
             >
               <strong>{activeValue}</strong>
               <span className="account-active-users-tooltip" role="tooltip">
-                <b>{windowLabel}活跃使用者（{formatNumber(activeUsers)}）</b>
+                <b>{windowLabel}{t("admin.active_users")}{formatNumber(activeUsers)}）</b>
                 {activeEmails.map((email) => <span className="account-active-user-email" key={email}>{email}</span>)}
               </span>
             </span>
@@ -1466,12 +1465,12 @@ function AccountActivity({ account, windowSeconds }: { account: Account; windowS
         <small className={activeUsers === null ? "warning" : ""}>{activeDetail}</small>
       </div>
       <div>
-        <span>路由 <strong>{formatNumber(account.routed_users)}</strong></span>
-        <small>{formatNumber(account.associated_users)} 关联</small>
+        <span>{t("admin.routes")} <strong>{formatNumber(account.routed_users)}</strong></span>
+        <small>{formatNumber(account.associated_users)} {t("admin.associated")}</small>
       </div>
       <div>
-        <span>请求 <strong>{account.usage_available ? formatNumber(account.usage.request_count) : "—"}</strong></span>
-        <small className={!account.usage_available || account.usage.failed_count ? "warning" : ""}>{account.usage_available ? (account.usage.failed_count ? `${formatNumber(account.usage.failed_count)} 失败` : "全部成功") : "额度周期不可用"}</small>
+        <span>{t("common.requests")} <strong>{account.usage_available ? formatNumber(account.usage.request_count) : "—"}</strong></span>
+        <small className={!account.usage_available || account.usage.failed_count ? "warning" : ""}>{account.usage_available ? (account.usage.failed_count ? t("admin.failed", [formatNumber(account.usage.failed_count)]) : t("admin.all_successful")) : t("admin.quota_period_unavailable")}</small>
       </div>
     </div>
   );
@@ -1492,7 +1491,7 @@ function AccountTokenUsage({ account }: { account: Account }) {
   );
 }
 
-const accountTableCollator = new Intl.Collator("zh-CN", { numeric: true, sensitivity: "base" });
+const accountTableCollator = new Intl.Collator(getIntlLocale(), { numeric: true, sensitivity: "base" });
 
 function compareAccountColumn(
   left: Account,
@@ -1523,7 +1522,7 @@ function compareAccountsForSort(left: Account, right: Account, sort: AccountSort
       return compareAccountColumn(left, right, order, accountStatusLabel);
     case "auth":
       return compareAccountColumn(left, right, order, (account) => (
-        account.oauth_configured === true ? "已授权" : account.oauth_configured === false ? "待授权" : "未知"
+        account.oauth_configured === true ? t("admin.authorized") : account.oauth_configured === false ? t("admin.authorization_required") : t("common.unknown")
       ));
     case "quota":
       return compareAccountColumn(left, right, order, (account) => (
@@ -1539,20 +1538,20 @@ function compareAccountsForSort(left: Account, right: Account, sort: AccountSort
 }
 
 function accountStatusLabel(account: Account) {
-  if (account.operational_status?.label) return account.operational_status.label;
-  if (!account.enabled) return "已停用";
-  if (account.runtime_state === "stopped") return "已停止";
-  if (!account.state_available) return "状态未知";
-  if (account.account_state.exhausted) return "额度耗尽";
+  if (account.operational_status?.label) return (account.operational_status.label);
+  if (!account.enabled) return t("common.disabled");
+  if (account.runtime_state === "stopped") return t("common.stopped");
+  if (!account.state_available) return t("common.unknown_status");
+  if (account.account_state.exhausted) return t("common.quota_exhausted");
   if (runtimeStateReasons.has(account.account_state.reason)) return stateLabels[account.account_state.reason];
-  if (account.account_state.eligible) return "可用";
-  return stateLabels[account.account_state.reason] ?? "暂不可迁入";
+  if (account.account_state.eligible) return t("common.available");
+  return stateLabels[account.account_state.reason] ?? t("admin.cannot_receive_users");
 }
 
 function accountResetCreditLabel(account: Account) {
   return typeof account.reset_credit_count === "number"
-    ? `剩余 ${account.reset_credit_count} 次`
-    : "额度未知";
+    ? t("admin.remaining_2", [account.reset_credit_count])
+    : t("common.unknown_quota");
 }
 
 function formatPercent(value: number) {
@@ -1560,25 +1559,25 @@ function formatPercent(value: number) {
 }
 
 function formatTaskDuration(startedAt?: number | null, finishedAt?: number | null, active = false) {
-  if (active) return "执行中";
+  if (active) return t("admin.running");
   if (!startedAt || !finishedAt) return "—";
   const seconds = Math.max(0, finishedAt - startedAt);
-  if (seconds < 1) return "< 1 秒";
-  if (seconds < 60) return `${seconds} 秒`;
+  if (seconds < 1) return t("admin.1_sec");
+  if (seconds < 60) return t("admin.sec", [seconds]);
   const minutes = Math.floor(seconds / 60);
   const remainder = seconds % 60;
-  return remainder ? `${minutes} 分 ${remainder} 秒` : `${minutes} 分钟`;
+  return remainder ? t("admin.min_sec", [minutes, remainder]) : t("admin.min", [minutes]);
 }
 
 function formatAccountLastUsed(timestamp: number) {
-  return timestamp ? formatSiteTimestamp(timestamp) : "从未使用";
+  return timestamp ? formatSiteTimestamp(timestamp) : t("admin.never_used");
 }
 
 function accountRefreshLabel(catalog: AccountCatalog, nowSeconds = catalog.generated_at) {
   const observedAt = Math.max(0, ...catalog.accounts.map((account) => account.account_state.observed_at || 0));
   const generatedAt = catalog.quota_generated_at || observedAt;
   if (!Number.isFinite(generatedAt) || generatedAt <= 0) {
-    return catalog.quota_refreshing ? "额度正在后台更新" : "额度数据暂不可用";
+    return catalog.quota_refreshing ? t("admin.quotas_are_updating_in_the_background") : t("admin.quota_data_unavailable");
   }
   const cacheSeconds = Number.isFinite(catalog.quota_cache_ttl_seconds) && catalog.quota_cache_ttl_seconds > 0
     ? catalog.quota_cache_ttl_seconds
@@ -1586,15 +1585,15 @@ function accountRefreshLabel(catalog: AccountCatalog, nowSeconds = catalog.gener
   // Allow one extra cache period for the scheduled collection round to finish.
   const stale = nowSeconds - generatedAt > cacheSeconds * 2;
   const state = catalog.quota_refreshing
-    ? "（后台更新中）"
+    ? t("admin.updating_in_background")
     : stale
-      ? "（数据较旧，请刷新）"
+      ? t("admin.outdated_please_refresh")
       : "";
-  return `额度更新于 ${formatSiteTimestamp(generatedAt)}${state}`;
+  return t("admin.quotas_updated", [formatSiteTimestamp(generatedAt), state]);
 }
 
 function formatNumber(value: number) {
-  return new Intl.NumberFormat("zh-CN").format(value);
+  return new Intl.NumberFormat(getIntlLocale()).format(value);
 }
 
 function isInteractiveRowTarget(target: EventTarget | null) {
@@ -1620,56 +1619,56 @@ function parseOAuthDeviceOutput(output: string) {
 }
 
 const runtimeFilterOptions = [
-  { value: "all", label: "全部" },
-  { value: "running", label: "运行中" },
-  { value: "stopped", label: "已停止" },
-  { value: "disabled", label: "已停用" }
+  { value: "all", label: t("admin.all") },
+  { value: "running", label: t("admin.running_2") },
+  { value: "stopped", label: t("common.stopped") },
+  { value: "disabled", label: t("common.disabled") }
 ] satisfies Array<{ value: AccountRuntimeFilter; label: string }>;
 
 const authFilterOptions = [
-  { value: "all", label: "全部" },
-  { value: "configured", label: "已授权" },
-  { value: "pending", label: "待授权" }
+  { value: "all", label: t("admin.all") },
+  { value: "configured", label: t("admin.authorized") },
+  { value: "pending", label: t("admin.authorization_required") }
 ] satisfies Array<{ value: AccountAuthFilter; label: string }>;
 
 const usageWindowOptions = [
-  { value: "3600", label: "1 小时" },
-  { value: "today", label: "今日" },
-  { value: "86400", label: "24 小时" },
-  { value: "604800", label: "7 天" },
-  { value: "2592000", label: "30 天" },
-  { value: "since_reset", label: "额度周期" },
-  { value: "all", label: "全部" }
+  { value: "3600", label: t("common.1h") },
+  { value: "today", label: t("common.today") },
+  { value: "86400", label: t("common.24h") },
+  { value: "604800", label: t("common.7d") },
+  { value: "2592000", label: t("common.30d") },
+  { value: "since_reset", label: t("admin.quota_cycle") },
+  { value: "all", label: t("admin.all") }
 ] satisfies Array<{ value: AccountUsageWindow; label: string }>;
 
 function formatActiveUserWindow(seconds: number): string {
   const minutes = Math.max(1, Math.round(seconds / 60));
-  if (minutes % 60 === 0) return `近 ${minutes / 60} 小时`;
-  return `近 ${minutes} 分钟`;
+  if (minutes % 60 === 0) return t("common.last_hours", [minutes / 60]);
+  return t("common.last_minutes", [minutes]);
 }
 
 const runtimeStateLabel: Record<Account["runtime_state"], string> = {
-  running: "运行中",
-  stopped: "已停止",
-  disabled: "已停用",
-  unknown: "未知"
+  running: t("admin.running_2"),
+  stopped: t("common.stopped"),
+  disabled: t("common.disabled"),
+  unknown: t("common.unknown")
 };
 
 const runtimeJobStatusLabels: Record<string, string> = {
-  queued: "排队中",
-  running: "运行中",
-  cancelling: "取消中",
-  succeeded: "成功",
-  failed: "失败",
-  cancelled: "已取消"
+  queued: t("admin.queued"),
+  running: t("admin.running_2"),
+  cancelling: t("admin.cancelling"),
+  succeeded: t("common.succeeded"),
+  failed: t("common.failed"),
+  cancelled: t("common.cancelled")
 };
 
 const proxyModeSchema = z.enum(["inherit", "custom", "direct"]);
 const accountEditorSchema = z.object({
-  id: z.string().trim().regex(/^[a-z][a-z0-9-]{1,31}$/, "请输入 2-32 位小写字母、数字或连字符，且以字母开头"),
-  email: z.string().trim().email("请输入有效邮箱地址"),
+  id: z.string().trim().regex(/^[a-z][a-z0-9-]{1,31}$/, t("admin.enter_2_32_lowercase_letters_digits_or_hyphens_starting_with")),
+  email: z.string().trim().email(t("admin.enter_a_valid_email_address")),
   proxy_mode: proxyModeSchema,
-  proxy_url: z.string().trim().refine((value) => !value || validProxyURL(value), "仅支持无路径的 HTTP、HTTPS 或 SOCKS5 代理地址")
+  proxy_url: z.string().trim().refine((value) => !value || validProxyURL(value), t("admin.only_http_https_or_socks5_proxy_urls_without_a_path"))
 });
 
 type AccountEditorValues = z.infer<typeof accountEditorSchema>;
@@ -1703,7 +1702,7 @@ function AccountEditorModal({
     const proxyURL = values.proxy_url.trim();
     const existingProxyCanBeRetained = account?.proxy_configured;
     if (values.proxy_mode === "custom" && !proxyURL && !existingProxyCanBeRetained) {
-      form.setError("proxy_url", { message: "独立代理模式必须输入代理地址" });
+      form.setError("proxy_url", { message: t("admin.enter_a_proxy_url_for_the_custom_proxy_mode") });
       return;
     }
     if (!account) {
@@ -1732,15 +1731,15 @@ function AccountEditorModal({
   return (
     <Modal
       className={`legacy-account-editor-modal ${account ? "account-edit-modal" : "account-create-modal"}`}
-      title={<LegacyDialogTitle title={account ? account.id : "添加业务 CPA"} kicker={account ? "BUSINESS CPA" : "NEW BUSINESS CPA"} />}
+      title={<LegacyDialogTitle title={account ? account.id : t("common.add_cpa_account")} kicker={account ? "BUSINESS CPA" : "NEW BUSINESS CPA"} />}
       open={open}
       width={account ? 720 : 560}
       centered
       closeIcon={<span className="legacy-dialog-close" aria-hidden="true">×</span>}
       transitionName=""
       maskTransitionName=""
-      okText={account ? "保存修改" : pending ? "正在创建…" : "创建并启动"}
-      cancelText="取消"
+      okText={account ? t("admin.save_changes") : pending ? t("admin.creating") : t("admin.create_start")}
+      cancelText={t("common.cancel")}
       cancelButtonProps={{ className: "legacy-modal-ghost", tabIndex: -1 }}
       okButtonProps={{ disabled: pending, htmlType: "submit", form: "account-editor-form" }}
       onCancel={onCancel}
@@ -1758,33 +1757,33 @@ function AccountEditorModal({
       <Form id="account-editor-form" className="account-editor-form" layout="vertical" requiredMark={false} onFinish={() => void submit()}>
         {account ? (
           <div className="account-editor-facts">
-            <AccountDetailFact label="端口" value={`:${account.port}`} />
+            <AccountDetailFact label={t("admin.port")} value={`:${account.port}`} />
             <AccountDetailFact
-              label="出口"
-              value={account.proxy_source === "account" ? "账号代理" : account.proxy_source === "default" ? "默认代理" : "直连"}
+              label={t("admin.egress")}
+              value={account.proxy_source === "account" ? t("admin.account_proxy") : account.proxy_source === "default" ? t("admin.default_proxy") : t("admin.direct")}
             />
-            <AccountDetailFact label="容器" value={runtimeStateLabel[account.runtime_state]} />
-            <AccountDetailFact label="OAuth" value={account.oauth_configured ? "已授权" : "待授权"} />
-            <AccountDetailFact label="当前用户" value={account.routed_users} />
+            <AccountDetailFact label={t("admin.container")} value={runtimeStateLabel[account.runtime_state]} />
+            <AccountDetailFact label="OAuth" value={account.oauth_configured ? t("admin.authorized") : t("admin.authorization_required")} />
+            <AccountDetailFact label={t("admin.current_users")} value={account.routed_users} />
           </div>
         ) : null}
         <Row gutter={16}>
-          <Col xs={24}><EditorInput control={form.control} name="id" label={account ? "CPA 标识" : "账号标识"} minLength={account ? undefined : 2} placeholder={account ? "例如 account-a" : "例如 codex-team-2"} /></Col>
-          {!account ? <Col xs={24}><Paragraph className="account-field-help">用于容器名、配置文件名和 Key 路由，只能填写小写字母、数字和连字符。</Paragraph></Col> : null}
-          <Col xs={24}><EditorInput control={form.control} name="email" label={account ? "显示邮箱" : "上游账号邮箱"} placeholder="account@example.com" /></Col>
+          <Col xs={24}><EditorInput control={form.control} name="id" label={account ? t("admin.cpa_id") : t("admin.account_id")} minLength={account ? undefined : 2} placeholder={account ? t("admin.e_g_account_a") : t("admin.e_g_codex_team_2")} /></Col>
+          {!account ? <Col xs={24}><Paragraph className="account-field-help">{t("admin.used_for_container_names_configuration_files_and_key_routing_only")}</Paragraph></Col> : null}
+          <Col xs={24}><EditorInput control={form.control} name="email" label={account ? t("admin.display_email") : t("admin.upstream_account_email")} placeholder="account@example.com" /></Col>
           <Col xs={24}>
             <Controller
               control={form.control}
               name="proxy_mode"
               render={({ field, fieldState }) => (
-                <Form.Item label="出口代理" validateStatus={fieldState.error ? "error" : undefined} help={fieldState.error?.message}>
+                <Form.Item label={t("admin.outbound_proxy")} validateStatus={fieldState.error ? "error" : undefined} help={fieldState.error?.message}>
                   <LegacyEnhancedSelect
-                    label="出口代理"
+                    label={t("admin.outbound_proxy")}
                     value={field.value}
                     options={[
-                      { value: "inherit", label: "继承控制面默认代理" },
-                      { value: "custom", label: "使用账号自定义代理" },
-                      { value: "direct", label: "强制直连" }
+                      { value: "inherit", label: t("admin.inherit_the_control_plane_default_proxy") },
+                      { value: "custom", label: t("admin.use_a_custom_account_proxy") },
+                      { value: "direct", label: t("admin.direct_connection") }
                     ]}
                     onChange={field.onChange}
                   />
@@ -1799,16 +1798,16 @@ function AccountEditorModal({
                 name="proxy_url"
                 render={({ field, fieldState }) => (
                   <Form.Item
-                    label="账号代理 URL"
+                    label={t("admin.account_proxy_url")}
                     validateStatus={fieldState.error ? "error" : undefined}
                     help={fieldState.error?.message}
                   >
                     <Input.Password
                       {...field}
-                      aria-label="账号代理 URL"
+                      aria-label={t("admin.account_proxy_url")}
                       autoComplete="new-password"
                       visibilityToggle={{ tabIndex: -1 }}
-                      placeholder={account ? "留空保持现有代理；支持 HTTP、HTTPS、SOCKS5" : "例如 socks5://user:pass@host:1080"}
+                      placeholder={account ? t("admin.leave_blank_to_keep_the_current_proxy_supports_http_https") : t("admin.e_g_socks5_user_pass_host_1080")}
                     />
                   </Form.Item>
                 )}
@@ -1818,34 +1817,32 @@ function AccountEditorModal({
         </Row>
         {!account ? (
           <>
-            <Paragraph className="account-field-help">账号设置优先于控制面默认代理；支持 HTTP、HTTPS 和 SOCKS5。</Paragraph>
-            <div className="account-provision-list" aria-label="自动执行内容">
-              <span>解析出口代理</span>
-              <span>生成 CPA 配置</span>
-              <span>创建认证目录</span>
-              <span>后台补齐已有用户 Key</span>
-              <span>启动容器并刷新路由</span>
+            <Paragraph className="account-field-help">{t("admin.account_settings_override_the_control_plane_default_proxy_http_https")}</Paragraph>
+            <div className="account-provision-list" aria-label={t("admin.automatic_steps")}>
+              <span>{t("admin.resolve_outbound_proxy")}</span>
+              <span>{t("admin.generate_cpa_configuration")}</span>
+              <span>{t("admin.create_authentication_directory")}</span>
+              <span>{t("admin.link_existing_user_keys_in_the_background")}</span>
+              <span>{t("admin.start_container_refresh_routes")}</span>
             </div>
-            <div className="account-inline-notice">添加 CPA 后会在后台关联全部已有用户的统一 Key；账号创建后请继续完成 OAuth。</div>
+            <div className="account-inline-notice">{t("admin.after_creation_all_existing_users_unified_keys_are_linked_in")}</div>
           </>
         ) : null}
         {account ? (
           <>
             <Paragraph className="account-field-help">
-              当前生效：{account.proxy_display || "直连"}；账号代理设置优先，修改后只重建当前 CPA。
-            </Paragraph>
+ {t("admin.currently_effective")}{account.proxy_display || t("admin.direct")}{t("admin.account_proxy_settings_take_priority_only_this_cpa_is_recreated")} </Paragraph>
             <Paragraph className="account-editor-explanation">
-              修改 CPA 标识会迁移容器、路由、OAuth、日志和 Key 关联，并短暂重启该业务 CPA；显示邮箱不会替换 OAuth 登录身份。
-            </Paragraph>
+ {t("admin.changing_the_cpa_id_migrates_its_container_routes_oauth_logs")} </Paragraph>
             <LegacyFormError error={error} />
-            <section className="account-danger-zone" aria-label="危险操作">
+            <section className="account-danger-zone" aria-label={t("admin.danger_zone")}>
               <div>
-                <strong>危险操作</strong>
-                <p>清除授权或删除 CPA 前都会自动创建本地安全归档。</p>
+                <strong>{t("admin.danger_zone")}</strong>
+                <p>{t("admin.a_local_safety_archive_is_created_before_clearing_authorization_or")}</p>
               </div>
               <Space wrap size={8}>
-                <Button danger onClick={() => onDestructiveAction({ kind: "clear-auth", account })}>清除 OAuth</Button>
-                <Button danger onClick={() => onDestructiveAction({ kind: "delete", account })}>删除 CPA</Button>
+                <Button danger onClick={() => onDestructiveAction({ kind: "clear-auth", account })}>{t("admin.clear_oauth")}</Button>
+                <Button danger onClick={() => onDestructiveAction({ kind: "delete", account })}>{t("admin.delete_cpa")}</Button>
               </Space>
             </section>
           </>
@@ -1884,19 +1881,19 @@ function AccountPolicyModal({
   return (
     <Modal
       className="legacy-account-editor-modal account-policy-modal"
-      title={<LegacyDialogTitle title={`${enabling ? "启用" : "停用"} ${account.id}`} kicker="ROUTING AVAILABILITY" />}
+      title={<LegacyDialogTitle title={`${enabling ? t("admin.enable") : t("admin.disable")} ${account.id}`} kicker="ROUTING AVAILABILITY" />}
       open
       width={560}
       centered
       closeIcon={<span className="legacy-dialog-close" aria-hidden="true">×</span>}
       transitionName=""
       maskTransitionName=""
-      okText={pending ? (enabling ? "正在启用…" : "正在停用…") : enabling ? "确认启用" : "确认停用"}
+      okText={pending ? (enabling ? t("admin.enabling") : t("admin.disabling")) : enabling ? t("admin.confirm_enable") : t("admin.confirm_disable")}
       confirmLoading={pending}
       closable={!pending}
       mask={{ closable: !pending }}
       keyboard={!pending}
-      cancelText="取消"
+      cancelText={t("common.cancel")}
       okType={enabling ? "primary" : "default"}
       cancelButtonProps={{ className: "legacy-modal-ghost", disabled: pending }}
       okButtonProps={{
@@ -1919,18 +1916,18 @@ function AccountPolicyModal({
       <div className="account-policy-form">
         <div className="warning-banner">
           {enabling
-            ? `启用后，状态可用时用户可以选择 ${account.id}；已有用户路由不会自动变化。`
+            ? t("admin.once_enabled_and_available_users_can_select_existing_user_routes", [account.id])
             : account.routed_users > 0
-              ? `停用后将不再允许用户选择；当前 ${formatNumber(account.routed_users)} 位用户必须迁移到其他已启用 CPA。`
-              : "停用后将不再允许用户选择；当前没有用户路由到该账号。"}
+              ? t("admin.once_disabled_users_cannot_select_this_cpa_its_current_users", [formatNumber(account.routed_users)])
+              : t("admin.once_disabled_users_cannot_select_this_cpa_no_users_are")}
         </div>
         {requiresFallback ? (
           <label className="field">
-            <span>现有用户切换到</span>
-            <LegacyEnhancedSelect label="现有用户切换到" value={fallback} options={options} onChange={setFallback} disabled={pending} />
+            <span>{t("admin.move_existing_users_to")}</span>
+            <LegacyEnhancedSelect label={t("admin.move_existing_users_to")} value={fallback} options={options} onChange={setFallback} disabled={pending} />
           </label>
         ) : null}
-        {pending ? <div role="status">正在更新账号选择策略，请稍候。</div> : null}
+        {pending ? <div role="status">{t("admin.updating_account_availability_please_wait")}</div> : null}
         <LegacyFormError error={error} />
       </div>
     </Modal>
@@ -1971,7 +1968,7 @@ function LegacyConfirmModal({
       onCancel={onCancel}
       destroyOnHidden
       footer={[
-        <Button key="cancel" disabled={confirmLoading} onClick={onCancel}>取消</Button>,
+        <Button key="cancel" disabled={confirmLoading} onClick={onCancel}>{t("common.cancel")}</Button>,
         <Button
           key="confirm"
           type={danger ? "default" : "primary"}
@@ -2007,15 +2004,15 @@ function OAuthFlowModals({
   if (!account) return null;
   return (
     <LegacyConfirmModal
-      title="开始 OAuth 授权？"
+      title={t("admin.start_oauth_authorization")}
       open
-      okText="开始授权"
+      okText={t("admin.start_authorization")}
       confirmLoading={starting}
       onCancel={onClose}
       onOk={onStart}
     >
-      <Paragraph>任务输出会显示设备授权地址和一次性验证码。完成浏览器授权前请勿关闭任务窗口。</Paragraph>
-      {startError ? <MutationError error={startError} title="OAuth 授权任务未提交" /> : null}
+      <Paragraph>{t("admin.task_output_will_show_the_device_authorization_url_and_one")}</Paragraph>
+      {startError ? <MutationError error={startError} title={t("admin.oauth_task_was_not_submitted")} /> : null}
     </LegacyConfirmModal>
   );
 }
@@ -2053,9 +2050,9 @@ function TaskOutputModal({
   }, [job?.id]);
   if (!job) return null;
   const rawOutput = job.output?.trim() ?? "";
-  const output = rawOutput || "任务正在排队…";
+  const output = rawOutput || t("admin.task_is_queued");
   const device = parseOAuthDeviceOutput(output);
-  const imageUpdateReport = /更新.*镜像|镜像.*更新/.test(job.name)
+  const imageUpdateReport = job.action === "image-update"
     ? parseImageUpdateOutput(rawOutput, job.status)
     : null;
   const active = isActiveRuntimeJob(job);
@@ -2064,9 +2061,9 @@ function TaskOutputModal({
   const copy = async (value: string, label: string) => {
     try {
       await navigator.clipboard.writeText(value);
-      setCopyNotice(`${label}已复制`);
+      setCopyNotice(t("common.copied", [label]));
     } catch {
-      setCopyNotice(`${label}复制失败，请手动复制`);
+      setCopyNotice(t("admin.unable_to_copy_please_copy_it_manually", [label]));
     }
   };
   const copyDeviceValue = async (target: "url" | "code", value: string) => {
@@ -2092,18 +2089,18 @@ function TaskOutputModal({
   const deviceCopyButton = (target: "url" | "code", idleLabel: string) => {
     const state = deviceCopyState[target];
     return {
-      label: state === "copied" ? "已复制" : state === "failed" ? "复制失败" : idleLabel,
+      label: state === "copied" ? t("common.copied_2") : state === "failed" ? t("common.copy_failed") : idleLabel,
       icon: state === "copied"
         ? <CheckOutlined aria-hidden="true" />
         : <CopyOutlined aria-hidden="true" />
     };
   };
-  const addressCopyButton = deviceCopyButton("url", "复制地址");
-  const codeCopyButton = deviceCopyButton("code", "复制设备码");
+  const addressCopyButton = deviceCopyButton("url", t("admin.copy_url"));
+  const codeCopyButton = deviceCopyButton("code", t("admin.copy_device_code"));
   return (
     <Modal
       className="legacy-output-modal"
-      title={<LegacyDialogTitle title={job.name || "任务输出"} kicker="TASK OUTPUT" />}
+      title={<LegacyDialogTitle title={(job.name) || t("admin.task_output")} kicker="TASK OUTPUT" />}
       open
       width={900}
       centered
@@ -2113,49 +2110,49 @@ function TaskOutputModal({
       onCancel={onClose}
       destroyOnHidden
       footer={[
-        <Button className="legacy-output-secondary" key="copy-output" onClick={() => void copy(output, "完整输出")}>复制完整输出</Button>,
+        <Button className="legacy-output-secondary" key="copy-output" onClick={() => void copy(output, t("admin.full_output"))}>{t("admin.copy_full_output")}</Button>,
         active ? (
-          <Button key="cancel-job" danger loading={cancelling} onClick={onCancelJob}>取消任务</Button>
+          <Button key="cancel-job" danger loading={cancelling} onClick={onCancelJob}>{t("admin.cancel_task")}</Button>
         ) : null,
-        <Button className="legacy-output-ghost" key="close" onClick={onClose}>关闭</Button>
+        <Button className="legacy-output-ghost" key="close" onClick={onClose}>{t("common.close")}</Button>
       ]}
     >
-      <div className="oauth-task-meta task-output-meta" aria-label="任务执行摘要">
+      <div className="oauth-task-meta task-output-meta" aria-label={t("admin.task_summary")}>
         <div>
-          <span>执行范围</span>
+          <span>{t("admin.scope")}</span>
           <strong className="oauth-task-account">
-            <span>{job.target === "all" ? "全部 CPA" : job.target}</span>
+            <span>{job.target === "all" ? t("common.all_cpas") : job.target}</span>
             {accountEmail ? <span className="oauth-task-email">{accountEmail}</span> : null}
           </strong>
         </div>
         <div>
-          <span>执行状态</span>
+          <span>{t("admin.status")}</span>
           <Tag color={job.status === "succeeded" ? "success" : job.status === "failed" ? "error" : active ? "processing" : "default"}>
             {runtimeJobStatusLabels[job.status] ?? job.status}
           </Tag>
         </div>
         <div>
-          <span>开始时间</span>
+          <span>{t("common.started")}</span>
           <time>{formatSiteTimestamp(startedAt)}</time>
         </div>
         <div>
-          <span>完成时间</span>
-          <time>{job.finished_at ? formatSiteTimestamp(job.finished_at) : active ? "执行中" : "—"}</time>
+          <span>{t("admin.finished")}</span>
+          <time>{job.finished_at ? formatSiteTimestamp(job.finished_at) : active ? t("admin.running") : "—"}</time>
         </div>
         <div>
-          <span>任务耗时</span>
+          <span>{t("admin.duration")}</span>
           <strong>{formatTaskDuration(startedAt, job.finished_at, active)}</strong>
         </div>
         <div>
-          <span>输出记录</span>
-          <strong>{outputLineCount} 行</strong>
+          <span>{t("admin.output_lines")}</span>
+          <strong>{outputLineCount} {t("common.lines")}</strong>
         </div>
       </div>
       {device.url || device.code ? (
-        <section className="oauth-copy-panel" aria-label="OAuth 设备授权信息">
+        <section className="oauth-copy-panel" aria-label={t("admin.oauth_device_authorization")}>
           <div className="oauth-copy-grid">
             <div>
-              <span>授权地址</span>
+              <span>{t("admin.authorization_url")}</span>
               <code>{device.url || "—"}</code>
               <Button
                 disabled={!device.url}
@@ -2165,7 +2162,7 @@ function TaskOutputModal({
               >{addressCopyButton.label}</Button>
             </div>
             <div>
-              <span>设备码</span>
+              <span>{t("admin.device_code")}</span>
               <code className="device-code">{device.code || "—"}</code>
               <Button
                 disabled={!device.code}
@@ -2178,8 +2175,8 @@ function TaskOutputModal({
         </section>
       ) : null}
       {copyNotice ? <Alert className="page-alert" type="info" showIcon title={copyNotice} /> : null}
-      {pollError ? <MutationError error={pollError} title="任务状态刷新失败，正在重试" /> : null}
-      {job.error ? <Alert className="page-alert" type="error" showIcon title="任务执行失败" description={job.error} /> : null}
+      {pollError ? <MutationError error={pollError} title={t("admin.unable_to_refresh_task_status_retrying")} /> : null}
+      {job.error ? <Alert className="page-alert" type="error" showIcon title={t("admin.task_failed")} description={job.error} /> : null}
       {imageUpdateReport ? (
         <ImageUpdateTaskReport output={rawOutput} status={job.status} />
       ) : (
@@ -2202,22 +2199,22 @@ function RuntimeLogsModal({
   useEffect(() => setCopyNotice(""), [target]);
   if (!target) return null;
   const output = query.isPending
-    ? "正在读取…"
+    ? t("common.loading_2")
     : query.isError
-      ? (query.error instanceof Error ? query.error.message : "日志读取失败")
-      : query.data?.output || "暂无日志";
+      ? (query.error instanceof Error ? query.error.message : t("admin.unable_to_read_logs"))
+      : query.data?.output || t("admin.no_logs");
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(output);
-      setCopyNotice("完整输出已复制");
+      setCopyNotice(t("admin.full_output_copied"));
     } catch {
-      setCopyNotice("完整输出复制失败，请手动复制");
+      setCopyNotice(t("admin.unable_to_copy_full_output_please_copy_it_manually"));
     }
   };
   return (
     <Modal
       className="legacy-output-modal"
-      title={<LegacyDialogTitle title={`${target} 日志`} kicker="SERVICE LOGS" />}
+      title={<LegacyDialogTitle title={t("admin.logs", [target])} kicker="SERVICE LOGS" />}
       open
       width={900}
       centered
@@ -2227,13 +2224,13 @@ function RuntimeLogsModal({
       onCancel={onClose}
       destroyOnHidden
       footer={[
-        <Button className="legacy-output-secondary" key="copy" onClick={() => void copy()}>复制完整输出</Button>,
-        <Button className="legacy-output-ghost" key="close" onClick={onClose}>关闭</Button>
+        <Button className="legacy-output-secondary" key="copy" onClick={() => void copy()}>{t("admin.copy_full_output")}</Button>,
+        <Button className="legacy-output-ghost" key="close" onClick={onClose}>{t("common.close")}</Button>
       ]}
     >
-      <div className="oauth-task-meta"><span>最近 200 行</span><span>{target}</span></div>
+      <div className="oauth-task-meta"><span>{t("admin.last_200_lines")}</span><span>{target}</span></div>
       {copyNotice ? <Alert className="page-alert" type="info" showIcon title={copyNotice} /> : null}
-      {query.data?.truncated ? <Alert className="page-alert" type="warning" showIcon title="输出已按 2 MiB 上限截断" /> : null}
+      {query.data?.truncated ? <Alert className="page-alert" type="warning" showIcon title={t("admin.output_truncated_at_2_mib")} /> : null}
       <pre className="runtime-log-output">{output}</pre>
     </Modal>
   );
@@ -2262,21 +2259,21 @@ function QuotaResetModal({
   const details = query.data;
   const available = details?.available_count;
   const creditSummary = details?.details_truncated
-    ? `上游显示可用 ${available ?? "—"} 次，目前提供 ${details.credits.length} 条可选择明细。`
-    : `当前可用 ${available ?? details?.credits.length ?? "—"} 次，本次将消耗其中 1 次。`;
+    ? t("admin.the_upstream_reports_available_resets_selectable_entries_are_currently_provided", [available ?? "—", details.credits.length])
+    : t("admin.resets_available_this_operation_uses_one", [available ?? details?.credits.length ?? "—"]);
   return (
     <Modal
       className="legacy-account-editor-modal account-quota-reset-modal"
-      title={<LegacyDialogTitle title={`重置 ${account.id} 周限额`} kicker="WEEKLY QUOTA RESET" />}
+      title={<LegacyDialogTitle title={t("admin.reset_weekly_limit", [account.id])} kicker="WEEKLY QUOTA RESET" />}
       open
       width={560}
       centered
       closeIcon={<span className="legacy-dialog-close" aria-hidden="true">×</span>}
       transitionName=""
       maskTransitionName=""
-      okText={pending ? "正在重置…" : "确认重置"}
+      okText={pending ? t("admin.resetting") : t("admin.confirm_reset")}
       okType="default"
-      cancelText="取消"
+      cancelText={t("common.cancel")}
       cancelButtonProps={{ className: "legacy-modal-ghost" }}
       okButtonProps={{
         className: "legacy-modal-danger-outline",
@@ -2288,28 +2285,28 @@ function QuotaResetModal({
       destroyOnHidden
     >
       <div className="account-quota-reset-form">
-        <div className="warning-banner">重置会消耗 1 次重置额度，并立即刷新当前已耗尽的周限额。操作不可撤销。</div>
+        <div className="warning-banner">{t("admin.this_uses_one_reset_credit_and_immediately_refreshes_the_exhausted")}</div>
         {query.isPending ? <Skeleton active paragraph={{ rows: 4 }} /> : null}
         {query.isError ? <LegacyFormError error={query.error} /> : null}
         {details ? (
           <>
             <p className="quota-reset-credit-summary">{creditSummary}</p>
-            <p className="quota-reset-targets">将刷新：{details.windows.map((window) => window.label || "周限额").join("、") || "当前没有可重置的周限额"}</p>
+            <p className="quota-reset-targets">{t("admin.will_refresh")}{details.windows.map((window) => (window.label) || t("admin.weekly_limit")).join("、") || t("admin.no_weekly_limit_is_eligible_for_reset")}</p>
             <label className="field">
-              <span>选择要使用的重置额度</span>
+              <span>{t("admin.select_a_reset_credit")}</span>
               <LegacyEnhancedSelect
-                label="选择要使用的重置额度"
+                label={t("admin.select_a_reset_credit")}
                 value={creditID}
                 options={details.credits.map((credit, index) => ({
                   value: credit.id,
-                  label: `${credit.title || "Full reset"}${details.credits.length > 1 ? ` #${index + 1}` : ""} · ${credit.expires_at ? `${formatSiteTimestamp(credit.expires_at)} 到期` : "长期有效"}`
+                  label: `${credit.title || "Full reset"}${details.credits.length > 1 ? ` #${index + 1}` : ""} · ${credit.expires_at ? t("admin.expires", [formatSiteTimestamp(credit.expires_at)]) : t("admin.no_expiry")}`
                 }))}
                 autoFocus
                 required
                 onChange={setCreditID}
               />
             </label>
-            <p className="field-help">日期表示该次 Full reset 的到期时间。提交前系统会重新读取额度状态；如果所选额度已使用或过期，本次操作会自动停止。</p>
+            <p className="field-help">{t("admin.the_date_is_this_full_reset_credit_s_expiry_quota")}</p>
           </>
         ) : null}
         <LegacyFormError error={error} />
@@ -2328,7 +2325,7 @@ function LegacyDialogTitle({ title, kicker }: { title: string; kicker: string })
 }
 
 const destructiveSchema = z.object({
-  confirm: z.string().trim().min(1, "请输入 CPA 标识以确认"),
+  confirm: z.string().trim().min(1, t("admin.enter_the_cpa_id_to_confirm")),
   fallback_account: z.string()
 });
 type DestructiveValues = z.infer<typeof destructiveSchema>;
@@ -2371,18 +2368,17 @@ function AccountDestructiveModal({
   if (!deleting) {
     return (
       <LegacyConfirmModal
-        title="清除 OAuth 授权？"
+        title={t("admin.clear_oauth_authorization")}
         open
-        okText="清除授权"
+        okText={t("admin.clear_authorization")}
         danger
         confirmLoading={pending}
         onCancel={onCancel}
         onOk={() => onSubmit({ kind: "clear-auth", request: { id: account.id, confirm: account.id } })}
       >
         <Paragraph>
-          {account.id} 的本地授权文件会先归档再清除，容器随后重启。用户 Key 不会被删除。
-        </Paragraph>
-        {error ? <MutationError error={error} title="OAuth 清理未执行" /> : null}
+          {account.id} {t("admin.s_local_authorization_files_will_be_archived_then_removed_and")} </Paragraph>
+        {error ? <MutationError error={error} title={t("admin.oauth_cleanup_was_not_performed")} /> : null}
       </LegacyConfirmModal>
     );
   }
@@ -2401,16 +2397,16 @@ function AccountDestructiveModal({
   return (
     <Modal
       className="legacy-account-editor-modal account-delete-modal"
-      title={<LegacyDialogTitle title="删除业务 CPA" kicker="DESTRUCTIVE ACTION" />}
+      title={<LegacyDialogTitle title={t("admin.delete_cpa_account")} kicker="DESTRUCTIVE ACTION" />}
       open
       width={560}
       centered
       closeIcon={<span className="legacy-dialog-close" aria-hidden="true">×</span>}
       transitionName=""
       maskTransitionName=""
-      okText="确认删除"
+      okText={t("admin.confirm_deletion")}
       okType="default"
-      cancelText="取消"
+      cancelText={t("common.cancel")}
       cancelButtonProps={{ className: "legacy-modal-ghost" }}
       okButtonProps={{
         className: "legacy-modal-danger-outline",
@@ -2427,17 +2423,16 @@ function AccountDestructiveModal({
     >
       <form id="account-delete-form" className="account-delete-form" onSubmit={(event) => void submit(event)}>
         <div className="warning-banner">
-          容器、路由、授权目录和用户关联记录将被移除；统一 Key 在其他 CPA 中继续有效。
-        </div>
-        {deleting && accounts.length <= 1 ? <div className="warning-banner">不能删除最后一个业务账号</div> : null}
+ {t("admin.the_container_routes_authorization_directory_and_user_associations_will_be")} </div>
+        {deleting && accounts.length <= 1 ? <div className="warning-banner">{t("admin.the_last_account_cannot_be_deleted")}</div> : null}
         {deleting && accounts.length > 1 ? (
           <Controller
             control={form.control}
             name="fallback_account"
             render={({ field }) => (
               <label className="field">
-                <span>用户切换到</span>
-                <LegacyEnhancedSelect label="用户切换到" value={field.value} options={fallbackOptions} onChange={field.onChange} />
+                <span>{t("admin.move_users_to")}</span>
+                <LegacyEnhancedSelect label={t("admin.move_users_to")} value={field.value} options={fallbackOptions} onChange={field.onChange} />
               </label>
             )}
           />
@@ -2447,8 +2442,8 @@ function AccountDestructiveModal({
           name="confirm"
           render={({ field }) => (
             <label className="field">
-              <span>输入 CPA 标识以确认</span>
-              <input {...field} aria-label="输入 CPA 标识以确认" autoComplete="off" autoFocus placeholder={account.id} required />
+              <span>{t("admin.enter_cpa_id_to_confirm")}</span>
+              <input {...field} aria-label={t("admin.enter_cpa_id_to_confirm")} autoComplete="off" autoFocus placeholder={account.id} required />
             </label>
           )}
         />
@@ -2508,7 +2503,7 @@ function LegacyFormError({ error }: { error: unknown }) {
   return <p className="legacy-form-error" role="alert">{error ? errorMessage(error) : ""}</p>;
 }
 
-function errorMessage(error: unknown, fallback = "请求失败，请稍后重试") {
+function errorMessage(error: unknown, fallback = t("admin.request_failed_please_try_again_later")) {
   return error instanceof ApiError || error instanceof Error ? error.message : fallback;
 }
 
@@ -2518,36 +2513,36 @@ function AccountStatus({ account }: { account: Account }) {
   let detail: string;
   if (account.operational_status) {
     const status = account.operational_status;
-    label = status.label;
+    label = (status.label);
     tone = status.tone;
     detail = accountRuntimeDetail(account);
   } else {
-    label = "暂不可迁入";
+    label = t("admin.cannot_receive_users");
     tone = "neutral";
-    detail = stateLabels[account.account_state.reason] ?? "CPA 当前不满足迁入条件";
+    detail = stateLabels[account.account_state.reason] ?? t("admin.this_cpa_cannot_currently_receive_users");
     if (!account.enabled) {
-      label = "已停用";
-      detail = "账号已停用，不再接收新用户";
+      label = t("common.disabled");
+      detail = t("admin.this_account_is_disabled_and_no_longer_accepts_new_users");
     } else if (account.runtime_state === "stopped") {
-      label = "已停止";
+      label = t("common.stopped");
       tone = "danger";
-      detail = "CPA 容器未运行";
+      detail = t("admin.cpa_container_is_not_running");
     } else if (!account.state_available) {
-      label = "状态未知";
-      detail = "CPA 运行或额度状态暂不可用";
+      label = t("common.unknown_status");
+      detail = t("admin.cpa_runtime_or_quota_status_is_unavailable");
     } else if (account.account_state.exhausted) {
-      label = "额度耗尽";
+      label = t("common.quota_exhausted");
       tone = "danger";
-      detail = "官方周额度已经耗尽";
+      detail = t("admin.official_weekly_quota_is_exhausted");
     } else if (runtimeStateReasons.has(account.account_state.reason)) {
       label = stateLabels[account.account_state.reason];
       tone = account.account_state.reason === "credential_unavailable" ? "danger" : "warning";
     } else if (account.account_state.eligible) {
-      label = "可用";
+      label = t("common.available");
       tone = "success";
-      detail = "CPA 原生凭据状态正常";
+      detail = t("admin.cpa_native_credentials_are_healthy");
     } else {
-      label = stateLabels[account.account_state.reason] ?? "暂不可迁入";
+      label = stateLabels[account.account_state.reason] ?? t("admin.cannot_receive_users");
       tone = account.account_state.reason === "quota_stale" ? "warning" : "neutral";
     }
   }
@@ -2570,28 +2565,28 @@ function AccountStatus({ account }: { account: Account }) {
 
 function accountRuntimeDetail(account: Account) {
   const runtime = account.runtime;
-  const parts = [account.operational_status?.reason?.trim()].filter((value): value is string => Boolean(value));
-  if (!runtime) return parts.join("\n") || "CPA 原生凭据状态正常";
+  const parts = [(account.operational_status?.reason?.trim() ?? "")].filter((value): value is string => Boolean(value));
+  if (!runtime) return parts.join("\n") || t("admin.cpa_native_credentials_are_healthy");
   if (runtime.error_count) {
-    parts.push(`近 1h ${runtime.error_count} 次错误${runtime.rate_429_count ? `，其中 429 × ${runtime.rate_429_count}` : ""}`);
+    parts.push(t("admin.errors_in_the_last_hour", [runtime.error_count, runtime.rate_429_count ? t("admin.including_429", [runtime.rate_429_count]) : ""]));
   }
-  if (runtime.affected_users > 0) parts.push(`影响 ${runtime.affected_users} 位用户`);
+  if (runtime.affected_users > 0) parts.push(t("admin.affects_users", [runtime.affected_users]));
   if (runtime.last_error_status > 0) {
-    parts.push(`最近 HTTP ${runtime.last_error_status}`);
-    parts.push(`最近错误时间：${formatSiteTimestamp(runtime.last_error_at)}`);
+    parts.push(t("admin.last_http", [runtime.last_error_status]));
+    parts.push(t("admin.last_error", [formatSiteTimestamp(runtime.last_error_at)]));
   }
-  if (runtime.error_log_status === "ok") parts.push(`原生错误文件 ${runtime.error_log_files} 个`);
-  return [...new Set(parts)].join("\n") || "CPA 原生凭据状态正常";
+  if (runtime.error_log_status === "ok") parts.push(t("admin.native_error_files", [runtime.error_log_files]));
+  return [...new Set(parts)].join("\n") || t("admin.cpa_native_credentials_are_healthy");
 }
 
 function RebalanceSummary({ result }: { result: RebalanceResponse }) {
   const destinations = Object.entries(result.rebalance.destinations);
   return (
     <Space orientation="vertical" size={4}>
-      <Text>迁移用户：{result.rebalance.moved_users}</Text>
-      {destinations.length ? <Text>迁入分布：{destinations.map(([account, count]) => `${account} ${count}`).join("，")}</Text> : null}
+      <Text>{t("admin.users_moved")}{result.rebalance.moved_users}</Text>
+      {destinations.length ? <Text>{t("admin.destination_distribution")}{destinations.map(([account, count]) => `${account} ${count}`).join("，")}</Text> : null}
       {result.rebalance.snapshot_generation ? (
-        <Text type="secondary"><SafetyCertificateOutlined aria-hidden="true" /> 鉴权快照 {result.rebalance.snapshot_generation.slice(0, 12)}</Text>
+        <Text type="secondary"><SafetyCertificateOutlined aria-hidden="true" /> {t("admin.authentication_snapshot")} {result.rebalance.snapshot_generation.slice(0, 12)}</Text>
       ) : null}
       {result.rebalance.warning ? <Text type="warning">{result.rebalance.warning}</Text> : null}
     </Space>
@@ -2631,18 +2626,18 @@ function validProxyURL(value: string) {
 }
 
 const stateLabels: Record<string, string> = {
-	credential_unavailable: "凭据不可用",
-	transient_cooldown: "临时冷却",
-	rate_limited: "限流中",
-	degraded: "近期异常",
-	runtime_unknown: "原生状态未知",
-  quota_stale: "额度数据过期",
-  quota_unavailable: "额度状态未知",
-  reserve_reached: "达到安全余量",
-  oauth_missing: "OAuth 未配置",
-  container_not_running: "CPA 容器未运行",
-  upstream_disallowed: "上游暂不可用",
-  account_disabled: "已停用"
+	credential_unavailable: t("common.credentials_unavailable"),
+	transient_cooldown: t("common.temporary_cooldown"),
+	rate_limited: t("common.rate_limited"),
+	degraded: t("common.recent_errors"),
+	runtime_unknown: t("admin.unknown_native_status"),
+  quota_stale: t("admin.quota_data_expired"),
+  quota_unavailable: t("admin.unknown_quota_status"),
+  reserve_reached: t("admin.safety_reserve_reached"),
+  oauth_missing: t("admin.oauth_not_configured"),
+  container_not_running: t("admin.cpa_container_is_not_running"),
+  upstream_disallowed: t("admin.upstream_unavailable"),
+  account_disabled: t("common.disabled")
 };
 
 const runtimeStateReasons = new Set([
@@ -2654,13 +2649,13 @@ const runtimeStateReasons = new Set([
 ]);
 
 const proxyModeLabel: Record<string, string> = {
-  inherit: "继承默认",
-  custom: "独立代理",
-  direct: "直连"
+  inherit: t("admin.inherit_default"),
+  custom: t("admin.custom_proxy"),
+  direct: t("admin.direct")
 };
 
 const runtimeActionLabel: Record<AccountRuntimeAction, string> = {
-  start: "启动",
-  stop: "停止",
-  restart: "重启"
+  start: t("admin.start"),
+  stop: t("admin.stop"),
+  restart: t("admin.restart")
 };

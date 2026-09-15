@@ -1,3 +1,5 @@
+import { LanguageSelect } from "./LanguageSelect";
+import { t } from "../i18n";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
@@ -27,48 +29,48 @@ export function PortalApp() {
 export function PortalLandingApp() {
   const branding = useBranding();
   const { theme } = useTheme();
-  usePageTitle("服务入口");
+  usePageTitle(t("common.service_portal_2"));
 
   return (
     <main className="portal-shell">
       <header className="portal-masthead">
         <section className="portal-hero" aria-labelledby="portal-title">
-          <a className="portal-brand" href="/" aria-label={`${branding.configuration.product_name} 服务入口`}>
+          <a className="portal-brand" href="/" aria-label={t("common.service_portal", [branding.configuration.product_name])}>
             <img
               src={brandLogoURL(branding.configuration, theme)}
               alt={branding.configuration.product_name}
             />
           </a>
-          <h1 id="portal-title">选择要进入的界面</h1>
-          <p className="portal-subtitle">添加和管理业务 CPA，或进入使用中心查看自己的 Key、账号与用量。</p>
+          <h1 id="portal-title">{t("common.choose_your_workspace")}</h1>
+          <p className="portal-subtitle">{t("common.manage_cpa_accounts_or_open_usage_center_to_view_your")}</p>
         </section>
         <div className="portal-header-actions">
           <div className="portal-environment"><span aria-hidden="true" /><b>{branding.configuration.environment_label || "Self-hosted service"}</b></div>
-          <ThemeToggle className="portal-theme-toggle" />
+          <LanguageSelect /><ThemeToggle className="portal-theme-toggle" />
         </div>
       </header>
 
-      <section className="portal-entry-grid" aria-label="可用界面">
+      <section className="portal-entry-grid" aria-label={t("common.available_workspaces")}>
         <EntryCard
           className="portal-entry-primary"
           href={applicationHref("admin")}
           number="01"
-          badge="需要管理密钥"
+          badge={t("common.management_key_required")}
           icon="control"
           eyebrow="CONTROL PLANE"
-          title="综合管理平台"
-          description="添加业务 CPA、管理用户与 Key、OAuth 授权、容器、日志和诊断任务。"
-          action="进入管理平台"
+          title={t("common.admin_console")}
+          description={t("common.manage_cpa_accounts_users_keys_oauth_containers_logs_and_diagnostic")}
+          action={t("common.open_admin_console")}
         />
         <EntryCard
           href={applicationHref("usage")}
           number="02"
-          badge="邮箱进入"
+          badge={t("common.sign_in_with_email")}
           icon="usage"
           eyebrow="ACCESS & OBSERVABILITY"
-          title="使用中心"
-          description="查看唯一 API Key，切换 CPA 账号，并统计各账号的请求和 Token 用量。"
-          action="进入使用中心"
+          title={t("common.usage_center")}
+          description={t("common.view_your_api_key_switch_cpa_accounts_and_track_requests")}
+          action={t("common.open_usage_center")}
         />
       </section>
       <PortalFooter productName={branding.configuration.product_name} />
@@ -84,27 +86,28 @@ export function NativeAccountsPage() {
     retry: false,
     refetchOnWindowFocus: true
   });
-  usePageTitle("业务 CPA");
+  usePageTitle(t("common.cpa_accounts_2"));
   useNativeLightPresentation();
 
   const nativeAccounts = accounts.data?.accounts ?? [];
   const loginRequired = accounts.error instanceof ApiError && accounts.error.status === 401;
   const countLabel = accounts.isPending
-    ? "正在读取"
+    ? t("common.loading")
     : loginRequired
-      ? "需要管理员登录"
+      ? t("common.admin_sign_in_required")
       : accounts.isError
-        ? "列表不可用"
-        : `${nativeAccounts.length} 个业务 CPA`;
+        ? t("common.list_unavailable")
+        : t("common.cpa_accounts", [nativeAccounts.length]);
 
   return (
     <main className="portal-shell native-page">
-      <Link className="native-back" to="/">← 返回服务入口</Link>
+      <div className="native-language"><LanguageSelect /></div>
+      <Link className="native-back" to="/">{t("common.back_to_portal")}</Link>
       <section className="native-heading">
         <div>
           <p className="native-eyebrow">{branding.configuration.product_name} · BUSINESS ACCOUNTS</p>
-          <h1>业务 CPA</h1>
-          <p className="native-subtitle">每个上游账号对应一个独立 CPA。选择账号进入原生管理界面，管理员可以继续添加账号。</p>
+          <h1>{t("common.cpa_accounts_2")}</h1>
+          <p className="native-subtitle">{t("common.each_upstream_account_has_its_own_cpa_select_an_account")}</p>
         </div>
         <div className="native-environment"><span aria-hidden="true" /><b>{countLabel}</b></div>
       </section>
@@ -112,20 +115,20 @@ export function NativeAccountsPage() {
       <NativeAccountGrid accounts={nativeAccounts} />
       {accounts.isError ? (
         <div className="native-error" role="alert">
-          <strong>{loginRequired ? "请先登录管理中心" : "业务 CPA 列表读取失败"}</strong>
+          <strong>{loginRequired ? t("common.sign_in_to_admin_first") : t("common.unable_to_load_cpa_accounts")}</strong>
           <span>
             {loginRequired
-              ? "登录后返回本页，系统才会读取业务账号；公网不会返回原生端口。"
-              : "请稍后重试，或进入管理中心检查服务状态。"}
+              ? t("common.sign_in_and_return_here_to_load_accounts_native_ports")
+              : t("common.please_try_again_later_or_check_service_status_in_admin")}
             {!loginRequired ? (
-              <button type="button" aria-label="重新读取" onClick={() => void accounts.refetch()}>重新读取 →</button>
+              <button type="button" aria-label={t("common.read_again")} onClick={() => void accounts.refetch()}>{t("common.read_again_2")}</button>
             ) : null}
           </span>
         </div>
       ) : null}
       <section className="native-access-note">
-        <div><p className="native-kicker">ACCESS CONTROL</p><h2>新增操作只允许管理员执行</h2></div>
-        <span>账号信息保存在控制面数据库；公开页面不会展示管理密钥。</span>
+        <div><p className="native-kicker">ACCESS CONTROL</p><h2>{t("common.only_administrators_can_add_accounts")}</h2></div>
+        <span>{t("common.account_information_is_stored_in_the_control_plane_database_public")}</span>
       </section>
     </main>
   );
@@ -133,16 +136,16 @@ export function NativeAccountsPage() {
 
 function NativeAccountGrid({ accounts }: { accounts: NativeAccount[] }) {
   return (
-    <section className="native-grid" aria-label="业务 CPA 原生管理入口">
+    <section className="native-grid" aria-label={t("common.cpa_native_management_entries")}>
       {accounts.map((account, index) => <NativeAccountCard account={account} index={index} key={account.id} />)}
-      <a href={applicationHref("admin", "?action=add-account")} className="native-card native-add-card" aria-label="添加业务 CPA">
-        <div className="native-card-top"><span className="native-index">＋</span><span className="native-access native-access-guarded">仅管理员</span></div>
+      <a href={applicationHref("admin", "?action=add-account")} className="native-card native-add-card" aria-label={t("common.add_cpa_account")}>
+        <div className="native-card-top"><span className="native-index">＋</span><span className="native-access native-access-guarded">{t("common.admin_only")}</span></div>
         <div>
           <p className="native-kicker">EXPAND ACCOUNT POOL</p>
-          <h2>添加业务 CPA</h2>
-          <p>验证管理密钥后填写账号标识与邮箱，系统自动分配端口、生成配置并启动容器。</p>
+          <h2>{t("common.add_cpa_account")}</h2>
+          <p>{t("common.verify_the_management_key_then_enter_the_account_id_and")}</p>
         </div>
-        <div className="native-meta"><span>自动持久化</span><b>添加 →</b></div>
+        <div className="native-meta"><span>{t("common.saved_automatically")}</span><b>{t("common.add")}</b></div>
       </a>
     </section>
   );
@@ -154,16 +157,16 @@ function NativeAccountCard({ account, index }: { account: NativeAccount; index: 
     <>
       <div className="native-card-top">
         <span className="native-index">{String(index + 1).padStart(2, "0")}</span>
-        <span className="native-access native-access-public">业务 CPA</span>
+        <span className="native-access native-access-public">{t("common.cpa_accounts_2")}</span>
       </div>
       <div>
         <p className="native-kicker">{account.id.toUpperCase()}</p>
         <h2>{account.id}</h2>
-        <p>{managementURL ? "仅允许从部署主机访问" : "公网入口不开放原生管理端口"}</p>
+        <p>{managementURL ? t("common.accessible_only_from_the_deployment_host") : t("common.native_management_ports_are_not_exposed_publicly")}</p>
       </div>
       <div className="native-meta">
-        <span>{account.group_enabled ? "账号已启用" : "账号已停用"}</span>
-        <b>{managementURL ? "打开 ↗" : "仅本机可访问"}</b>
+        <span>{account.group_enabled ? t("common.account_enabled") : t("common.account_disabled")}</span>
+        <b>{managementURL ? t("common.open") : t("common.local_access_only")}</b>
       </div>
     </>
   );
@@ -205,7 +208,7 @@ function EntryCard({
 }
 
 function PortalFooter({ productName }: { productName: string }) {
-  return <footer className="portal-footer"><span>{productName}</span><span>选择界面后再执行对应操作</span></footer>;
+  return <footer className="portal-footer"><span>{productName}</span><span>{t("common.select_a_workspace_to_continue")}</span></footer>;
 }
 
 function useBranding() {

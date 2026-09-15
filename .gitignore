@@ -13,6 +13,7 @@ frontend/test-results/
 # Local-only agent harness and deployment environment context
 /.harness/
 /AGENTS.md
+/CLAUDE.md
 
 # 远程部署运行态与敏感数据
 state/

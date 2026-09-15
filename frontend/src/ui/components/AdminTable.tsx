@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { Empty, Table, type TableProps } from "antd";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
@@ -13,7 +14,7 @@ export type AdminTableProps<RecordType extends object> = Omit<TableProps<RecordT
 
 export function AdminTable<RecordType extends object>({
   className = "",
-  emptyText = "暂无数据",
+  emptyText = t("common.no_data"),
   emptyAction,
   fillAvailable = false,
   locale,

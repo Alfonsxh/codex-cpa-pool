@@ -1,15 +1,16 @@
+import { t } from "../../i18n";
 import { Select } from "antd";
 import { useMemo } from "react";
 
 const commonZones: Record<string, string> = {
-  "Asia/Shanghai": "北京时间",
-  UTC: "协调世界时",
-  "Asia/Hong_Kong": "香港",
-  "Asia/Tokyo": "东京",
-  "Asia/Singapore": "新加坡",
-  "Europe/London": "伦敦",
-  "America/New_York": "纽约",
-  "America/Los_Angeles": "洛杉矶"
+  "Asia/Shanghai": t("common.beijing"),
+  UTC: t("common.coordinated_universal_time"),
+  "Asia/Hong_Kong": t("common.hong_kong"),
+  "Asia/Tokyo": t("common.tokyo"),
+  "Asia/Singapore": t("common.singapore"),
+  "Europe/London": t("common.london"),
+  "America/New_York": t("common.new_york"),
+  "America/Los_Angeles": t("common.los_angeles")
 };
 
 export function timezoneOptions(value: string) {
@@ -33,7 +34,7 @@ export function TimezoneSelect({ id, value, onChange, disabled = false, ariaInva
   ariaDescribedBy?: string;
 }) {
   const options = useMemo(() => timezoneOptions(value), [value]);
-  return <Select className="timezone-select" id={id} aria-label="系统时区" aria-invalid={ariaInvalid} aria-describedby={ariaDescribedBy} value={value} options={options} onChange={onChange}
-    disabled={disabled} showSearch={{ optionFilterProp: "label" }} placeholder="搜索城市或时区"
+  return <Select className="timezone-select" id={id} aria-label={t("common.system_timezone")} aria-invalid={ariaInvalid} aria-describedby={ariaDescribedBy} value={value} options={options} onChange={onChange}
+    disabled={disabled} showSearch={{ optionFilterProp: "label" }} placeholder={t("common.search_city_or_timezone")}
     style={{ width: "100%", minWidth: 0 }} popupMatchSelectWidth />;
 }

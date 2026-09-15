@@ -73,3 +73,7 @@ Telegram 项目发布公告在发布工作站[单独配置](telegram-release.md)
 完整凭据不进入 URL、持久化浏览器存储或普通查询缓存。一次性凭据关闭弹窗后清理；`/site-config.json` 只输出公开品牌、允许的邮箱域和客户端导出字段。
 
 页面结构见 [ConfigurationPage](../frontend/src/ui/ConfigurationPage.tsx)，布局见[配置样式](../frontend/src/ui/configuration-page.css)和[控件宽度](../frontend/src/ui/configuration-layout.ts)。修改接口时同步生成类型、前后端实现、测试与 Preview fixture；验证流程见[开发指南](development.md)。
+
+## 界面与通知语言
+
+页面默认英文，可通过语言选择器切换简体中文。配置中心的 `system.language` 控制定时通知、额度预警、手动报告与通知测试的语言，默认为 `en`，也可保存为 `zh-CN`。报表下载跟随页面所选语言；业务时区仍由 `system.timezone` 单独控制。详见[多语言设计](internationalization.md)。

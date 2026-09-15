@@ -16,6 +16,8 @@ import (
 
 	"github.com/Alfonsxh/codex-cpa-pool/internal/controlplane"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/failover"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/notifications"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/quota"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/usage"
@@ -296,7 +298,7 @@ func New(config Config) (*Server, error) {
 	if server.accounts == nil {
 		server.accounts, _ = config.Store.(AccountCatalog)
 	}
-	router.Use(server.recovery(), server.securityHeaders(), server.loadSession())
+	router.Use(httpi18n.Middleware(), server.recovery(), server.securityHeaders(), server.loadSession())
 	server.registerRoutes()
 	return server, nil
 }
@@ -405,7 +407,7 @@ func (server *Server) registerRoutes() {
 	}
 
 	server.router.NoRoute(func(c *gin.Context) {
-		writeError(c, http.StatusNotFound, "接口不存在", "not_found")
+		writeError(c, http.StatusNotFound, i18n.M("admin.endpoint_not_found"), "not_found")
 	})
 }
 
@@ -417,7 +419,7 @@ func (server *Server) clearConfigurationCaches() {
 }
 
 func (server *Server) health(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	httpi18n.JSON(c, http.StatusOK, gin.H{"status": "ok"})
 }
 
 func (server *Server) createSession(c *gin.Context) {
@@ -428,7 +430,7 @@ func (server *Server) createSession(c *gin.Context) {
 		return
 	}
 	if !authenticated {
-		writeError(c, http.StatusUnauthorized, "管理密钥无效", "management_key_invalid")
+		writeError(c, http.StatusUnauthorized, i18n.M("admin.invalid_management_key"), "management_key_invalid")
 		return
 	}
 	csrfToken, err := randomToken()
@@ -469,7 +471,7 @@ func (server *Server) readSession(c *gin.Context) {
 func (server *Server) refreshSession(c *gin.Context) {
 	context := currentAdminContext(c)
 	if context.Kind != "session" {
-		writeError(c, http.StatusBadRequest, "管理密钥请求不需要续期", "session_not_refreshable")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.management_key_requests_do_not_need_session_renewal"), "session_not_refreshable")
 		return
 	}
 	idleExpiresAt := min(server.now().Add(server.sessionTTL).Unix(), context.AbsoluteExpiresAt)
@@ -491,7 +493,7 @@ func (server *Server) writeAdminSession(c *gin.Context, status int, context admi
 		payload["idle_expires_at"] = context.IdleExpiresAt
 		payload["absolute_expires_at"] = context.AbsoluteExpiresAt
 	}
-	c.JSON(status, payload)
+	httpi18n.JSON(c, status, payload)
 }
 
 func (server *Server) deleteSession(c *gin.Context) {
@@ -500,7 +502,7 @@ func (server *Server) deleteSession(c *gin.Context) {
 		return
 	}
 	server.writeSessionCookie(c, "", time.Time{})
-	c.JSON(http.StatusOK, gin.H{"logged_out": true})
+	httpi18n.JSON(c, http.StatusOK, gin.H{"logged_out": true})
 }
 
 func (server *Server) authenticateManagementKey(ctx context.Context, provided string) (bool, error) {
@@ -531,7 +533,7 @@ func (server *Server) requireAdmin() gin.HandlerFunc {
 				c.Next()
 				return
 			}
-			writeError(c, http.StatusUnauthorized, "管理密钥无效", "management_key_invalid")
+			writeError(c, http.StatusUnauthorized, i18n.M("admin.invalid_management_key"), "management_key_invalid")
 			c.Abort()
 			return
 		}
@@ -543,19 +545,19 @@ func (server *Server) requireAdmin() gin.HandlerFunc {
 		generation := server.sessions.GetInt64(c.Request.Context(), "session_generation")
 		if !authenticated || csrfToken == "" {
 			if _, err := c.Request.Cookie(adminSessionCookie); err == nil {
-				server.rejectSession(c, "管理会话已结束，请重新输入管理密钥", "session_expired")
+				server.rejectSession(c, i18n.M("admin.your_management_session_ended_enter_the_management_key_again"), "session_expired")
 			} else {
-				server.rejectSession(c, "管理会话不存在，请重新输入管理密钥", "session_missing")
+				server.rejectSession(c, i18n.M("admin.management_session_not_found_enter_the_management_key_again"), "session_missing")
 			}
 			return
 		}
 		if generation != server.sessionGeneration.Load() {
-			server.rejectSession(c, "管理密钥已更新，请重新输入管理密钥", "session_invalidated")
+			server.rejectSession(c, i18n.M("admin.the_management_key_changed_enter_it_again"), "session_invalidated")
 			return
 		}
 		now := server.now().Unix()
 		if idleExpiresAt <= now || absoluteExpiresAt <= now {
-			server.rejectSession(c, "管理会话已过期，请重新输入管理密钥", "session_expired")
+			server.rejectSession(c, i18n.M("admin.your_management_session_expired_enter_the_management_key_again"), "session_expired")
 			c.Abort()
 			return
 		}
@@ -564,7 +566,7 @@ func (server *Server) requireAdmin() gin.HandlerFunc {
 			providedDigest := sha256.Sum256([]byte(providedCSRF))
 			expectedDigest := sha256.Sum256([]byte(csrfToken))
 			if providedCSRF == "" || subtle.ConstantTimeCompare(providedDigest[:], expectedDigest[:]) != 1 {
-				writeError(c, http.StatusForbidden, "管理会话校验失败", "csrf_required")
+				writeError(c, http.StatusForbidden, i18n.M("admin.management_session_validation_failed"), "csrf_required")
 				c.Abort()
 				return
 			}
@@ -577,7 +579,7 @@ func (server *Server) requireAdmin() gin.HandlerFunc {
 	}
 }
 
-func (server *Server) rejectSession(c *gin.Context, message, code string) {
+func (server *Server) rejectSession(c *gin.Context, message any, code string) {
 	server.writeSessionCookie(c, "", time.Time{})
 	writeError(c, http.StatusUnauthorized, message, code)
 	c.Abort()
@@ -662,7 +664,7 @@ func (server *Server) recovery() gin.HandlerFunc {
 					zap.String("panic_type", fmt.Sprintf("%T", recovered)),
 					zap.Stack("stack"),
 				)
-				writeError(c, http.StatusInternalServerError, "服务内部错误", "internal_error")
+				writeError(c, http.StatusInternalServerError, i18n.M("admin.internal_service_error"), "internal_error")
 				c.Abort()
 			}
 		}()
@@ -678,15 +680,11 @@ func (server *Server) internalError(c *gin.Context, operation string, err error)
 		zap.String("path", c.Request.URL.Path),
 		zap.Error(err),
 	)
-	writeError(c, http.StatusInternalServerError, "服务内部错误", "internal_error")
+	writeError(c, http.StatusInternalServerError, i18n.M("admin.internal_service_error"), "internal_error")
 }
 
-func writeError(c *gin.Context, status int, message string, code string) {
-	c.AbortWithStatusJSON(status, ErrorEnvelope{Error: APIError{
-		Message: message,
-		Type:    "request_error",
-		Code:    code,
-	}})
+func writeError(c *gin.Context, status int, message any, code string) {
+	httpi18n.Error(c, status, message, code, "request_error")
 }
 
 func randomToken() (string, error) {

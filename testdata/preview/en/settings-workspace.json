@@ -1,0 +1,22 @@
+{
+  "storage": [
+    {
+      "label": "Control plane database",
+      "path": "state/control-plane.sqlite3",
+      "exists": true,
+      "mode": "600"
+    }
+  ],
+  "backups": {
+    "count": 1,
+    "latest": "backups/accounts/fixture"
+  },
+  "recent_audit": [
+    {
+      "timestamp": 1800000000,
+      "action": "configuration.update",
+      "target": "settings",
+      "outcome": "accepted"
+    }
+  ]
+}

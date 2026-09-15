@@ -1,3 +1,5 @@
+import "../i18n/admin";
+import { t } from "../i18n";
 import { Button, Progress } from "antd";
 import { Link } from "react-router-dom";
 
@@ -9,8 +11,8 @@ export function OnboardingCard({ status }: { status: OnboardingStatus }) {
   const completed = status.required.complete;
   const total = status.required.total;
   const percent = total > 0 ? Math.round(completed / total * 100) : 100;
-  const title = "完成基础配置";
-  const detail = `${completed}/${total} 项基础配置已完成。`;
+  const title = t("admin.complete_basic_setup");
+  const detail = t("admin.basic_settings_complete", [completed, total]);
 
   return (
     <section className="onboarding-resume-card" aria-label={title}>
@@ -22,10 +24,10 @@ export function OnboardingCard({ status }: { status: OnboardingStatus }) {
       </div>
       <div className="onboarding-resume-progress">
         <Progress percent={percent} showInfo={false} size="small" />
-        <small>配置进度 {percent}%</small>
+        <small>{t("admin.setup_progress")} {percent}%</small>
       </div>
       <Link to="/setup">
-        <Button type="primary">继续设置</Button>
+        <Button type="primary">{t("admin.continue_setup")}</Button>
       </Link>
     </section>
   );

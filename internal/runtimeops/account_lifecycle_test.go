@@ -415,7 +415,7 @@ func TestAccountRuntimeLoginRejectsExitFailureAndUnchangedOAuth(t *testing.T) {
 		want       string
 	}{
 		{name: "non-zero exit", exitCode: 7, mutateAuth: true, want: "exited with code 7"},
-		{name: "unchanged auth", exitCode: 0, mutateAuth: false, want: "没有检测到新增或更新的认证文件"},
+		{name: "unchanged auth", exitCode: 0, mutateAuth: false, want: "No new or updated authentication file was detected"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			root := newRuntimeRoot(t, "alpha")

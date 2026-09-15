@@ -404,7 +404,7 @@ describe("AccountsPage", () => {
         message: "镜像更新任务已提交",
         reused: false,
         job: legacyJob({
-          id: "job-image-all", name: "更新 CPA 镜像", target: "all", status: "succeeded",
+          id: "job-image-all", name: "更新 CPA 镜像", action: "image-update", target: "all", status: "succeeded",
           started_at: 100, finished_at: 103, exit_code: 0,
           output: [
             "正在更新 alpha：sha256:old-account -> sha256:target",
@@ -603,7 +603,7 @@ describe("AccountsPage", () => {
         message: "任务已提交",
         reused: false,
         job: legacyJob({
-          id: "oauth-new", name: "OAuth 授权", target: "alpha", status: "succeeded",
+          id: "oauth-new", name: "OAuth 授权", action: "login", target: "alpha", status: "succeeded",
           finished_at: 101, exit_code: 0,
           output: ["Codex device URL: https://auth.example.test/device", "Codex device code: TEST-CODE"]
         })
@@ -650,7 +650,7 @@ describe("AccountsPage", () => {
     const fetchMock = accountPageFetchMock(catalog, {
       "/admin/api/jobs": {
         jobs: [legacyJob({
-          id: "oauth-existing", name: "OAuth 授权", target: "alpha", status: "running",
+          id: "oauth-existing", name: "OAuth 授权", action: "login", target: "alpha", status: "running",
           started_at: 101, output: ["waiting for device authorization"]
         })]
       }

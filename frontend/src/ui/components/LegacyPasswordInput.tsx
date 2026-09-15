@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { useState, type FocusEventHandler, type Ref } from "react";
 
 export function LegacyPasswordInput({
@@ -57,9 +58,9 @@ export function LegacyPasswordInput({
         tabIndex={-1}
         disabled={disabled}
         aria-controls={id}
-        aria-label={visible ? "隐藏密码" : "显示密码"}
+        aria-label={visible ? t("common.hide_password") : t("common.show_password")}
         aria-pressed={visible}
-        title={visible ? "隐藏密码" : "显示密码"}
+        title={visible ? t("common.hide_password") : t("common.show_password")}
         onClick={() => setVisible((current) => !current)}
       >
         <svg className="password-eye-show" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" /><circle cx="12" cy="12" r="2.75" /></svg>

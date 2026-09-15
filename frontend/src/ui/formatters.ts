@@ -1,3 +1,4 @@
+import { t, getLanguage } from "../i18n";
 export function formatTokenAmount(value: number) {
   const safeValue = Number.isFinite(value) ? value : 0;
   const absolute = Math.abs(safeValue);
@@ -83,12 +84,15 @@ export function tokenReadableParts(
   const exact = `${tokenExactFormatter.format(tokens)} Token`;
   const compact = unit === "Token" ? exact : `${amount} ${unit} Token`;
   let localized = "";
+  if (getLanguage() === "en") {
+    return { state: "ready", compact, localized, exact, compacted: divisor > 1 };
+  }
   if (tokens >= 1_000_000_000_000) {
-    localized = `${tokenMagnitudeFormatter.format(tokens / 1_000_000_000_000)} 万亿 Token`;
+    localized = t("common.trillion_tokens", [tokenMagnitudeFormatter.format(tokens / 1_000_000_000_000)]);
   } else if (tokens >= 100_000_000) {
-    localized = `${tokenMagnitudeFormatter.format(tokens / 100_000_000)} 亿 Token`;
+    localized = t("common.100_million_tokens", [tokenMagnitudeFormatter.format(tokens / 100_000_000)]);
   } else if (tokens >= 10_000) {
-    localized = `${tokenMagnitudeFormatter.format(tokens / 10_000)} 万 Token`;
+    localized = t("common.10_thousand_tokens", [tokenMagnitudeFormatter.format(tokens / 10_000)]);
   }
   return { state: "ready", compact, localized, exact, compacted: divisor > 1 };
 }
@@ -101,7 +105,7 @@ export function tokenReadableText(value: string | number | null | undefined) {
 
 export function tokenInputPresentation(
   value: string | number | null | undefined,
-  emptyLabel = "请输入 Token 数量"
+  emptyLabel = t("common.enter_token_amount")
 ): TokenInputPresentation {
   const details = tokenReadableParts(value);
   if (details.state === "empty") return { state: "empty", emptyLabel };

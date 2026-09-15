@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/quota"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/usage"
 	"github.com/gin-gonic/gin"
@@ -25,7 +27,7 @@ const maxOverviewUsageBuckets = int64(360)
 
 func (server *Server) readOverviewUsage(c *gin.Context) {
 	if server.usage == nil {
-		writeError(c, http.StatusServiceUnavailable, "用量查询服务尚未就绪", "usage_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.usage_query_service_is_not_ready"), "usage_not_ready")
 		return
 	}
 	accounts, err := server.store.ReadAccounts(c.Request.Context())
@@ -42,7 +44,7 @@ func (server *Server) readOverviewUsage(c *gin.Context) {
 	selectedAccounts := overviewFilterValues(c.QueryArray("account"), false)
 	for _, account := range selectedAccounts {
 		if _, found := accountSet[account]; !found {
-			writeError(c, http.StatusNotFound, "CPA 账号不存在", "account_not_found")
+			writeError(c, http.StatusNotFound, i18n.M("admin.cpa_account_does_not_exist"), "account_not_found")
 			return
 		}
 	}
@@ -62,7 +64,7 @@ func (server *Server) readOverviewUsage(c *gin.Context) {
 	selectedUsers := overviewFilterValues(c.QueryArray("user"), true)
 	for _, user := range selectedUsers {
 		if _, found := knownUserSet[user]; !found {
-			writeError(c, http.StatusNotFound, "用户不存在", "user_not_found")
+			writeError(c, http.StatusNotFound, i18n.M("admin.user_does_not_exist"), "user_not_found")
 			return
 		}
 	}
@@ -70,14 +72,14 @@ func (server *Server) readOverviewUsage(c *gin.Context) {
 	if raw := strings.TrimSpace(c.Query("user_limit")); raw != "" {
 		parsed, parseErr := strconv.Atoi(raw)
 		if parseErr != nil {
-			writeError(c, http.StatusBadRequest, "用户趋势数量无效", "invalid_request")
+			writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_user_trend_count"), "invalid_request")
 			return
 		}
 		userLimit = min(max(parsed, 1), 500)
 	}
 	tokenMode := usage.TokenMode(strings.ToLower(strings.TrimSpace(c.DefaultQuery("token_mode", string(usage.TokenModeUnweighted)))))
 	if tokenMode != usage.TokenModeUnweighted && tokenMode != usage.TokenModeWeighted {
-		writeError(c, http.StatusBadRequest, "Token 统计口径无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_token_accounting_metric"), "invalid_request")
 		return
 	}
 	now := server.now()
@@ -133,7 +135,7 @@ func (server *Server) readOverviewUsage(c *gin.Context) {
 	if len(selectedUsers) == 1 {
 		selectedUser = selectedUsers[0]
 	}
-	c.JSON(http.StatusOK, gin.H{
+	httpi18n.JSON(c, http.StatusOK, gin.H{
 		"generated_at": trend.GeneratedAt, "window": window,
 		"window_seconds": windowSeconds, "window_start_at": startAt, "window_timezone": windowTimezone,
 		"window_start_at_by_account": startAtByAccount, "unavailable_accounts": unavailableAccounts,
@@ -160,7 +162,7 @@ func (server *Server) overviewUsageWindow(
 		endAt, endErr := strconv.ParseInt(strings.TrimSpace(c.Query("end_at")), 10, 64)
 		if startErr != nil || endErr != nil || startAt < 0 || endAt <= startAt || endAt > generatedAt+60 {
 			return nil, 0, 0, 0, nil, &usageWindowError{
-				message: "自定义统计范围无效", code: "invalid_request", status: http.StatusBadRequest,
+				message: i18n.M("admin.invalid_custom_reporting_range"), code: "invalid_request", status: http.StatusBadRequest,
 			}
 		}
 		duration := endAt - startAt
@@ -249,7 +251,7 @@ func overviewUsageBucketSeconds(windowSeconds int64) int64 {
 }
 
 func invalidOverviewUsageWindow() *usageWindowError {
-	return &usageWindowError{message: "趋势时间范围无效", code: "invalid_request", status: http.StatusBadRequest}
+	return &usageWindowError{message: i18n.M("admin.invalid_trend_time_range"), code: "invalid_request", status: http.StatusBadRequest}
 }
 
 func overviewFilterValues(rawValues []string, lower bool) []string {

@@ -1,3 +1,4 @@
+import "../i18n/admin";
 import { apiRequest } from "./client";
 import type {
   ConfigurationCatalog,
@@ -17,7 +18,7 @@ export type {
 
 export const configurationQueryKey = ["configuration-catalog"] as const;
 
-export function readConfiguration(signal?: AbortSignal): Promise<ConfigurationCatalog> {
+export async function readConfiguration(signal?: AbortSignal): Promise<ConfigurationCatalog> {
   return apiRequest<ConfigurationCatalog>("/admin/api/settings/configuration", { signal });
 }
 

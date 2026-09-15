@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { useSiteTimezone, siteDateTimeFormat, getSiteTimezone, formatSiteTimestamp } from "../site-time";
 import { DatePicker, Modal } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
@@ -45,19 +46,19 @@ export function CustomUsageRangeModal({
   const timestamps = useMemo(() => pickerTimestamps(draft, zone), [draft, zone]);
   const preview = timestamps
     ? formatFullCustomUsageRange(timestamps, zone)
-    : "请选择开始和结束时间";
+    : t("common.select_a_start_and_end_time");
 
   const submit = () => {
     if (!timestamps) {
-      setError("请选择有效的开始和结束时间");
+      setError(t("common.select_a_valid_start_and_end_time"));
       return;
     }
     if (timestamps.startAt >= timestamps.endAt) {
-      setError("开始时间必须早于结束时间");
+      setError(t("common.start_time_must_precede_end_time"));
       return;
     }
     if (timestamps.endAt > Math.floor(Date.now() / 1000)) {
-      setError("结束时间不能晚于当前时间");
+      setError(t("common.end_time_cannot_be_in_the_future"));
       return;
     }
     setError("");
@@ -73,8 +74,8 @@ export function CustomUsageRangeModal({
       centered
       transitionName=""
       maskTransitionName=""
-      okText="应用范围"
-      cancelText="取消"
+      okText={t("common.apply_range")}
+      cancelText={t("common.cancel")}
       onCancel={() => {
         setError("");
         onCancel();
@@ -85,7 +86,7 @@ export function CustomUsageRangeModal({
       <div className="custom-usage-range-body">
         <DatePicker.RangePicker
           className="custom-usage-range-picker"
-          aria-label="时间范围"
+          aria-label={t("common.time_range_2")}
           value={draft}
           format="YYYY/MM/DD HH:mm:ss"
           showTime={{ format: "HH:mm:ss" }}
@@ -101,13 +102,13 @@ export function CustomUsageRangeModal({
             setError("");
           }}
           presets={[
-            { label: "最近 1 小时", value: [nowInZone.subtract(1, "hour"), nowInZone] },
-            { label: "最近 24 小时", value: [nowInZone.subtract(24, "hour"), nowInZone] },
-            { label: "最近 7 天", value: [nowInZone.subtract(7, "day"), nowInZone] }
+            { label: t("common.last_1_hour"), value: [nowInZone.subtract(1, "hour"), nowInZone] },
+            { label: t("common.last_24_hours"), value: [nowInZone.subtract(24, "hour"), nowInZone] },
+            { label: t("common.last_7_days"), value: [nowInZone.subtract(7, "day"), nowInZone] }
           ]}
         />
         <div className="custom-range-selection" aria-live="polite">
-          <span>已选范围</span>
+          <span>{t("common.selected_range")}</span>
           <strong>{preview}</strong>
         </div>
         <p className="custom-range-error" role="alert">{error}</p>
@@ -142,7 +143,7 @@ function normalizeTimezone(value?: string) {
 }
 
 export function formatCustomUsageRange(range: CustomUsageRange | null, timezone?: string) {
-  if (!range?.startAt || !range?.endAt) return "选择时间范围";
+  if (!range?.startAt || !range?.endAt) return t("common.select_time_range");
   return formatFullCustomUsageRange(range, timezone);
 }
 

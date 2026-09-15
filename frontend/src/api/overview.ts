@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { apiRequest, apiResponse } from "./client";
 import type {
   OverviewCatalog,
@@ -74,11 +75,11 @@ export async function exportWeeklyUsage(weekStart: string, signal?: AbortSignal,
     headers: { Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }
   });
   if (!response.headers.get("Content-Type")?.includes("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) {
-    throw new Error("未收到有效的周报文件，请稍后重试");
+    throw new Error(t("common.no_valid_weekly_report_was_received_please_try_again_later"));
   }
   const disposition = response.headers.get("Content-Disposition") ?? "";
   const encoded = /filename\*=utf-8''([^;]+)/i.exec(disposition)?.[1];
-  let filename = `CCPA_Token周报_${weekStart}.xlsx`;
+  let filename = t("common.ccpa_token_report_xlsx", [weekStart]);
   if (encoded) {
     try { filename = decodeURIComponent(encoded); } catch { /* Keep the safe fallback. */ }
   }

@@ -1,7 +1,16 @@
+// Keep the shared language catalog out of UI/vendor chunks without increasing
+// the production bundle budgets enforced by check-dist.
+const languageChunks = [
+  { name: "i18n-common", test: /[\\/]i18n[\\/](?:index\.ts|(?:en|zh-CN)[\\/]common\.json)$/, priority: 100 },
+  { name: "i18n-admin", test: /[\\/]i18n[\\/](?:admin\.ts|(?:en|zh-CN)[\\/]admin\.json)$/, priority: 100 },
+  { name: "i18n-usage", test: /[\\/]i18n[\\/](?:usage\.ts|(?:en|zh-CN)[\\/]usage\.json)$/, priority: 100 }
+];
+
 export const adminCodeSplitting = {
   minSize: 20 * 1024,
   includeDependenciesRecursively: true,
   groups: [
+    ...languageChunks,
     {
       name: "zrender-vendor",
       test: /node_modules[\\/]zrender[\\/]/,
@@ -19,6 +28,7 @@ export const portalCodeSplitting = {
   minSize: 20 * 1024,
   includeDependenciesRecursively: true,
   groups: [
+    ...languageChunks,
     {
       name: "react-vendor",
       test: /node_modules[\\/]((react)|(react-dom)|(scheduler))[\\/]/,
@@ -46,6 +56,7 @@ export const usageCodeSplitting = {
   minSize: 20 * 1024,
   includeDependenciesRecursively: true,
   groups: [
+    ...languageChunks,
     {
       name: "zrender-vendor",
       test: /node_modules[\\/]zrender[\\/]/,

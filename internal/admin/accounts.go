@@ -13,6 +13,8 @@ import (
 	"github.com/Alfonsxh/codex-cpa-pool/internal/accountstatus"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/controlplane"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/failover"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/quota"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/runtimeops"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/usage"
@@ -48,12 +50,12 @@ func (server *Server) activityWindow() time.Duration {
 	return usage.DefaultActiveUserWindow
 }
 
-func formatActivityWindow(window time.Duration) string {
+func formatActivityWindow(window time.Duration, languages ...i18n.Language) string {
 	minutes := int(window / time.Minute)
 	if minutes%60 == 0 {
-		return fmt.Sprintf("近 %d 小时", minutes/60)
+		return i18n.M("admin.last_hours", i18n.Params{"Count": minutes / 60}).Render(i18n.Selected(languages))
 	}
-	return fmt.Sprintf("近 %d 分钟", minutes)
+	return i18n.M("admin.last_minutes", i18n.Params{"Count": minutes}).Render(i18n.Selected(languages))
 }
 
 type AccountRuntimeReader interface {
@@ -100,7 +102,7 @@ type accountListItem struct {
 
 func (server *Server) listAccounts(c *gin.Context) {
 	if server.accounts == nil {
-		writeError(c, http.StatusServiceUnavailable, "账号目录服务尚未就绪", "accounts_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.account_directory_service_is_not_ready"), "accounts_not_ready")
 		return
 	}
 	window, err := server.parseAccountListUsageWindow(c)
@@ -254,7 +256,7 @@ func (server *Server) listAccounts(c *gin.Context) {
 	if sinceReset {
 		usageStartAtByAccount = make(map[string]int64, len(accounts))
 		for _, account := range accounts {
-			accountQuota := quotaByAccount[account.ID]
+			accountQuota := quotaByAccount[account.ID].WithLanguage(httpi18n.Locale(c))
 			if accountQuota.Weekly == nil {
 				continue
 			}
@@ -273,42 +275,39 @@ func (server *Server) listAccounts(c *gin.Context) {
 	warnings := make([]string, 0, 6)
 	if stateError != nil {
 		server.logger.Warn("account operational state is unavailable", zap.Error(stateError))
-		warnings = append(warnings, "账号额度状态暂不可用，已按状态未知展示")
+		warnings = append(warnings, httpi18n.Text(c, "admin.account_quota_status_is_unavailable_and_is_shown_as_unknown"))
 	}
 	if activityError != nil {
 		server.logger.Warn("active-user activity is unavailable", zap.Error(activityError))
-		warnings = append(warnings, formatActivityWindow(server.activityWindow())+"活跃用户数暂不可用")
+		warnings = append(warnings, httpi18n.Text(c, "admin.activity_unavailable", i18n.Params{"Window": formatActivityWindow(server.activityWindow(), httpi18n.Locale(c))}))
 	}
 	if usageError != nil {
 		server.logger.Warn("account usage summaries are unavailable", zap.Error(usageError))
-		warnings = append(warnings, "当前用量范围的账号请求与 Token 统计暂不可用")
+		warnings = append(warnings, httpi18n.Text(c, "admin.account_requests_and_tokens_for_this_range_are_unavailable"))
 	}
 	if keyRecordError != nil {
 		server.logger.Warn("account key associations are unavailable", zap.Error(keyRecordError))
-		warnings = append(warnings, "账号关联用户数暂不可用")
+		warnings = append(warnings, httpi18n.Text(c, "admin.associated_user_counts_are_unavailable"))
 	}
 	if quotaStateError != nil {
 		server.logger.Warn("official quota reset summary is unavailable", zap.Error(quotaStateError))
-		warnings = append(warnings, "周限额重置状态暂不可用")
+		warnings = append(warnings, httpi18n.Text(c, "admin.weekly_limit_reset_status_is_unavailable"))
 	}
 	if refreshError != nil {
 		server.logger.Warn("official quota refresh request state is unavailable", zap.Error(refreshError))
-		warnings = append(warnings, "周限额刷新状态暂不可用")
+		warnings = append(warnings, httpi18n.Text(c, "admin.weekly_limit_refresh_status_is_unavailable"))
 	}
 	if collectorError != nil {
 		server.logger.Warn("usage collector status is unavailable", zap.Error(collectorError))
 		collector = usage.CollectorStatus{Status: "unavailable"}
-		warnings = append(warnings, "用量采集器状态暂不可用")
+		warnings = append(warnings, httpi18n.Text(c, "admin.usage_collector_status_is_unavailable"))
 	}
 	if runtimeError != nil {
 		server.logger.Warn("account container status is unavailable", zap.Error(runtimeError))
-		warnings = append(warnings, "CPA 容器状态暂不可用")
+		warnings = append(warnings, httpi18n.Text(c, "admin.cpa_container_status_is_unavailable"))
 	}
 	if sinceReset && len(usageStartAtByAccount) < len(accounts) {
-		warnings = append(warnings, fmt.Sprintf(
-			"%d 个 CPA 未获得额度周期边界，本周期用量显示为不可用",
-			len(accounts)-len(usageStartAtByAccount),
-		))
+		warnings = append(warnings, i18n.M("admin.cpas_have_no_quota_period_boundaries_usage_for_this_period", i18n.Params{"Count": len(accounts) - len(usageStartAtByAccount)}).Render(httpi18n.Locale(c)))
 	}
 	routedCounts := make(map[string]int)
 	for _, account := range routes {
@@ -392,7 +391,7 @@ func (server *Server) listAccounts(c *gin.Context) {
 				usageWindowStartAt = nil
 			}
 		}
-		accountQuota := quotaByAccount[account.ID]
+		accountQuota := quotaByAccount[account.ID].WithLanguage(httpi18n.Locale(c))
 		if accountQuota.WeeklyWindows == nil {
 			accountQuota.WeeklyWindows = make([]quota.WeeklyWindow, 0)
 		}
@@ -426,7 +425,7 @@ func (server *Server) listAccounts(c *gin.Context) {
 				authState = "pending"
 			}
 		}
-		operationalStatus := accountstatus.Present(account.GroupEnabled, state, stateAvailable && stateError == nil)
+		operationalStatus := accountstatus.Present(account.GroupEnabled, state, stateAvailable && stateError == nil, httpi18n.Locale(c))
 		items = append(items, accountListItem{
 			ID: account.ID, Email: account.Email, Port: account.Port,
 			ProxyMode: account.ProxyMode, ProxySource: proxySource, ProxyDisplay: proxyDisplay,
@@ -448,7 +447,7 @@ func (server *Server) listAccounts(c *gin.Context) {
 			ProxyConfigured:   proxyConfigured,
 		})
 	}
-	c.JSON(http.StatusOK, gin.H{
+	httpi18n.JSON(c, http.StatusOK, gin.H{
 		"accounts":                   items,
 		"generated_at":               window.GeneratedAt,
 		"window":                     window.Window,
@@ -554,12 +553,12 @@ func (server *Server) parseAccountListUsageWindow(c *gin.Context) (usageWindowCo
 func (server *Server) inspectAccountQuotaReset(c *gin.Context) {
 	account := strings.ToLower(strings.TrimSpace(c.Query("account")))
 	if account == "" {
-		writeError(c, http.StatusBadRequest, "请选择要重置周限额的 CPA", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.select_the_cpa_whose_weekly_limit_should_be_reset"), "invalid_request")
 		return
 	}
 	inspector, ok := server.quotaResetter.(quotaResetInspector)
 	if !ok {
-		writeError(c, http.StatusServiceUnavailable, "周限额重置详情服务尚未就绪", "quota_reset_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.weekly_limit_reset_detail_service_is_not_ready"), "quota_reset_not_ready")
 		return
 	}
 	result, err := inspector.Inspect(c.Request.Context(), account)
@@ -567,32 +566,32 @@ func (server *Server) inspectAccountQuotaReset(c *gin.Context) {
 		server.writeQuotaResetReadError(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	httpi18n.JSON(c, http.StatusOK, result)
 }
 
 func (server *Server) writeQuotaResetReadError(c *gin.Context, err error) {
 	switch {
 	case errors.Is(err, controlplane.ErrInvalidCatalogInput):
-		writeError(c, http.StatusBadRequest, "周限额重置参数无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_weekly_limit_reset_parameters"), "invalid_request")
 	case errors.Is(err, quota.ErrResetAccountNotFound):
-		writeError(c, http.StatusNotFound, "CPA 账号不存在", "account_not_found")
+		writeError(c, http.StatusNotFound, i18n.M("admin.cpa_account_does_not_exist"), "account_not_found")
 	case errors.Is(err, quota.ErrOAuthMissing):
-		writeError(c, http.StatusConflict, "该 CPA 尚未完成 OAuth 授权", "quota_auth_missing")
+		writeError(c, http.StatusConflict, i18n.M("admin.this_cpa_has_not_completed_oauth_authorization"), "quota_auth_missing")
 	case errors.Is(err, quota.ErrAuthExpired):
-		writeError(c, http.StatusConflict, "上游 OAuth 授权已失效，请重新完成 OAuth 后再重试", "quota_auth_expired")
+		writeError(c, http.StatusConflict, i18n.M("admin.upstream_oauth_authorization_expired_authorize_again_and_retry"), "quota_auth_expired")
 	default:
-		writeError(c, http.StatusBadGateway, "无法读取上游周限额重置详情，请稍后重试", "quota_upstream_unavailable")
+		writeError(c, http.StatusBadGateway, i18n.M("admin.unable_to_read_upstream_weekly_reset_details_please_try_again"), "quota_upstream_unavailable")
 	}
 }
 
 func (server *Server) createAccount(c *gin.Context) {
 	if server.accountLifecycle == nil {
-		writeError(c, http.StatusServiceUnavailable, "账号生命周期服务尚未就绪", "account_lifecycle_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.account_lifecycle_service_is_not_ready"), "account_lifecycle_not_ready")
 		return
 	}
 	var body accountlifecycle.CreateRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
-		writeError(c, http.StatusBadRequest, "账号创建参数无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_account_creation_parameters"), "invalid_request")
 		return
 	}
 	result, err := server.accountLifecycle.Create(c.Request.Context(), body)
@@ -600,12 +599,12 @@ func (server *Server) createAccount(c *gin.Context) {
 		server.writeAccountLifecycleError(c, "create account", err)
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"message": "业务 CPA 已创建并通过运行探针", "account": result})
+	httpi18n.JSON(c, http.StatusCreated, gin.H{"message": i18n.M("admin.cpa_account_created_and_runtime_probes_passed"), "account": result})
 }
 
 func (server *Server) updateAccount(c *gin.Context) {
 	if server.accountLifecycle == nil {
-		writeError(c, http.StatusServiceUnavailable, "账号生命周期服务尚未就绪", "account_lifecycle_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.account_lifecycle_service_is_not_ready"), "account_lifecycle_not_ready")
 		return
 	}
 	var body struct {
@@ -620,13 +619,13 @@ func (server *Server) updateAccount(c *gin.Context) {
 		Confirm         string  `json:"confirm"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
-		writeError(c, http.StatusBadRequest, "账号更新参数无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_account_update_parameters"), "invalid_request")
 		return
 	}
 	currentID := strings.ToLower(strings.TrimSpace(body.ID))
 	newID := strings.ToLower(strings.TrimSpace(body.NewID))
 	if newID != "" && newID != currentID && strings.TrimSpace(body.Confirm) != currentID {
-		writeError(c, http.StatusBadRequest, "重命名确认内容必须与当前 CPA 标识完全一致", "invalid_confirmation")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.rename_confirmation_must_exactly_match_the_current_cpa_id"), "invalid_confirmation")
 		return
 	}
 	proxyURL := body.ProxyURL
@@ -645,18 +644,18 @@ func (server *Server) updateAccount(c *gin.Context) {
 		server.writeAccountLifecycleError(c, "update account", err)
 		return
 	}
-	message := "CPA 账号已更新并通过运行探针"
+	message := httpi18n.Text(c, "admin.cpa_account_updated_and_runtime_probes_passed")
 	if c.FullPath() == "/admin/api/accounts/policy" {
-		message = "CPA 账号选择策略已更新"
+		message = httpi18n.Text(c, "admin.account_availability_updated")
 	} else if result.RenamedFrom != "" {
-		message = "CPA 已重命名、重建并通过运行探针"
+		message = httpi18n.Text(c, "admin.cpa_renamed_and_recreated_runtime_probes_passed")
 	}
-	c.JSON(http.StatusOK, gin.H{"message": message, "account": result})
+	httpi18n.JSON(c, http.StatusOK, gin.H{"message": message, "account": result})
 }
 
 func (server *Server) repairUnavailableAccountProxy(c *gin.Context) {
 	if server.accountLifecycle == nil {
-		writeError(c, http.StatusServiceUnavailable, "账号生命周期服务尚未就绪", "account_lifecycle_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.account_lifecycle_service_is_not_ready"), "account_lifecycle_not_ready")
 		return
 	}
 	var body struct {
@@ -665,13 +664,13 @@ func (server *Server) repairUnavailableAccountProxy(c *gin.Context) {
 		Confirm  string `json:"confirm" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
-		writeError(c, http.StatusBadRequest, "代理恢复参数无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_proxy_recovery_parameters"), "invalid_request")
 		return
 	}
 	accountID, err := controlplane.NormalizeAccountID(body.ID)
 	if err != nil || accountID != strings.TrimSpace(body.ID) ||
 		strings.TrimSpace(body.Confirm) != "repair-proxy:"+accountID {
-		writeError(c, http.StatusBadRequest, "代理恢复确认内容必须与 CPA 标识完全一致", "invalid_confirmation")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.proxy_recovery_confirmation_must_exactly_match_the_cpa_id"), "invalid_confirmation")
 		return
 	}
 	proxyURL := strings.TrimSpace(body.ProxyURL)
@@ -683,15 +682,15 @@ func (server *Server) repairUnavailableAccountProxy(c *gin.Context) {
 		server.writeAccountLifecycleError(c, "repair unavailable account proxy", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"message": "不可用 CPA 的代理投影已恢复；后续账号维护将继续使用安全迁移与请求排空",
+	httpi18n.JSON(c, http.StatusOK, gin.H{
+		"message": i18n.M("admin.the_unavailable_cpa_s_proxy_configuration_was_restored_future_maintenance"),
 		"account": result,
 	})
 }
 
 func (server *Server) clearAccountAuth(c *gin.Context) {
 	if server.accountLifecycle == nil {
-		writeError(c, http.StatusServiceUnavailable, "账号生命周期服务尚未就绪", "account_lifecycle_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.account_lifecycle_service_is_not_ready"), "account_lifecycle_not_ready")
 		return
 	}
 	var body struct {
@@ -699,7 +698,7 @@ func (server *Server) clearAccountAuth(c *gin.Context) {
 		Confirm string `json:"confirm" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil || strings.TrimSpace(body.Confirm) != strings.TrimSpace(body.ID) {
-		writeError(c, http.StatusBadRequest, "确认内容必须与 CPA 标识完全一致", "invalid_confirmation")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.confirmation_must_exactly_match_the_cpa_id"), "invalid_confirmation")
 		return
 	}
 	result, err := server.accountLifecycle.ClearAuth(c.Request.Context(), body.ID)
@@ -707,12 +706,12 @@ func (server *Server) clearAccountAuth(c *gin.Context) {
 		server.writeAccountLifecycleError(c, "clear account OAuth", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "OAuth 授权已清除，原文件已安全归档", "account": result})
+	httpi18n.JSON(c, http.StatusOK, gin.H{"message": i18n.M("admin.oauth_authorization_cleared_original_files_were_safely_archived"), "account": result})
 }
 
 func (server *Server) deleteAccount(c *gin.Context) {
 	if server.accountLifecycle == nil {
-		writeError(c, http.StatusServiceUnavailable, "账号生命周期服务尚未就绪", "account_lifecycle_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.account_lifecycle_service_is_not_ready"), "account_lifecycle_not_ready")
 		return
 	}
 	var body struct {
@@ -722,7 +721,7 @@ func (server *Server) deleteAccount(c *gin.Context) {
 		FallbackAccount string `json:"fallback_account"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil || strings.TrimSpace(body.Confirm) != strings.TrimSpace(body.ID) {
-		writeError(c, http.StatusBadRequest, "确认内容必须与 CPA 标识完全一致", "invalid_confirmation")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.confirmation_must_exactly_match_the_cpa_id"), "invalid_confirmation")
 		return
 	}
 	result, err := server.accountLifecycle.Delete(c.Request.Context(), accountlifecycle.DeleteRequest{
@@ -732,38 +731,38 @@ func (server *Server) deleteAccount(c *gin.Context) {
 		server.writeAccountLifecycleError(c, "delete account", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "业务 CPA 已删除，配置、授权和日志已安全归档", "account": result})
+	httpi18n.JSON(c, http.StatusOK, gin.H{"message": i18n.M("admin.cpa_account_deleted_configuration_authorization_and_logs_were_safely_archived"), "account": result})
 }
 
 func (server *Server) writeAccountLifecycleError(c *gin.Context, operation string, err error) {
 	switch {
 	case errors.Is(err, controlplane.ErrInvalidCatalogInput):
-		writeError(c, http.StatusBadRequest, "账号参数无效，请检查标识、邮箱、代理和确认字段", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_account_parameters_check_the_id_email_proxy_and_confirmation"), "invalid_request")
 	case errors.Is(err, controlplane.ErrAccountLifecycleNotFound):
-		writeError(c, http.StatusNotFound, "CPA 账号不存在", "account_not_found")
+		writeError(c, http.StatusNotFound, i18n.M("admin.cpa_account_does_not_exist"), "account_not_found")
 	case errors.Is(err, controlplane.ErrAccountAlreadyExists),
 		errors.Is(err, controlplane.ErrAccountEmailAlreadyExists),
 		errors.Is(err, controlplane.ErrAccountPortAlreadyExists):
-		writeError(c, http.StatusConflict, "CPA 标识、邮箱或端口已被占用", "account_exists")
+		writeError(c, http.StatusConflict, i18n.M("admin.the_cpa_id_email_or_port_is_already_in_use"), "account_exists")
 	case errors.Is(err, controlplane.ErrAccountDeleteLast):
-		writeError(c, http.StatusConflict, "至少保留一个业务 CPA，不能删除最后一个账号", "account_last")
+		writeError(c, http.StatusConflict, i18n.M("admin.keep_at_least_one_cpa_the_last_account_cannot_be"), "account_last")
 	case errors.Is(err, controlplane.ErrAccountDeleteRequiresRevoke):
-		writeError(c, http.StatusConflict, "该 CPA 仍有独占有效 Key，请确认同时停用后再删除", "account_revoke_required")
+		writeError(c, http.StatusConflict, i18n.M("admin.this_cpa_still_has_exclusive_active_keys_confirm_their_deactivation"), "account_revoke_required")
 	case errors.Is(err, controlplane.ErrAccountDeleteNeedsFallback):
-		writeError(c, http.StatusConflict, "请选择其他已启用 CPA 作为安全迁移目标", "account_fallback_required")
+		writeError(c, http.StatusConflict, i18n.M("admin.select_another_enabled_cpa_as_a_safe_migration_target"), "account_fallback_required")
 	case errors.Is(err, controlplane.ErrAccountLifecycleConflict),
 		errors.Is(err, accountlifecycle.ErrNoAccountPort),
 		errors.Is(err, runtimeops.ErrRuntimeConflict):
-		writeError(c, http.StatusConflict, "账号状态已变化或没有安全运行资源，未执行切换", "account_lifecycle_conflict")
+		writeError(c, http.StatusConflict, i18n.M("admin.account_state_changed_or_safe_runtime_resources_are_unavailable_no"), "account_lifecycle_conflict")
 	case errors.Is(err, controlplane.ErrLeaseLost):
-		writeError(c, http.StatusServiceUnavailable, "控制面所有权已变化，操作已停止并回滚", "ownership_lost")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.control_plane_ownership_changed_the_operation_stopped_and_was_rolled"), "ownership_lost")
 	case errors.Is(err, accountlifecycle.ErrRouteEvacuationUnavailable),
 		errors.Is(err, accountlifecycle.ErrLifecycleRecoveryRequired):
-		writeError(c, http.StatusServiceUnavailable, "账号安全迁移与恢复服务尚未就绪", "account_lifecycle_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.safe_account_migration_and_recovery_service_is_not_ready"), "account_lifecycle_not_ready")
 	case errors.Is(err, accountlifecycle.ErrAccountDrainTimeout):
-		writeError(c, http.StatusConflict, "该 CPA 仍有进行中的 Codex 请求，账号未重建或删除，请稍后重试", "account_requests_active")
+		writeError(c, http.StatusConflict, i18n.M("admin.this_cpa_still_has_active_codex_requests_it_was_not"), "account_requests_active")
 	case errors.Is(err, accountlifecycle.ErrUnavailableProxyRepairRejected):
-		writeError(c, http.StatusConflict, "当前状态不满足受限代理恢复条件，请使用普通账号维护流程", "account_proxy_repair_unavailable")
+		writeError(c, http.StatusConflict, i18n.M("admin.the_current_state_does_not_meet_restricted_proxy_recovery_conditions"), "account_proxy_repair_unavailable")
 	default:
 		server.internalError(c, operation, err)
 	}
@@ -774,11 +773,11 @@ func (server *Server) rebalanceAllAccounts(c *gin.Context) {
 		Confirm string `json:"confirm" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil || body.Confirm != "rebalance-all" {
-		writeError(c, http.StatusBadRequest, "请确认一键负载均衡全部账号", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.confirm_balancing_users_across_all_accounts"), "invalid_request")
 		return
 	}
 	if server.rebalancer == nil {
-		writeError(c, http.StatusServiceUnavailable, "负载均衡服务尚未就绪", "rebalance_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.load_balancing_service_is_not_ready"), "rebalance_not_ready")
 		return
 	}
 	result, err := server.rebalancer.RebalanceAll(c.Request.Context())
@@ -788,19 +787,19 @@ func (server *Server) rebalanceAllAccounts(c *gin.Context) {
 			errors.Is(err, failover.ErrRebalanceUnavailable),
 			errors.Is(err, controlplane.ErrRouteConflict),
 			errors.Is(err, controlplane.ErrRouteUserUnsafe):
-			writeError(c, http.StatusConflict, "当前用户或账号状态不满足安全迁移条件，未执行任何迁移", "account_rebalance_unavailable")
+			writeError(c, http.StatusConflict, i18n.M("admin.user_or_account_state_does_not_meet_safe_migration_conditions"), "account_rebalance_unavailable")
 		default:
 			server.internalError(c, "rebalance all accounts", err)
 		}
 		return
 	}
-	message := "账号已处于目标分布，无需迁移"
+	message := httpi18n.Text(c, "admin.accounts_already_match_the_target_distribution_no_migration_is_needed")
 	if result.MovedUsers > 0 && result.ActivityRefreshed {
-		message = "账号用户负载均衡已完成，" + formatActivityWindow(server.activityWindow()) + "活跃用户数已刷新"
+		message = httpi18n.Text(c, "admin.rebalance_activity_refreshed", i18n.Params{"Window": formatActivityWindow(server.activityWindow(), httpi18n.Locale(c))})
 	} else if result.MovedUsers > 0 {
-		message = "账号用户负载均衡已完成，但" + formatActivityWindow(server.activityWindow()) + "活跃用户数刷新失败"
+		message = httpi18n.Text(c, "admin.rebalance_activity_unavailable", i18n.Params{"Window": formatActivityWindow(server.activityWindow(), httpi18n.Locale(c))})
 	}
-	c.JSON(http.StatusOK, gin.H{
+	httpi18n.JSON(c, http.StatusOK, gin.H{
 		"message":   message,
 		"rebalance": result,
 	})
@@ -812,16 +811,16 @@ func (server *Server) rebalanceAccount(c *gin.Context) {
 		Confirm string `json:"confirm" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
-		writeError(c, http.StatusBadRequest, "账号迁移参数无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_account_migration_parameters"), "invalid_request")
 		return
 	}
 	account := strings.ToLower(strings.TrimSpace(body.ID))
 	if account == "" || strings.ToLower(strings.TrimSpace(body.Confirm)) != account {
-		writeError(c, http.StatusBadRequest, "确认内容必须与 CPA 标识完全一致", "invalid_confirmation")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.confirmation_must_exactly_match_the_cpa_id"), "invalid_confirmation")
 		return
 	}
 	if server.accounts == nil {
-		writeError(c, http.StatusServiceUnavailable, "账号目录服务尚未就绪", "accounts_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.account_directory_service_is_not_ready"), "accounts_not_ready")
 		return
 	}
 	accounts, err := server.accounts.ReadAccounts(c.Request.Context())
@@ -837,11 +836,11 @@ func (server *Server) rebalanceAccount(c *gin.Context) {
 		}
 	}
 	if !found {
-		writeError(c, http.StatusNotFound, "CPA 账号不存在", "account_not_found")
+		writeError(c, http.StatusNotFound, i18n.M("admin.cpa_account_does_not_exist"), "account_not_found")
 		return
 	}
 	if server.rebalancer == nil {
-		writeError(c, http.StatusServiceUnavailable, "负载均衡服务尚未就绪", "rebalance_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.load_balancing_service_is_not_ready"), "rebalance_not_ready")
 		return
 	}
 	result, err := server.rebalancer.EvacuateAccount(c.Request.Context(), account)
@@ -851,19 +850,19 @@ func (server *Server) rebalanceAccount(c *gin.Context) {
 			errors.Is(err, failover.ErrRebalanceUnavailable),
 			errors.Is(err, controlplane.ErrRouteConflict),
 			errors.Is(err, controlplane.ErrRouteUserUnsafe):
-			writeError(c, http.StatusConflict, "当前用户或账号状态不满足安全迁移条件，未执行任何迁移", "account_rebalance_unavailable")
+			writeError(c, http.StatusConflict, i18n.M("admin.user_or_account_state_does_not_meet_safe_migration_conditions"), "account_rebalance_unavailable")
 		default:
 			server.internalError(c, "rebalance account", err)
 		}
 		return
 	}
-	message := "该账号当前没有需要迁移的用户"
+	message := httpi18n.Text(c, "admin.this_account_has_no_users_to_migrate")
 	if result.MovedUsers > 0 && result.ActivityRefreshed {
-		message = "账号用户已全部安全迁移，" + formatActivityWindow(server.activityWindow()) + "活跃用户数已刷新"
+		message = httpi18n.Text(c, "admin.migration_activity_refreshed", i18n.Params{"Window": formatActivityWindow(server.activityWindow(), httpi18n.Locale(c))})
 	} else if result.MovedUsers > 0 {
-		message = "账号用户已全部安全迁移，但" + formatActivityWindow(server.activityWindow()) + "活跃用户数刷新失败"
+		message = httpi18n.Text(c, "admin.migration_activity_unavailable", i18n.Params{"Window": formatActivityWindow(server.activityWindow(), httpi18n.Locale(c))})
 	}
-	c.JSON(http.StatusOK, gin.H{
+	httpi18n.JSON(c, http.StatusOK, gin.H{
 		"message":   message,
 		"rebalance": result,
 	})
@@ -876,52 +875,53 @@ func (server *Server) resetAccountQuota(c *gin.Context) {
 		Confirm  string `json:"confirm" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
-		writeError(c, http.StatusBadRequest, "周限额重置参数无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_weekly_limit_reset_parameters"), "invalid_request")
 		return
 	}
 	account := strings.ToLower(strings.TrimSpace(body.Account))
 	if account == "" || strings.ToLower(strings.TrimSpace(body.Confirm)) != account {
-		writeError(c, http.StatusBadRequest, "确认内容必须与 CPA 标识完全一致", "invalid_confirmation")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.confirmation_must_exactly_match_the_cpa_id"), "invalid_confirmation")
 		return
 	}
 	creditID := strings.TrimSpace(body.CreditID)
 	if creditID == "" || len(creditID) > 512 {
-		writeError(c, http.StatusBadRequest, "请选择要使用的重置额度", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.select_a_reset_credit"), "invalid_request")
 		return
 	}
 	if server.quotaResetter == nil {
-		writeError(c, http.StatusServiceUnavailable, "周限额重置服务尚未就绪", "quota_reset_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.weekly_limit_reset_service_is_not_ready"), "quota_reset_not_ready")
 		return
 	}
 	result, err := server.quotaResetter.Reset(c.Request.Context(), account, creditID)
 	if err != nil {
 		switch {
 		case errors.Is(err, controlplane.ErrInvalidCatalogInput):
-			writeError(c, http.StatusBadRequest, "周限额重置参数无效", "invalid_request")
+			writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_weekly_limit_reset_parameters"), "invalid_request")
 		case errors.Is(err, quota.ErrResetAccountNotFound):
-			writeError(c, http.StatusNotFound, "CPA 账号不存在", "account_not_found")
+			writeError(c, http.StatusNotFound, i18n.M("admin.cpa_account_does_not_exist"), "account_not_found")
 		case errors.Is(err, quota.ErrOAuthMissing):
-			writeError(c, http.StatusConflict, "该 CPA 尚未完成 OAuth 授权", "quota_auth_missing")
+			writeError(c, http.StatusConflict, i18n.M("admin.this_cpa_has_not_completed_oauth_authorization"), "quota_auth_missing")
 		case errors.Is(err, quota.ErrAuthExpired):
-			writeError(c, http.StatusConflict, "上游 OAuth 授权已失效，请重新完成 OAuth 后再重试", "quota_auth_expired")
+			writeError(c, http.StatusConflict, i18n.M("admin.upstream_oauth_authorization_expired_authorize_again_and_retry"), "quota_auth_expired")
 		case errors.Is(err, quota.ErrResetCreditChanged):
-			writeError(c, http.StatusConflict, "所选重置额度已使用、过期或不可用，请刷新列表后重新选择", "quota_reset_credit_changed")
+			writeError(c, http.StatusConflict, i18n.M("admin.the_selected_reset_credit_was_used_expired_or_is_unavailable"), "quota_reset_credit_changed")
 		case errors.Is(err, quota.ErrResetUnavailable):
-			writeError(c, http.StatusConflict, "当前没有已耗尽且可重置的周限额，请等待额度耗尽或刷新列表", "quota_reset_unavailable")
+			writeError(c, http.StatusConflict, i18n.M("admin.no_exhausted_weekly_limit_is_eligible_for_reset_wait_for"), "quota_reset_unavailable")
 		case errors.Is(err, quota.ErrResetRejected):
-			writeError(c, http.StatusConflict, "上游已拒绝本次重置周限额，请刷新周限额后重试", "quota_reset_rejected")
+			writeError(c, http.StatusConflict, i18n.M("admin.the_upstream_rejected_this_weekly_reset_refresh_the_quota_and"), "quota_reset_rejected")
 		case errors.Is(err, controlplane.ErrLeaseLost):
-			writeError(c, http.StatusServiceUnavailable, "控制面所有权已变化，操作已停止", "ownership_lost")
+			writeError(c, http.StatusServiceUnavailable, i18n.M("admin.control_plane_ownership_changed_the_operation_stopped"), "ownership_lost")
 		default:
-			writeError(c, http.StatusBadGateway, "无法连接上游完成重置周限额，请稍后重试", "quota_upstream_unavailable")
+			writeError(c, http.StatusBadGateway, i18n.M("admin.unable_to_reach_the_upstream_to_reset_the_weekly_limit"), "quota_upstream_unavailable")
 		}
 		return
 	}
-	message := "重置请求已处理，请刷新确认最新周限额"
+	message := httpi18n.Text(c, "admin.the_reset_request_was_processed_refresh_to_confirm_the_latest")
+	result = result.WithLanguage(httpi18n.Locale(c))
 	if result.WindowsReset > 0 {
-		message = fmt.Sprintf("周限额已重置，共刷新 %d 个窗口", result.WindowsReset)
+		message = i18n.M("admin.weekly_limit_reset_windows_refreshed", i18n.Params{"Count": result.WindowsReset}).Render(httpi18n.Locale(c))
 	}
-	c.JSON(http.StatusOK, gin.H{
+	httpi18n.JSON(c, http.StatusOK, gin.H{
 		"message":       message,
 		"account":       result.Account,
 		"windows":       result.Windows,

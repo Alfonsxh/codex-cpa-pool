@@ -1,3 +1,5 @@
+import "../i18n/admin";
+import { t, getIntlLocale } from "../i18n";
 import { Link } from "react-router-dom";
 
 import type { OverviewAccountQuotaSummary } from "../api/overview";
@@ -9,28 +11,28 @@ export function AccountQuotaOverview({ quota }: { quota: OverviewAccountQuotaSum
     <section className="overview-account-quota overview-legacy-panel" aria-labelledby="overview-account-quota-title">
       <header className="overview-account-quota-header">
         <div>
-          <h3 id="overview-account-quota-title">账号周额度</h3>
+          <h3 id="overview-account-quota-title">{t("common.account_weekly_quota")}</h3>
           <p className="section-kicker">ACCOUNT WEEKLY QUOTA</p>
         </div>
-        <Link className="button ghost overview-account-quota-link" to="/accounts">查看账号详情</Link>
+        <Link className="button ghost overview-account-quota-link" to="/accounts">{t("admin.view_account_details")}</Link>
       </header>
 
       {quota.enabled_accounts === 0 ? (
-        <QuotaState title="暂无启用账号" detail="创建并启用业务 CPA 后，这里会汇总常规周限额。" />
+        <QuotaState title={t("admin.no_enabled_accounts")} detail={t("admin.create_and_enable_a_cpa_account_to_see_weekly_quota")} />
       ) : !quota.available || quota.known_accounts === 0 ? (
         <QuotaState
-          title="额度数据暂不可用"
-          detail={`${quota.enabled_accounts} 个启用账号当前都没有可用的常规周限额数据。`}
+          title={t("admin.quota_data_unavailable")}
+          detail={t("admin.none_of_the_enabled_accounts_currently_has_weekly_quota_data", [quota.enabled_accounts])}
         />
       ) : (
         <div className="overview-account-quota-body">
             <div className="overview-account-quota-primary">
-              <span>账号平均已用</span>
+              <span>{t("admin.average_quota_used")}</span>
               <strong>{formatPercent(used)}</strong>
               <div
                 className="overview-account-quota-progress"
                 role="progressbar"
-                aria-label="账号平均周额度已用"
+                aria-label={t("admin.average_weekly_quota_used")}
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={used}
@@ -38,17 +40,17 @@ export function AccountQuotaOverview({ quota }: { quota: OverviewAccountQuotaSum
                 <i style={{ width: `${used}%` }} />
               </div>
               <div className="overview-account-quota-progress-labels">
-                <span>已用 {formatPercent(used)}</span>
-                <span>剩余 {formatPercent(remaining)}</span>
+                <span>{t("admin.used")} {formatPercent(used)}</span>
+                <span>{t("common.remaining")} {formatPercent(remaining)}</span>
               </div>
             </div>
 
-            <dl className="overview-account-quota-metrics" aria-label="账号周额度汇总指标">
-              <QuotaMetric label="等价剩余" value={`${formatEquivalent(quota.equivalent_remaining_accounts)} 个账号`} />
-              <QuotaMetric label="数据覆盖" value={`${quota.known_accounts} / ${quota.enabled_accounts}`} />
-              <QuotaMetric label="已耗尽" value={quota.exhausted_accounts} tone={quota.exhausted_accounts > 0 ? "danger" : undefined} />
-              <QuotaMetric label="高风险" value={quota.high_risk_accounts} tone={quota.high_risk_accounts > 0 ? "warning" : undefined} />
-              <QuotaMetric label="额度未知" value={quota.unknown_accounts} tone={quota.unknown_accounts > 0 ? "neutral" : undefined} />
+            <dl className="overview-account-quota-metrics" aria-label={t("admin.account_weekly_quota_summary")}>
+              <QuotaMetric label={t("admin.remaining_accounts")} value={t("admin.accounts", [formatEquivalent(quota.equivalent_remaining_accounts)])} />
+              <QuotaMetric label={t("admin.data_coverage")} value={`${quota.known_accounts} / ${quota.enabled_accounts}`} />
+              <QuotaMetric label={t("admin.exhausted")} value={quota.exhausted_accounts} tone={quota.exhausted_accounts > 0 ? "danger" : undefined} />
+              <QuotaMetric label={t("admin.high_risk")} value={quota.high_risk_accounts} tone={quota.high_risk_accounts > 0 ? "warning" : undefined} />
+              <QuotaMetric label={t("common.unknown_quota")} value={quota.unknown_accounts} tone={quota.unknown_accounts > 0 ? "neutral" : undefined} />
             </dl>
         </div>
       )}
@@ -87,10 +89,10 @@ function clampPercent(value: number) {
 }
 
 function formatPercent(value: number) {
-  return `${value.toLocaleString("zh-CN", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
+  return `${value.toLocaleString(getIntlLocale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
 }
 
 function formatEquivalent(value: number) {
   const safe = Number.isFinite(value) ? Math.max(0, value) : 0;
-  return safe.toLocaleString("zh-CN", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  return safe.toLocaleString(getIntlLocale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 }

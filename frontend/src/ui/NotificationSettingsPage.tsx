@@ -1,3 +1,5 @@
+import "../i18n/admin";
+import { t } from "../i18n";
 import { useSiteTimezone, getSiteTimezone } from "./site-time";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -47,10 +49,10 @@ const { Paragraph, Text } = Typography;
 
 const notificationSchema = z.object({
   enabled: z.boolean(),
-  timezone: z.string().trim().min(1, "请输入 IANA 时区"),
+  timezone: z.string().trim().min(1, t("admin.enter_an_iana_timezone")),
   daily_times: z.string().trim().regex(
     /^([01]\d|2[0-3]):[0-5]\d(?:,\s*([01]\d|2[0-3]):[0-5]\d)*$/,
-    "请输入 HH:MM，多个时间使用逗号分隔"
+    t("admin.enter_hh_mm_separate_multiple_times_with_commas")
   ),
   schedule_grace_minutes: z.number().int().min(0).max(120),
   quota_alert_enabled: z.boolean(),
@@ -58,9 +60,9 @@ const notificationSchema = z.object({
 });
 
 const webhookSchema = z.object({
-  webhook_url: z.string().trim().url("请输入完整的 Webhook 地址").startsWith(
+  webhook_url: z.string().trim().url(t("admin.enter_the_full_webhook_url")).startsWith(
     "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=",
-    "仅支持企业微信官方消息推送地址"
+    t("admin.only_official_wecom_message_webhook_urls_are_supported")
   )
 });
 
@@ -142,8 +144,8 @@ export function NotificationSettingsPage({ csrfToken }: { csrfToken: string }) {
       <section className="page-content">
         <PageState
           kind="error"
-          title="通知配置加载失败"
-          detail={settings.error instanceof Error ? settings.error.message : "请稍后重试"}
+          title={t("admin.unable_to_load_notification_settings")}
+          detail={settings.error instanceof Error ? settings.error.message : t("common.please_try_again_later")}
           onAction={() => void settings.refetch()}
         />
       </section>
@@ -158,11 +160,10 @@ export function NotificationSettingsPage({ csrfToken }: { csrfToken: string }) {
       <ConfigurationSectionNav />
       <PageToolbar
         className="account-page-intro"
-        description="本页只请求通知配置和运行状态；打开期间每 10 秒刷新一次。额度明细仅在手动发送或后台任务到期时读取。"
+        description={t("admin.this_page_reads_notification_settings_and_runtime_status_every_10")}
         actions={(
           <Button icon={<ReloadOutlined aria-hidden="true" />} loading={settings.isFetching} onClick={() => void settings.refetch()}>
-            刷新当前页
-          </Button>
+ {t("admin.refresh_page")} </Button>
         )}
       />
 
@@ -172,20 +173,20 @@ export function NotificationSettingsPage({ csrfToken }: { csrfToken: string }) {
           className="page-alert"
           type="error"
           showIcon
-          message="通知操作失败"
-          description={mutationError instanceof ApiError ? mutationError.message : "请稍后重试"}
+          message={t("admin.notification_action_failed")}
+          description={mutationError instanceof ApiError ? mutationError.message : t("common.please_try_again_later")}
         />
       ) : null}
 
       <Row gutter={[16, 16]} className="notification-grid">
         <Col xs={24} xl={10}>
-          <Card title="企业微信 Webhook" extra={<WebhookTag configured={status.webhook_configured} />}>
+          <Card title={t("admin.wecom_webhook")} extra={<WebhookTag configured={status.webhook_configured} />}>
             <Form layout="vertical" requiredMark={false} onFinish={() => webhookForm.handleSubmit(() => webhookMutation.mutate())()}>
               <Form.Item
-                label="Webhook 地址"
+                label={t("admin.webhook_url")}
                 htmlFor="notification-webhook"
                 validateStatus={webhookForm.formState.errors.webhook_url ? "error" : undefined}
-                help={webhookForm.formState.errors.webhook_url?.message ?? "密钥加密存放在控制面 SQLite，不写入浏览器存储。"}
+                help={webhookForm.formState.errors.webhook_url?.message ?? t("admin.the_secret_is_encrypted_in_the_control_plane_sqlite_database")}
               >
                 <Controller
                   control={webhookForm.control}
@@ -208,68 +209,64 @@ export function NotificationSettingsPage({ csrfToken }: { csrfToken: string }) {
                   icon={<SaveOutlined aria-hidden="true" />}
                   loading={webhookMutation.isPending}
                 >
-                  保存 Webhook
-                </Button>
+ {t("admin.save_webhook")} </Button>
                 <Button
                   danger
                   icon={<DeleteOutlined aria-hidden="true" />}
                   disabled={!status.webhook_configured}
                   onClick={() => setClearOpen(true)}
                 >
-                  清除
-                </Button>
+ {t("admin.clear")} </Button>
                 <Button
                   icon={<SendOutlined aria-hidden="true" />}
                   loading={sendMutation.isPending}
                   disabled={!status.webhook_configured}
                   onClick={() => sendMutation.mutate()}
                 >
-                  发送账号信息
-                </Button>
+ {t("admin.send_account_information")} </Button>
                 <Button
                   icon={<BellOutlined aria-hidden="true" />}
                   loading={testMutation.isPending}
                   disabled={!status.webhook_configured}
                   onClick={() => testMutation.mutate()}
                 >
-                  发送测试消息
-                </Button>
+ {t("admin.send_test_message")} </Button>
               </Space>
             </Form>
           </Card>
 
-          <Card className="notification-status-card" title="运行状态">
+          <Card className="notification-status-card" title={t("admin.runtime_status")}>
             <NotificationRuntimeStatus status={status} enabled={settings.data.values.enabled} unavailable={settings.isError} />
           </Card>
         </Col>
 
         <Col xs={24} xl={14}>
-          <Card title="发送与预警规则" extra={<BellOutlined aria-hidden="true" />}>
+          <Card title={t("admin.delivery_alert_rules")} extra={<BellOutlined aria-hidden="true" />}>
             <Form layout="vertical" requiredMark={false}>
               <Controller
                 control={form.control}
                 name="enabled"
                 render={({ field }) => (
-                  <Form.Item label="定时通知" extra="启用前必须先保存有效 Webhook。">
+                  <Form.Item label={t("admin.scheduled_notifications")} extra={t("admin.save_a_valid_webhook_before_enabling_notifications")}>
                     <Switch
-                      aria-label="启用通知调度"
+                      aria-label={t("admin.enable_notification_scheduling")}
                       checked={field.value}
                       onChange={field.onChange}
-                      checkedChildren="启用"
-                      unCheckedChildren="关闭"
+                      checkedChildren={t("admin.enable")}
+                      unCheckedChildren={t("common.close")}
                     />
                   </Form.Item>
                 )}
               />
               <Row gutter={16}>
                 <Col xs={24} md={12}>
-                  <Form.Item label="系统时区">
-                    <span>{settings.data?.values.timezone || getSiteTimezone()}（在配置中心统一设置）</span>
+                  <Form.Item label={t("common.system_timezone")}>
+                    <span>{settings.data?.values.timezone || getSiteTimezone()}{t("admin.configured_in_configuration_center")}</span>
                   </Form.Item>
                 </Col>
                 <Col xs={24} md={12}>
                   <Form.Item
-                    label="每日发送时间"
+                    label={t("admin.daily_delivery_times")}
                     htmlFor="notification-times"
                     validateStatus={form.formState.errors.daily_times ? "error" : undefined}
                     help={form.formState.errors.daily_times?.message}
@@ -286,8 +283,8 @@ export function NotificationSettingsPage({ csrfToken }: { csrfToken: string }) {
                     control={form.control}
                     name="schedule_grace_minutes"
                     render={({ field }) => (
-                      <Form.Item label="定时补发窗口" validateStatus={form.formState.errors.schedule_grace_minutes ? "error" : undefined}>
-                        <InputNumber {...field} min={0} max={120} precision={0} suffix="分钟" onChange={(value) => field.onChange(value ?? 0)} />
+                      <Form.Item label={t("admin.missed_delivery_window")} validateStatus={form.formState.errors.schedule_grace_minutes ? "error" : undefined}>
+                        <InputNumber {...field} min={0} max={120} precision={0} suffix={t("admin.minutes")} onChange={(value) => field.onChange(value ?? 0)} />
                       </Form.Item>
                     )}
                   />
@@ -297,7 +294,7 @@ export function NotificationSettingsPage({ csrfToken }: { csrfToken: string }) {
                     control={form.control}
                     name="weekly_threshold_percent"
                     render={({ field }) => (
-                      <Form.Item label="周额度预警阈值" validateStatus={form.formState.errors.weekly_threshold_percent ? "error" : undefined}>
+                      <Form.Item label={t("admin.weekly_quota_alert_threshold")} validateStatus={form.formState.errors.weekly_threshold_percent ? "error" : undefined}>
                         <InputNumber {...field} min={1} max={100} step={0.5} suffix="%" onChange={(value) => field.onChange(value ?? 90)} />
                       </Form.Item>
                     )}
@@ -308,13 +305,13 @@ export function NotificationSettingsPage({ csrfToken }: { csrfToken: string }) {
                 control={form.control}
                 name="quota_alert_enabled"
                 render={({ field }) => (
-                  <Form.Item label="额度状态提醒" extra="预警、耗尽、恢复和额度刷新按窗口去重发送。">
+                  <Form.Item label={t("admin.quota_status_alerts")} extra={t("admin.warning_exhaustion_recovery_and_reset_notifications_are_deduplicated_per_window")}>
                     <Switch
-                      aria-label="启用额度状态提醒"
+                      aria-label={t("admin.enable_quota_status_alerts")}
                       checked={field.value}
                       onChange={field.onChange}
-                      checkedChildren="启用"
-                      unCheckedChildren="关闭"
+                      checkedChildren={t("admin.enable")}
+                      unCheckedChildren={t("common.close")}
                     />
                   </Form.Item>
                 )}
@@ -325,36 +322,35 @@ export function NotificationSettingsPage({ csrfToken }: { csrfToken: string }) {
                 loading={settingsMutation.isPending}
                 onClick={() => void form.handleSubmit((values) => settingsMutation.mutate(values))()}
               >
-                保存通知规则
-              </Button>
+ {t("admin.save_notification_rules")} </Button>
             </Form>
           </Card>
         </Col>
       </Row>
 
       <Modal
-        title="清除企业微信 Webhook？"
+        title={t("admin.clear_the_wecom_webhook")}
         open={clearOpen}
-        okText="确认清除"
-        cancelText="取消"
+        okText={t("admin.confirm_clear")}
+        cancelText={t("common.cancel")}
         okButtonProps={{ danger: true }}
         confirmLoading={clearMutation.isPending}
         onCancel={() => !clearMutation.isPending && setClearOpen(false)}
         onOk={() => clearMutation.mutate()}
       >
-        <Paragraph>清除后会同时关闭通知调度。历史发送状态保留，Webhook 密钥不可恢复。</Paragraph>
+        <Paragraph>{t("admin.clearing_also_disables_notification_scheduling_delivery_history_is_retained_the")}</Paragraph>
       </Modal>
     </section>
   );
 }
 
 function WebhookTag({ configured }: { configured: boolean }) {
-  return <Tag color={configured ? "success" : "default"}>{configured ? "已配置" : "未配置"}</Tag>;
+  return <Tag color={configured ? "success" : "default"}>{configured ? t("admin.configured") : t("admin.not_configured")}</Tag>;
 }
 
 function NotificationPageSkeleton() {
   return (
-    <section className="page-content" aria-label="正在加载通知配置">
+    <section className="page-content" aria-label={t("admin.loading_notification_settings")}>
       <div className="skeleton skeleton-title" />
       <div className="skeleton skeleton-line" />
       <div className="skeleton skeleton-table" />

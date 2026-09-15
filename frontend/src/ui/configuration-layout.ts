@@ -1,13 +1,15 @@
+import "../i18n/admin";
+import { t } from "../i18n";
 import type { ConfigurationField } from "../api/configuration";
 
 // Presentation only: the catalog remains authoritative for values, validation and effects.
 export const configurationCategories = [
-  { name: "品牌与身份", eyebrow: "BRAND & IDENTITY", description: "站点品牌、组织身份与客户端导出" },
-  { name: "系统设置", eyebrow: "SYSTEM SETTINGS", description: "时间、登录安全与显示偏好" },
-  { name: "请求与账号", eyebrow: "REQUESTS & ACCOUNTS", description: "请求行为、账号切换与运行参数" },
-  { name: "用量与额度", eyebrow: "USAGE & QUOTAS", description: "用户额度、计费倍率与用量采集" },
-  { name: "通知设置", eyebrow: "NOTIFICATIONS", description: "企业微信通知、发送计划与额度预警" },
-  { name: "数据与审计", eyebrow: "DATA & AUDIT", description: "安全归档、存储状态与管理操作记录" }
+  { name: "admin.brand_identity", eyebrow: "BRAND & IDENTITY", description: t("admin.site_branding_organization_identity_client_exports") },
+  { name: "admin.system_settings", eyebrow: "SYSTEM SETTINGS", description: t("admin.time_sign_in_security_display_preferences") },
+  { name: "admin.requests_accounts", eyebrow: "REQUESTS & ACCOUNTS", description: t("admin.request_behavior_account_switching_runtime_parameters") },
+  { name: "admin.usage_quotas", eyebrow: "USAGE & QUOTAS", description: t("admin.user_quotas_billing_multipliers_usage_collection") },
+  { name: "admin.notifications_2", eyebrow: "NOTIFICATIONS", description: t("admin.wecom_notifications_schedules_quota_alerts") },
+  { name: "admin.data_audit", eyebrow: "DATA & AUDIT", description: t("admin.safety_archives_storage_status_admin_history") }
 ] as const;
 export type ConfigurationCategory = typeof configurationCategories[number]["name"];
 
@@ -29,28 +31,40 @@ export function configurationControlWidth(field: ConfigurationField): number | "
 export const configurationSections: Array<{
   id: string; category: ConfigurationCategory; title: string; description: string;
 }> = [
-  { id: "brand", category: "品牌与身份", title: "站点品牌", description: "页面名称、Logo 与公开地址" },
-  { id: "identity", category: "品牌与身份", title: "组织身份", description: "企业邮箱后缀与新 API Key 前缀" },
-  { id: "client", category: "品牌与身份", title: "客户端导出", description: "Provider、环境变量与默认模型" },
-  { id: "general", category: "系统设置", title: "时间与登录", description: "统一业务时区与 Portal 登录有效期" },
-  { id: "access", category: "系统设置", title: "访问凭据", description: "管理密钥与用户初始密码" },
-  { id: "appearance", category: "系统设置", title: "显示偏好", description: "账号明细中的推理强度配色" },
-  { id: "requests", category: "请求与账号", title: "请求与代理", description: "默认上游代理、重试与图片工具" },
-  { id: "affinity", category: "请求与账号", title: "会话保持", description: "会话凭据复用与有效期" },
-  { id: "failover", category: "请求与账号", title: "账号自动切换", description: "官方额度耗尽后的迁移策略" },
-  { id: "provisioning", category: "请求与账号", title: "账号供应与运行", description: "新账号端口、监听地址与更新镜像" },
-  { id: "logging", category: "请求与账号", title: "日志与排障", description: "调试开关、文件日志与保留上限" },
-  { id: "quota", category: "用量与额度", title: "额度", description: "用户额度、官方额度查询与用量维护" },
-  { id: "model-multipliers", category: "用量与额度", title: "模型倍率", description: "各模型与未匹配模型的用户额度倍率" },
-  { id: "reasoning-multipliers", category: "用量与额度", title: "推理倍率", description: "各推理强度的用户额度倍率" },
-  { id: "collection", category: "用量与额度", title: "用量采集", description: "采集开关、轮询、批次与事件保留" },
-  { id: "notifications", category: "通知设置", title: "企业微信通知", description: "通知开关、Webhook 接入、发送计划与额度预警" },
-  { id: "backups", category: "数据与审计", title: "安全归档", description: "归档数量与最近归档" },
-  { id: "storage", category: "数据与审计", title: "本地数据", description: "持久化路径与权限状态" },
-  { id: "audit", category: "数据与审计", title: "审计记录", description: "最近的配置与维护操作" }
+  { id: "brand", category: "admin.brand_identity", title: t("admin.site_branding"), description: t("admin.page_names_logo_public_url") },
+  { id: "identity", category: "admin.brand_identity", title: t("admin.organization_identity"), description: t("admin.organization_email_domains_new_api_key_prefix") },
+  { id: "client", category: "admin.brand_identity", title: t("admin.client_exports"), description: t("admin.provider_environment_variables_default_model") },
+  { id: "general", category: "admin.system_settings", title: t("admin.time_sign_in"), description: t("admin.business_timezone_portal_session_duration") },
+  { id: "access", category: "admin.system_settings", title: t("admin.access_credentials"), description: t("admin.management_key_initial_user_password") },
+  { id: "appearance", category: "admin.system_settings", title: t("admin.display_preferences"), description: t("admin.reasoning_effort_colors_in_account_details") },
+  { id: "requests", category: "admin.requests_accounts", title: t("admin.requests_proxies"), description: t("admin.default_upstream_proxy_retries_image_tools") },
+  { id: "affinity", category: "admin.requests_accounts", title: t("admin.session_affinity"), description: t("admin.credential_reuse_expiry") },
+  { id: "failover", category: "admin.requests_accounts", title: t("admin.automatic_account_switching"), description: t("admin.migration_policy_when_official_quotas_are_exhausted") },
+  { id: "provisioning", category: "admin.requests_accounts", title: t("admin.provisioning_runtime"), description: t("admin.new_account_ports_listen_address_update_image") },
+  { id: "logging", category: "admin.requests_accounts", title: t("admin.logs_diagnostics"), description: t("admin.debug_settings_file_logs_retention_limits") },
+  { id: "quota", category: "admin.usage_quotas", title: t("admin.quota"), description: t("admin.user_quotas_official_quota_queries_usage_maintenance") },
+  { id: "model-multipliers", category: "admin.usage_quotas", title: t("admin.model_multipliers"), description: t("admin.user_quota_multipliers_for_each_model_and_unmatched_models") },
+  { id: "reasoning-multipliers", category: "admin.usage_quotas", title: t("admin.reasoning_multipliers"), description: t("admin.user_quota_multipliers_for_each_reasoning_effort") },
+  { id: "collection", category: "admin.usage_quotas", title: t("admin.usage_collection"), description: t("admin.collection_toggle_polling_batches_event_retention") },
+  { id: "notifications", category: "admin.notifications_2", title: t("admin.wecom_notifications"), description: t("admin.notification_toggle_webhook_schedules_quota_alerts") },
+  { id: "backups", category: "admin.data_audit", title: t("admin.safety_archives"), description: t("admin.archive_count_latest_archive") },
+  { id: "storage", category: "admin.data_audit", title: t("admin.local_data"), description: t("admin.persistent_paths_permissions") },
+  { id: "audit", category: "admin.data_audit", title: t("admin.audit_log"), description: t("admin.recent_configuration_maintenance_operations") }
 ];
 
 const legacySections: Record<string, string> = {
+  "brand_identity": "brand",
+  "system_settings": "general",
+  "cpa_requests": "requests",
+  "automatic_account_switching": "failover",
+  "user_quota": "quota",
+  "reasoning_effort_policy": "reasoning-multipliers",
+  "usage_quota": "collection",
+  "wecom_notifications": "notifications",
+  "sessions_collection": "general",
+  "account_provisioning": "provisioning",
+  "accounts_releases": "provisioning",
+
   "品牌与身份": "brand", "系统设置": "general", "CPA 请求": "requests", "账号自动切换": "failover",
   "用户额度": "quota", "推理强度策略": "reasoning-multipliers", "用量与额度": "collection", "企业微信通知": "notifications",
   "multipliers": "model-multipliers", "模型与推理倍率": "model-multipliers",

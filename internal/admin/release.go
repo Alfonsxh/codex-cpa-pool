@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/runtimeops"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -60,7 +61,7 @@ func (server *Server) readReleaseStatus(c *gin.Context) {
 		server.internalError(c, "read release status", err)
 		return
 	}
-	c.JSON(http.StatusOK, payload)
+	httpi18n.JSON(c, http.StatusOK, payload)
 }
 
 func (server *Server) releaseStatus(ctx context.Context, force bool) (releaseStatusResponse, error) {

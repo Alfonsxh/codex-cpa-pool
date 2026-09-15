@@ -210,7 +210,8 @@
           "editable": true,
           "unit": "秒",
           "min": 1,
-          "max": 300
+          "max": 300,
+          "unit_code": "second"
         },
         {
           "key": "cpa.transient_error_cooldown_seconds",
@@ -223,7 +224,8 @@
           "editable": true,
           "unit": "秒",
           "min": 1,
-          "max": 300
+          "max": 300,
+          "unit_code": "second"
         },
         {
           "key": "cpa.session_affinity",
@@ -276,7 +278,8 @@
           "editable": true,
           "unit": "MiB",
           "min": 16,
-          "max": 1024
+          "max": 1024,
+          "unit_code": "MiB"
         },
         {
           "key": "cpa.error_logs_max_files",
@@ -289,7 +292,8 @@
           "editable": true,
           "unit": "个",
           "min": 1,
-          "max": 100
+          "max": 100,
+          "unit_code": "个"
         }
       ]
     },
@@ -318,7 +322,8 @@
           "editable": true,
           "unit": "秒",
           "min": 60,
-          "max": 604800
+          "max": 604800,
+          "unit_code": "second"
         },
         {
           "key": "usage.quota_cache_seconds",
@@ -331,7 +336,8 @@
           "editable": true,
           "unit": "秒",
           "min": 30,
-          "max": 3600
+          "max": 3600,
+          "unit_code": "second"
         },
         {
           "key": "usage.upstream_timeout_seconds",
@@ -344,7 +350,8 @@
           "editable": true,
           "unit": "秒",
           "min": 5,
-          "max": 120
+          "max": 120,
+          "unit_code": "second"
         }
       ]
     },
@@ -383,7 +390,8 @@
           "editable": true,
           "unit": "秒",
           "min": 30,
-          "max": 3600
+          "max": 3600,
+          "unit_code": "second"
         },
         {
           "key": "account_failover.reserve_percent",
@@ -396,7 +404,8 @@
           "editable": true,
           "unit": "%",
           "min": 0,
-          "max": 50
+          "max": 50,
+          "unit_code": "percent"
         },
         {
           "key": "account_failover.stale_after_seconds",
@@ -409,7 +418,8 @@
           "editable": true,
           "unit": "秒",
           "min": 60,
-          "max": 7200
+          "max": 7200,
+          "unit_code": "second"
         }
       ]
     },
@@ -428,7 +438,8 @@
           "editable": true,
           "unit": "Token",
           "min": 1,
-          "max": 1000000000000
+          "max": 1000000000000,
+          "unit_code": "token"
         },
         {
           "key": "user_quota.preserve_personal_weekly_on_new_week",
@@ -451,7 +462,8 @@
           "editable": true,
           "unit": "秒",
           "min": 30,
-          "max": 3600
+          "max": 3600,
+          "unit_code": "second"
         }
       ]
     },
@@ -470,7 +482,8 @@
           "editable": true,
           "unit": "倍",
           "min": 0.1,
-          "max": 10
+          "max": 10,
+          "unit_code": "multiplier"
         },
         {
           "key": "user_quota.model_multiplier.gpt-5.3-codex-spark",
@@ -483,7 +496,8 @@
           "editable": true,
           "unit": "倍",
           "min": 0.1,
-          "max": 10
+          "max": 10,
+          "unit_code": "multiplier"
         },
         {
           "key": "user_quota.model_multiplier.gpt-5.4",
@@ -496,7 +510,8 @@
           "editable": true,
           "unit": "倍",
           "min": 0.1,
-          "max": 10
+          "max": 10,
+          "unit_code": "multiplier"
         },
         {
           "key": "user_quota.model_multiplier.gpt-5.4-mini",
@@ -509,7 +524,8 @@
           "editable": true,
           "unit": "倍",
           "min": 0.1,
-          "max": 10
+          "max": 10,
+          "unit_code": "multiplier"
         },
         {
           "key": "user_quota.model_multiplier.gpt-5.5",
@@ -522,7 +538,8 @@
           "editable": true,
           "unit": "倍",
           "min": 0.1,
-          "max": 10
+          "max": 10,
+          "unit_code": "multiplier"
         },
         {
           "key": "user_quota.model_multiplier.gpt-5.6-luna",
@@ -535,7 +552,8 @@
           "editable": true,
           "unit": "倍",
           "min": 0.1,
-          "max": 10
+          "max": 10,
+          "unit_code": "multiplier"
         },
         {
           "key": "user_quota.model_multiplier.gpt-5.6-sol",
@@ -548,7 +566,8 @@
           "editable": true,
           "unit": "倍",
           "min": 0.1,
-          "max": 10
+          "max": 10,
+          "unit_code": "multiplier"
         },
         {
           "key": "user_quota.model_multiplier.gpt-5.6-terra",
@@ -561,7 +580,8 @@
           "editable": true,
           "unit": "倍",
           "min": 0.1,
-          "max": 10
+          "max": 10,
+          "unit_code": "multiplier"
         },
         {
           "key": "user_quota.model_multiplier.gpt-6-astra",
@@ -574,7 +594,8 @@
           "editable": true,
           "unit": "倍",
           "min": 0.1,
-          "max": 10
+          "max": 10,
+          "unit_code": "multiplier"
         },
         {
           "key": "user_quota.model_multiplier.gpt-image-1.5",
@@ -587,7 +608,8 @@
           "editable": true,
           "unit": "倍",
           "min": 0.1,
-          "max": 10
+          "max": 10,
+          "unit_code": "multiplier"
         },
         {
           "key": "user_quota.model_multiplier.gpt-image-2",
@@ -600,7 +622,8 @@
           "editable": true,
           "unit": "倍",
           "min": 0.1,
-          "max": 10
+          "max": 10,
+          "unit_code": "multiplier"
         },
         {
           "key": "user_quota.model_multiplier.unknown",
@@ -613,7 +636,8 @@
           "editable": true,
           "unit": "倍",
           "min": 0.1,
-          "max": 10
+          "max": 10,
+          "unit_code": "multiplier"
         },
         {
           "key": "user_quota.reasoning_multiplier.none",
@@ -626,7 +650,8 @@
           "editable": true,
           "unit": "倍",
           "min": 0.1,
-          "max": 10
+          "max": 10,
+          "unit_code": "multiplier"
         },
         {
           "key": "user_quota.reasoning_multiplier.minimal",
@@ -639,7 +664,8 @@
           "editable": true,
           "unit": "倍",
           "min": 0.1,
-          "max": 10
+          "max": 10,
+          "unit_code": "multiplier"
         },
         {
           "key": "user_quota.reasoning_multiplier.low",
@@ -652,7 +678,8 @@
           "editable": true,
           "unit": "倍",
           "min": 0.1,
-          "max": 10
+          "max": 10,
+          "unit_code": "multiplier"
         },
         {
           "key": "user_quota.reasoning_multiplier.medium",
@@ -665,7 +692,8 @@
           "editable": true,
           "unit": "倍",
           "min": 0.1,
-          "max": 10
+          "max": 10,
+          "unit_code": "multiplier"
         },
         {
           "key": "user_quota.reasoning_multiplier.high",
@@ -678,7 +706,8 @@
           "editable": true,
           "unit": "倍",
           "min": 0.1,
-          "max": 10
+          "max": 10,
+          "unit_code": "multiplier"
         },
         {
           "key": "user_quota.reasoning_multiplier.xhigh",
@@ -691,7 +720,8 @@
           "editable": true,
           "unit": "倍",
           "min": 0.1,
-          "max": 10
+          "max": 10,
+          "unit_code": "multiplier"
         },
         {
           "key": "user_quota.reasoning_multiplier.max",
@@ -704,7 +734,8 @@
           "editable": true,
           "unit": "倍",
           "min": 0.1,
-          "max": 10
+          "max": 10,
+          "unit_code": "multiplier"
         },
         {
           "key": "user_quota.reasoning_multiplier.ultra",
@@ -717,7 +748,8 @@
           "editable": true,
           "unit": "倍",
           "min": 0.1,
-          "max": 10
+          "max": 10,
+          "unit_code": "multiplier"
         },
         {
           "key": "user_quota.reasoning_multiplier.auto",
@@ -730,7 +762,8 @@
           "editable": true,
           "unit": "倍",
           "min": 0.1,
-          "max": 10
+          "max": 10,
+          "unit_code": "multiplier"
         },
         {
           "key": "user_quota.reasoning_multiplier.unknown",
@@ -743,7 +776,8 @@
           "editable": true,
           "unit": "倍",
           "min": 0.1,
-          "max": 10
+          "max": 10,
+          "unit_code": "multiplier"
         },
         {
           "key": "admin.account_usage.reasoning_effort_color.none",
@@ -882,7 +916,8 @@
           "editable": true,
           "unit": "分钟",
           "min": 0,
-          "max": 120
+          "max": 120,
+          "unit_code": "minute"
         },
         {
           "key": "notification.quota_alert_enabled",
@@ -905,7 +940,8 @@
           "editable": true,
           "unit": "%",
           "min": 1,
-          "max": 100
+          "max": 100,
+          "unit_code": "percent"
         }
       ]
     },
@@ -924,7 +960,8 @@
           "editable": true,
           "unit": "秒",
           "min": 3600,
-          "max": 43200
+          "max": 43200,
+          "unit_code": "second"
         },
         {
           "key": "collector.interval_seconds",
@@ -937,7 +974,8 @@
           "editable": true,
           "unit": "秒",
           "min": 0.5,
-          "max": 60
+          "max": 60,
+          "unit_code": "second"
         },
         {
           "key": "collector.batch_size",

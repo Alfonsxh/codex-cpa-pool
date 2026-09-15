@@ -5,6 +5,15 @@ import (
 	"math"
 	"strconv"
 	"strings"
+
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
+)
+
+// An additional window that upstream left unnamed keeps its position in the key,
+// which lets presentation rebuild the authored label for the response language.
+const (
+	additionalWindowKeyPrefix         = "additional:"
+	unnamedAdditionalWindowIdentifier = "additional-"
 )
 
 type quotaSource struct {
@@ -31,7 +40,7 @@ func Normalize(account string, payload map[string]any) AccountQuota {
 	applicable := nonnegativeInt(resetCredits["applicable_available_count"])
 	reachedDetails := strings.ToLower(strings.TrimSpace(stringValue(object(payload["rate_limit_reached_type"])["details"])))
 
-	sources := []quotaSource{newQuotaSource("default", "常规周限额", nil, defaultRateLimit, "default")}
+	sources := []quotaSource{newQuotaSource("default", i18n.Text(i18n.English, "notifications.weekly_limit"), nil, defaultRateLimit, "default")}
 	for index, raw := range list(payload["additional_rate_limits"]) {
 		item := object(raw)
 		if item == nil {
@@ -43,15 +52,13 @@ func Normalize(account string, payload map[string]any) AccountQuota {
 		if identifier == "" {
 			identifier = limitName
 		}
-		if identifier == "" {
-			identifier = "additional-" + strconv.Itoa(index+1)
-		}
 		label := limitName
 		if label == "" {
 			label = metered
 		}
-		if label == "" {
-			label = "附加周限额 " + strconv.Itoa(index+1)
+		if identifier == "" {
+			identifier = unnamedAdditionalWindowIdentifier + strconv.Itoa(index+1)
+			label = i18n.Text(i18n.English, "quota.additional_weekly_limit") + strconv.Itoa(index+1)
 		}
 		var meteredPointer *string
 		if metered != "" {
@@ -59,7 +66,7 @@ func Normalize(account string, payload map[string]any) AccountQuota {
 			meteredPointer = &value
 		}
 		sources = append(sources, newQuotaSource(
-			"additional:"+identifier, label, meteredPointer, object(item["rate_limit"]),
+			additionalWindowKeyPrefix+identifier, label, meteredPointer, object(item["rate_limit"]),
 			identifier, limitName, metered,
 		))
 	}

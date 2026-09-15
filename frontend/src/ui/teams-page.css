@@ -1,4 +1,6 @@
 .legacy-team-page .organization-catalog-panel { container: team-catalog / inline-size; }
+/* Contain the hidden native select within this horizontally scrolling toolbar. */
+.legacy-team-page .organization-table-toolbar { position: relative; }
 .legacy-team-page .organization-table-toolbar { --overview-control-height: 40px; display: flex; flex-direction: row; flex-wrap: nowrap; align-items: end; gap: clamp(24px, 3cqw, 48px); overflow-x: auto; scrollbar-width: thin; background: var(--surface-2); padding: 16px; box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface) 72%, transparent); }
 .legacy-team-page .organization-table-toolbar > .team-time-filter { display: flex; min-width: max-content; flex: 0 0 auto; flex-wrap: nowrap; align-items: end; justify-content: flex-start; gap: 14px; }
 .legacy-team-page .organization-table-toolbar > .team-catalog-controls { display: flex; flex: 0 0 auto; flex-wrap: nowrap; align-items: end; justify-content: flex-start; gap: 16px; margin-inline-start: auto; padding-inline-start: clamp(24px, 3cqw, 48px); }
@@ -19,6 +21,8 @@
 .legacy-team-page .team-catalog-actions { display: flex; min-height: 40px; flex-wrap: nowrap; align-items: center; gap: 12px; white-space: nowrap; }
 .legacy-team-page .organization-catalog-table-wrap { overflow-x: auto; }
 .legacy-team-page .organization-catalog-table { min-width: 900px; }
+html[lang="en"] .legacy-team-page .legacy-sort-button { white-space: normal; }
+html[lang="en"] .legacy-team-page .legacy-sort-button > span { min-width: 0; }
 .legacy-team-page .organization-catalog-table th:nth-child(1) { width: 5%; }
 .legacy-team-page .organization-catalog-table th:nth-child(2) { width: 23%; }
 .legacy-team-page .organization-catalog-table th:nth-child(3),

@@ -1,3 +1,4 @@
+import { t, getIntlLocale } from "../../i18n";
 import { useSiteTimezone, formatSiteTimestamp } from "../site-time";
 import * as echarts from "echarts/core";
 import { LineChart, type LineSeriesOption } from "echarts/charts";
@@ -54,11 +55,11 @@ export function UsageChart({ buckets, series, summary = false, valueLabel, timez
   const height = 500;
   const summaryMetrics = useMemo(() => summary ? summarizeUsageChart(buckets, series) : null, [buckets, series, summary]);
   const summaryColumns = summaryMetrics ? [
-    ["point", selectedIndex === null ? "最新时段" : "所选时段", summaryMetrics.values[pointIndex] ?? 0],
-    ["current", "当前值", summaryMetrics.current],
-    ["total", "范围内总量", summaryMetrics.total],
-    ["average", "平均值", summaryMetrics.average],
-    ["maximum", "最大值", summaryMetrics.maximum]
+    ["point", selectedIndex === null ? t("common.latest_interval") : t("common.selected_interval"), summaryMetrics.values[pointIndex] ?? 0],
+    ["current", t("common.current"), summaryMetrics.current],
+    ["total", t("common.range_total"), summaryMetrics.total],
+    ["average", t("common.average"), summaryMetrics.average],
+    ["maximum", t("common.maximum"), summaryMetrics.maximum]
   ] as const : [];
   const labels = useMemo(
     () => buckets.map((timestamp) => formatSiteTimestamp(timestamp, timezone)),
@@ -85,7 +86,7 @@ export function UsageChart({ buckets, series, summary = false, valueLabel, timez
       [1, 2, 5, 10].find((step) => step * intervalMagnitude >= roughInterval) ?? 10
     ));
     const peak = summary ? usageChartPeak(series[0]?.values ?? []) : null;
-    const peakColor = valueLabel === "加权" ? "#d18b41" : "#6374d8";
+    const peakColor = valueLabel === t("common.weighted_2") ? "#d18b41" : "#6374d8";
     const xLabelIndexes = new Set(Array.from({ length: 11 }, (_, index) => (
       Math.round(Math.max(0, labels.length - 1) * index / 10)
     )));
@@ -195,7 +196,7 @@ export function UsageChart({ buckets, series, summary = false, valueLabel, timez
             distance: 12,
             align: peak.index <= (buckets.length - 1) * 0.15 ? "left"
               : peak.index >= (buckets.length - 1) * 0.85 ? "right" : "center",
-            formatter: `峰值 ${formatTokens(peak.value)}`,
+            formatter: t("common.peak_2", [formatTokens(peak.value)]),
             color: dark ? "#edf1fb" : "#293348",
             fontSize: 12,
             fontWeight: 650,
@@ -205,7 +206,7 @@ export function UsageChart({ buckets, series, summary = false, valueLabel, timez
             borderRadius: 4,
             padding: [4, 8]
           },
-          data: [{ name: "峰值", coord: [peak.index, peak.value], value: peak.value }]
+          data: [{ name: t("common.peak"), coord: [peak.index, peak.value], value: peak.value }]
         } : undefined
       }))
     };
@@ -247,7 +248,7 @@ export function UsageChart({ buckets, series, summary = false, valueLabel, timez
       <div
         className={`overview-legacy-chart${summary ? " summary" : ""}`}
         role="img"
-        aria-label={`${ariaLabel}。鼠标悬停或使用左右方向键查看聚合点详情。`}
+        aria-label={t("common.hover_or_use_the_left_and_right_arrow_keys_to", [ariaLabel])}
         tabIndex={0}
         onFocus={() => showBucket(buckets.length - 1)}
         onBlur={() => {
@@ -275,8 +276,8 @@ export function UsageChart({ buckets, series, summary = false, valueLabel, timez
       </div>
       {footer}
       {summary && summaryMetrics ? (
-        <section className="overview-chart-summary" aria-label="全部账号统计摘要">
-          <table className="overview-chart-summary-table" aria-label="全部账号 Token 统计">
+        <section className="overview-chart-summary" aria-label={t("common.all_accounts_summary")}>
+          <table className="overview-chart-summary-table" aria-label={t("common.all_accounts_token_statistics")}>
             <colgroup>
               <col className="overview-chart-summary-time-column" />
               <col className="overview-chart-summary-mode-column" />
@@ -284,8 +285,8 @@ export function UsageChart({ buckets, series, summary = false, valueLabel, timez
             </colgroup>
             <thead>
               <tr>
-                <th scope="col" className="overview-chart-summary-time">时间</th>
-                <th scope="col" className="overview-chart-summary-mode">Token 口径</th>
+                <th scope="col" className="overview-chart-summary-time">{t("common.time")}</th>
+                <th scope="col" className="overview-chart-summary-mode">{t("common.token_metric")}</th>
                 {summaryColumns.map(([key, label]) => (
                   <th scope="col" className="overview-token-number-cell" data-metric-header={key} key={key}>{label}</th>
                 ))}
@@ -299,7 +300,7 @@ export function UsageChart({ buckets, series, summary = false, valueLabel, timez
                   </time>
                 </td>
                 <td className="overview-chart-summary-mode">
-                  <span className={`overview-chart-mode-tag ${valueLabel === "加权" ? "weighted" : "unweighted"}`}><i aria-hidden="true" />{valueLabel}</span>
+                  <span className={`overview-chart-mode-tag ${valueLabel === t("common.weighted_2") ? "weighted" : "unweighted"}`}><i aria-hidden="true" />{valueLabel}</span>
                 </td>
                 {summaryColumns.map(([key, , value]) => (
                   <td className="overview-chart-summary-token overview-token-number-cell" data-metric={key} key={key}>
@@ -350,7 +351,7 @@ export function tooltipRows(parameters: CallbackDataParams | CallbackDataParams[
       color: usageChartColors[Number(item.seriesIndex ?? 0) % usageChartColors.length],
       seriesIndex: Number(item.seriesIndex ?? 0)
     }))
-    .sort((left, right) => right.value - left.value || left.name.localeCompare(right.name, "zh-CN", { numeric: true }))
+    .sort((left, right) => right.value - left.value || left.name.localeCompare(right.name, getIntlLocale(), { numeric: true }))
     .slice(0, 10);
 }
 
@@ -369,7 +370,7 @@ export function renderUsageTooltip(
     + `<em>${escapeHtml(formatTokens(item.value))}</em></span>`
   )).join("");
   const escapedValueLabel = escapeHtml(valueLabel);
-  const modeTone = valueLabel === "加权" ? "weighted" : "unweighted";
+  const modeTone = valueLabel === t("common.weighted_2") ? "weighted" : "unweighted";
   const heading = escapedValueLabel
     ? `<strong><span>${escapeHtml(timestamp)}</span><small class="overview-chart-mode-tag ${modeTone}"><i></i>${escapedValueLabel}</small></strong>`
     : `<strong>${escapeHtml(timestamp)}</strong>`;

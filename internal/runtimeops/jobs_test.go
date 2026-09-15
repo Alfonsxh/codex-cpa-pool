@@ -170,7 +170,7 @@ func TestJobManagerRunsImageActionsUnderSharedOperationLock(t *testing.T) {
 	t.Cleanup(manager.Close)
 
 	pull, err := manager.Submit("image-pull", "all")
-	if err != nil || pull.Job.Name != "拉取 CPA 镜像" {
+	if err != nil || pull.Job.Name != "Pull CPA image" {
 		t.Fatalf("submit image pull = (%#v, %v)", pull, err)
 	}
 	awaitRuntimeValue(t, images.started, "image-pull:all")
@@ -189,7 +189,7 @@ func TestJobManagerRunsImageActionsUnderSharedOperationLock(t *testing.T) {
 
 	images.release = make(chan struct{})
 	update, err := manager.Submit("image-update", "alpha")
-	if err != nil || update.Job.Name != "更新 CPA 镜像" {
+	if err != nil || update.Job.Name != "Update CPA image" {
 		t.Fatalf("submit image update = (%#v, %v)", update, err)
 	}
 	awaitRuntimeValue(t, images.started, "image-update:alpha")
@@ -226,9 +226,9 @@ func TestJobManagerRunsFrozenLegacyDiagnosticsAndLocksRender(t *testing.T) {
 		action string
 		name   string
 	}{
-		{action: "health", name: "健康检查"},
-		{action: "verify-routing", name: "路由验证"},
-		{action: "render", name: "渲染并校验配置"},
+		{action: "health", name: "Health check"},
+		{action: "verify-routing", name: "Verify routes"},
+		{action: "render", name: "Render and validate configuration"},
 	} {
 		submission, submitError := manager.Submit(test.action, "ignored-target")
 		if submitError != nil || submission.Job.Name != test.name || submission.Job.Target != "all" {

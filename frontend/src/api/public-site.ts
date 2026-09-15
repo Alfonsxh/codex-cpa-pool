@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { defaultSiteTimezone } from "../ui/site-time";
 import { apiRequest } from "./client";
 import type { NativeAccountCatalog, PublicSiteConfiguration } from "./generated";
@@ -37,7 +38,7 @@ export async function readPublicSiteConfiguration(signal?: AbortSignal): Promise
 export function emailDomainHint(domains: readonly string[] | undefined): string {
   const suffixes = normalizedEmailDomains(domains).map((domain) => `@${domain}`);
   if (!suffixes.length) return "";
-  return `${suffixes.length === 1 ? "企业邮箱后缀" : "可用企业邮箱后缀"}：${suffixes.join("、")}`;
+  return `${suffixes.length === 1 ? t("common.organization_email_domain") : t("common.allowed_organization_email_domains")}：${suffixes.join("、")}`;
 }
 
 export function emailPlaceholder(domains: readonly string[] | undefined): string {

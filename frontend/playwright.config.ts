@@ -32,6 +32,9 @@ export default defineConfig({
     baseURL: "http://127.0.0.1:5193",
     browserName: "chromium",
     locale: "zh-CN",
+    // Existing behavior and visual baselines explicitly cover the Chinese locale.
+    // language.spec.ts starts without preferences and covers the English default.
+    storageState: { cookies: [{ name: "cpa-ui-language", value: "zh-CN", domain: "127.0.0.1", path: "/", expires: -1, httpOnly: false, secure: false, sameSite: "Lax" }], origins: [] },
     timezoneId: "Asia/Shanghai",
     colorScheme: "light",
     screenshot: "only-on-failure",

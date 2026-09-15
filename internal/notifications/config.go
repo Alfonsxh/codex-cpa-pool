@@ -1,13 +1,14 @@
 package notifications
 
 import (
-	"errors"
-	"fmt"
 	"math"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
+
 	_ "time/tzdata"
 
 	"github.com/Alfonsxh/codex-cpa-pool/internal/sitetime"
@@ -20,7 +21,7 @@ func ParseConfig(settings map[string]any) (Config, error) {
 	}
 	location, err := sitetime.Validate(timezoneName)
 	if err != nil {
-		return Config{}, fmt.Errorf("通知时区无效: %w", err)
+		return Config{}, i18n.M("notifications.invalid_notification_timezone", i18n.Params{"Detail": err}).WithCause(err)
 	}
 	dailyTimes, err := ParseClockTimes(stringSetting(
 		settings["notification.daily_times"], "09:00,14:00,18:00",
@@ -41,6 +42,7 @@ func ParseConfig(settings map[string]any) (Config, error) {
 		quotaSeconds = 60
 	}
 	return Config{
+		Language: i18n.FromSettings(settings),
 		Enabled:  boolSetting(settings["notification.enabled"], false),
 		Timezone: location, TimezoneName: timezoneName, DailyTimes: dailyTimes,
 		ScheduleGrace:      time.Duration(graceMinutes * float64(time.Minute)),
@@ -61,18 +63,18 @@ func ParseClockTimes(value string) ([]ClockTime, error) {
 		}
 		parts := strings.Split(item, ":")
 		if len(parts) != 2 || len(parts[0]) != 2 || len(parts[1]) != 2 {
-			return nil, errors.New("通知发送时间必须使用 HH:MM")
+			return nil, i18n.M("notifications.notification_times_must_use_hh_mm")
 		}
 		hour, hourError := strconv.Atoi(parts[0])
 		minute, minuteError := strconv.Atoi(parts[1])
 		if hourError != nil || minuteError != nil || hour < 0 || hour > 23 || minute < 0 || minute > 59 {
-			return nil, errors.New("通知发送时间必须使用 HH:MM")
+			return nil, i18n.M("notifications.notification_times_must_use_hh_mm")
 		}
 		clock := ClockTime{Hour: hour, Minute: minute}
 		seen[clock.String()] = clock
 	}
 	if len(seen) == 0 {
-		return nil, errors.New("至少需要一个通知发送时间")
+		return nil, i18n.M("notifications.at_least_one_notification_time_is_required")
 	}
 	keys := make([]string, 0, len(seen))
 	for key := range seen {

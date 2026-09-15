@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/usage"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/usagereport"
 	"github.com/gin-gonic/gin"
@@ -24,17 +26,17 @@ func (server *Server) exportWeeklyUsage(c *gin.Context) {
 	case "true":
 		withUnits = true
 	default:
-		writeError(c, http.StatusBadRequest, "with_units 必须为 true 或 false", "invalid_report_format")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.with_units_must_be_true_or_false"), "invalid_report_format")
 		return
 	}
 	reader, ok := server.usage.(weeklyUsageReader)
 	if !ok {
-		writeError(c, http.StatusServiceUnavailable, "用量导出服务尚未就绪", "usage_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.usage_export_service_is_not_ready"), "usage_not_ready")
 		return
 	}
 	if !server.usageReportMu.TryLock() {
 		c.Header("Retry-After", "5")
-		writeError(c, http.StatusTooManyRequests, "正在生成其他周报，请稍后重试", "report_busy")
+		writeError(c, http.StatusTooManyRequests, i18n.M("admin.another_weekly_report_is_being_generated_please_try_again_later"), "report_busy")
 		return
 	}
 	defer server.usageReportMu.Unlock()
@@ -48,7 +50,7 @@ func (server *Server) exportWeeklyUsage(c *gin.Context) {
 	}
 	period, err := usagereport.ResolvePeriod(c.Query("week_start"), server.now(), zone)
 	if err != nil {
-		writeError(c, http.StatusBadRequest, err.Error(), "invalid_report_week")
+		writeError(c, http.StatusBadRequest, err, "invalid_report_week")
 		return
 	}
 	teamCatalog, err := server.loadTeamUsageCatalog(c)
@@ -85,17 +87,17 @@ func (server *Server) exportWeeklyUsage(c *gin.Context) {
 			return
 		}
 	}
-	report, err := usagereport.Build(period, catalog, rows)
+	report, err := usagereport.Build(period, catalog, rows, httpi18n.Locale(c))
 	if err != nil {
 		server.reportError(c, err)
 		return
 	}
-	data, err := usagereport.XLSX(ctx, report, usagereport.XLSXOptions{WithUnits: withUnits})
+	data, err := usagereport.XLSX(ctx, report, usagereport.XLSXOptions{WithUnits: withUnits, Language: httpi18n.Locale(c)})
 	if err != nil {
 		server.reportError(c, err)
 		return
 	}
-	c.Header("Content-Disposition", mime.FormatMediaType("attachment", map[string]string{"filename": period.Filename()}))
+	c.Header("Content-Disposition", mime.FormatMediaType("attachment", map[string]string{"filename": period.Filename(httpi18n.Locale(c))}))
 	c.Header("X-Content-Type-Options", "nosniff")
 	c.Data(http.StatusOK, usagereport.ContentType, data)
 }
@@ -103,9 +105,9 @@ func (server *Server) exportWeeklyUsage(c *gin.Context) {
 func (server *Server) reportError(c *gin.Context, err error) {
 	switch {
 	case errors.Is(err, usage.ErrReportTooLarge):
-		writeError(c, http.StatusUnprocessableEntity, "该周统计明细超出导出上限，无法生成完整周报", "report_too_large")
+		writeError(c, http.StatusUnprocessableEntity, i18n.M("admin.this_week_s_details_exceed_the_export_limit_a_complete"), "report_too_large")
 	case errors.Is(err, context.DeadlineExceeded), errors.Is(err, context.Canceled), c.Request.Context().Err() != nil:
-		writeError(c, http.StatusGatewayTimeout, "周报生成超时或已取消，请稍后重试", "report_timeout")
+		writeError(c, http.StatusGatewayTimeout, i18n.M("admin.weekly_report_generation_timed_out_or_was_cancelled_please_try"), "report_timeout")
 	default:
 		server.internalError(c, "export weekly usage", err)
 	}

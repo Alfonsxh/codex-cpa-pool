@@ -13,10 +13,13 @@ import (
 	"time"
 
 	"github.com/Alfonsxh/codex-cpa-pool/internal/controlplane"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/containerd/errdefs"
 	"github.com/google/uuid"
 	"github.com/moby/moby/api/pkg/stdcopy"
+
 	containertypes "github.com/moby/moby/api/types/container"
+
 	dockerclient "github.com/moby/moby/client"
 	"golang.org/x/mod/semver"
 )
@@ -225,7 +228,7 @@ func (runtime *AccountRuntime) PullImage(ctx context.Context, output io.Writer) 
 	if err != nil {
 		return OperationResult{}, err
 	}
-	_, _ = fmt.Fprintf(output, "正在拉取 CPA 镜像：%s\n", target)
+	_, _ = fmt.Fprint(output, i18n.M("runtimeops.pulling_cpa_image", i18n.Params{"Value": target}).Render(i18n.English))
 	stream, err := docker.ImagePull(ctx, target, dockerclient.ImagePullOptions{})
 	if err != nil {
 		return OperationResult{}, fmt.Errorf("pull CPA image: %w", err)
@@ -246,9 +249,7 @@ func (runtime *AccountRuntime) PullImage(ctx context.Context, output io.Writer) 
 	if err != nil {
 		return OperationResult{}, err
 	}
-	_, _ = fmt.Fprintf(output, "镜像已就绪：%s · %s (%s)\n",
-		target, firstImageIdentityValue(candidate, "version", "镜像未提供可识别版本"),
-		firstImageIdentityValue(candidate, "image_short_id", "摘要未知"))
+	_, _ = fmt.Fprint(output, i18n.M("runtimeops.image_ready", i18n.Params{"Value1": target, "Value2": firstImageIdentityValue(candidate, "version", i18n.Text(i18n.English, "runtimeops.image_has_no_recognizable_version")), "Value3": firstImageIdentityValue(candidate, "image_short_id", i18n.Text(i18n.English, "runtimeops.unknown_digest"))}).Render(i18n.English))
 	return OperationResult{Action: "image-pull", Target: "all", Services: []Service{}}, nil
 }
 
@@ -282,12 +283,12 @@ func (runtime *AccountRuntime) UpdateImage(ctx context.Context, rawTarget string
 			continue
 		}
 		if target != "all" && !account.GroupEnabled {
-			return OperationResult{}, fmt.Errorf("%w: CPA 账号已停用，不能更新镜像：%s", ErrRuntimeTarget, target)
+			return OperationResult{}, i18n.M("runtimeops.cpa_account_is_disabled_and_cannot_be_updated", i18n.Params{"Detail": ErrRuntimeTarget, "Value2": target}).WithCause(ErrRuntimeTarget)
 		}
 		selected = append(selected, account)
 	}
 	if target != "all" && len(selected) != 1 {
-		return OperationResult{}, fmt.Errorf("%w: 镜像更新必须选择 all 或有效 CPA 账号", ErrRuntimeTarget)
+		return OperationResult{}, i18n.M("runtimeops.select_all_or_a_valid_cpa_account_for_the_image", i18n.Params{"Detail": ErrRuntimeTarget}).WithCause(ErrRuntimeTarget)
 	}
 	configured, err := runtime.configuredCPAImage(ctx)
 	if err != nil {
@@ -296,7 +297,7 @@ func (runtime *AccountRuntime) UpdateImage(ctx context.Context, rawTarget string
 	inspected, err := docker.ImageInspect(ctx, configured)
 	if err != nil {
 		if errdefs.IsNotFound(err) {
-			return OperationResult{}, errors.New("目标镜像尚未拉取，请先执行“拉取镜像”")
+			return OperationResult{}, i18n.M("runtimeops.the_target_image_has_not_been_pulled_run_pull_image")
 		}
 		return OperationResult{}, fmt.Errorf("inspect target CPA image: %w", err)
 	}
@@ -306,14 +307,14 @@ func (runtime *AccountRuntime) UpdateImage(ctx context.Context, rawTarget string
 	}
 	resolvedReference := strings.TrimSpace(stringValue(identity["resolved_ref"]))
 	if resolvedReference == "" {
-		return OperationResult{}, errors.New("目标镜像缺少可应用的不可变标识")
+		return OperationResult{}, i18n.M("runtimeops.the_target_image_has_no_applicable_immutable_identifier")
 	}
 
 	rollbacks := make([]cpaImageRollback, 0, len(selected))
 	alreadyCurrent := make([]controlplane.Account, 0, len(selected))
 	for _, account := range selected {
 		if !account.GroupEnabled {
-			_, _ = fmt.Fprintf(output, "跳过 %s：CPA 已停用\n", account.ID)
+			_, _ = fmt.Fprint(output, i18n.M("runtimeops.skipping_cpa_is_disabled", i18n.Params{"Value": account.ID}).Render(i18n.English))
 			continue
 		}
 		container, found, err := runtime.findAccountContainer(ctx, account.ID)
@@ -321,11 +322,11 @@ func (runtime *AccountRuntime) UpdateImage(ctx context.Context, rawTarget string
 			return OperationResult{}, err
 		}
 		if !found || container.State != "running" {
-			_, _ = fmt.Fprintf(output, "跳过 %s：CPA 未运行；下次启动会使用目标镜像\n", account.ID)
+			_, _ = fmt.Fprint(output, i18n.M("runtimeops.skipping_cpa_is_stopped_the_next_start_will_use_the", i18n.Params{"Value": account.ID}).Render(i18n.English))
 			continue
 		}
 		if containerImageID(container) == inspected.ID {
-			_, _ = fmt.Fprintf(output, "跳过 %s：已经运行目标镜像\n", account.ID)
+			_, _ = fmt.Fprint(output, i18n.M("runtimeops.skipping_already_running_the_target_image", i18n.Params{"Value": account.ID}).Render(i18n.English))
 			alreadyCurrent = append(alreadyCurrent, account)
 			continue
 		}
@@ -342,7 +343,7 @@ func (runtime *AccountRuntime) UpdateImage(ctx context.Context, rawTarget string
 
 	if len(rollbacks) == 0 {
 		if len(alreadyCurrent) == 0 {
-			_, _ = fmt.Fprintln(output, "没有运行中的 CPA；未改变已应用版本")
+			_, _ = fmt.Fprintln(output, i18n.Text(i18n.English, "runtimeops.no_running_cpas_the_applied_version_was_not_changed"))
 			return OperationResult{Action: "image-update", Target: target, Services: []Service{}}, nil
 		}
 		for _, account := range alreadyCurrent {
@@ -353,7 +354,7 @@ func (runtime *AccountRuntime) UpdateImage(ctx context.Context, rawTarget string
 		if err := runtime.commitCPAImageApplied(ctx, store, identity); err != nil {
 			return OperationResult{}, err
 		}
-		_, _ = fmt.Fprintln(output, "运行中的 CPA 已验证；已固定目标版本")
+		_, _ = fmt.Fprintln(output, i18n.Text(i18n.English, "runtimeops.running_cpas_verified_the_target_version_is_pinned"))
 		return OperationResult{Action: "image-update", Target: target, Services: []Service{}}, nil
 	}
 
@@ -362,7 +363,7 @@ func (runtime *AccountRuntime) UpdateImage(ctx context.Context, rawTarget string
 	var operationError error
 	for _, snapshot := range rollbacks {
 		attempted = append(attempted, snapshot)
-		_, _ = fmt.Fprintf(output, "正在更新 %s：%s -> %s\n", snapshot.account.ID, shortID(snapshot.oldImageID), shortID(inspected.ID))
+		_, _ = fmt.Fprint(output, i18n.M("runtimeops.updating", i18n.Params{"Value1": snapshot.account.ID, "Value2": shortID(snapshot.oldImageID), "Value3": shortID(inspected.ID)}).Render(i18n.English))
 		if err := runtime.replaceAccountImage(ctx, snapshot.account, resolvedReference, output); err != nil {
 			operationError = err
 			break
@@ -378,14 +379,14 @@ func (runtime *AccountRuntime) UpdateImage(ctx context.Context, rawTarget string
 		operationError = runtime.commitCPAImageApplied(ctx, store, identity)
 	}
 	if operationError != nil {
-		_, _ = fmt.Fprintf(output, "镜像更新失败，正在恢复已处理的 CPA：%s\n", Sanitize(operationError.Error()))
+		_, _ = fmt.Fprint(output, i18n.M("runtimeops.image_update_failed_restoring_processed_cpas", i18n.Params{"Value": Sanitize(operationError.Error())}).Render(i18n.English))
 		rollbackError := runtime.rollbackCPAImages(ctx, attempted, output)
 		if rollbackError != nil {
-			return OperationResult{}, errors.Join(operationError, fmt.Errorf("部分 CPA 回退失败: %w", rollbackError))
+			return OperationResult{}, errors.Join(operationError, i18n.M("runtimeops.some_cpa_rollbacks_failed", i18n.Params{"Detail": rollbackError}).WithCause(rollbackError))
 		}
 		return OperationResult{}, operationError
 	}
-	_, _ = fmt.Fprintf(output, "CPA 镜像更新完成：%d 个\n", len(updated))
+	_, _ = fmt.Fprint(output, i18n.M("runtimeops.cpa_image_update_completed", i18n.Params{"Count": len(updated)}).Render(i18n.English))
 	return OperationResult{Action: "image-update", Target: target, Services: updated}, nil
 }
 
@@ -476,7 +477,7 @@ func (runtime *AccountRuntime) probeImageAccount(ctx context.Context, accountID 
 	if err := runtime.probeAccount(ctx, accountID); err != nil {
 		return err
 	}
-	_, _ = fmt.Fprintf(output, "%s 验证通过：运行探针\n", accountID)
+	_, _ = fmt.Fprint(output, i18n.M("runtimeops.verified_runtime_probe", i18n.Params{"Field": accountID}).Render(i18n.English))
 	return nil
 }
 
@@ -501,7 +502,7 @@ func (runtime *AccountRuntime) rollbackCPAImages(ctx context.Context, attempted 
 			errorsFound = append(errorsFound, fmt.Errorf("%s: %w", snapshot.account.ID, err))
 			continue
 		}
-		_, _ = fmt.Fprintf(output, "已恢复 %s\n", snapshot.account.ID)
+		_, _ = fmt.Fprint(output, i18n.M("runtimeops.restored", i18n.Params{"Value": snapshot.account.ID}).Render(i18n.English))
 	}
 	return errors.Join(errorsFound...)
 }

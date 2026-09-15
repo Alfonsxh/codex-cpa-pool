@@ -1,0 +1,2686 @@
+[
+  {
+    "id": "accountstatus.account_runtime_status_cannot_be_confirmed",
+    "other": "账号运行状态暂不可确认"
+  },
+  {
+    "id": "accountstatus.account_weekly_quota_is_exhausted",
+    "other": "账号周额度已耗尽"
+  },
+  {
+    "id": "accountstatus.an_upstream_request_failed_temporarily_the_cpa_is_waiting_for",
+    "other": "上游请求临时失败，CPA 正在等待凭据冷却恢复"
+  },
+  {
+    "id": "accountstatus.available",
+    "other": "可用"
+  },
+  {
+    "id": "accountstatus.cpa_native_status_cannot_be_queried",
+    "other": "CPA 原生状态暂不可查询"
+  },
+  {
+    "id": "accountstatus.cpa_service_is_not_running",
+    "other": "CPA 服务未运行"
+  },
+  {
+    "id": "accountstatus.credentials_unavailable",
+    "other": "凭据不可用"
+  },
+  {
+    "id": "accountstatus.disabled",
+    "other": "已停用"
+  },
+  {
+    "id": "accountstatus.live_account_status_cannot_be_confirmed",
+    "other": "账号实时状态暂不可确认"
+  },
+  {
+    "id": "accountstatus.low_quota",
+    "other": "注意额度"
+  },
+  {
+    "id": "accountstatus.oauth_authorization_is_incomplete",
+    "other": "OAuth 尚未授权"
+  },
+  {
+    "id": "accountstatus.oauth_credentials_expired_authorize_again",
+    "other": "OAuth 凭据已失效，需要重新授权"
+  },
+  {
+    "id": "accountstatus.quota_exhausted",
+    "other": "额度耗尽"
+  },
+  {
+    "id": "accountstatus.quota_reserve",
+    "other": "额度预留"
+  },
+  {
+    "id": "accountstatus.quota_status_cannot_be_confirmed",
+    "other": "额度状态暂不可确认"
+  },
+  {
+    "id": "accountstatus.rate_limited",
+    "other": "限流中"
+  },
+  {
+    "id": "accountstatus.recent_errors",
+    "other": "近期异常"
+  },
+  {
+    "id": "accountstatus.stopped",
+    "other": "已停止"
+  },
+  {
+    "id": "accountstatus.temporary_cooldown",
+    "other": "临时冷却"
+  },
+  {
+    "id": "accountstatus.the_account_has_reached_its_quota_reserve",
+    "other": "账号已达到预留额度"
+  },
+  {
+    "id": "accountstatus.this_account_has_recent_request_errors",
+    "other": "账号近期出现请求异常"
+  },
+  {
+    "id": "accountstatus.this_account_is_available",
+    "other": "账号当前可用"
+  },
+  {
+    "id": "accountstatus.this_account_recently_returned_429_it_can_still_be_selected",
+    "other": "账号近期出现 429，仍可选择并稍后重试"
+  },
+  {
+    "id": "accountstatus.this_account_was_disabled_by_an_administrator",
+    "other": "账号已被管理员停用"
+  },
+  {
+    "id": "accountstatus.unauthorized",
+    "other": "未授权"
+  },
+  {
+    "id": "accountstatus.unknown_quota",
+    "other": "额度未知"
+  },
+  {
+    "id": "accountstatus.unknown_status",
+    "other": "状态未知"
+  },
+  {
+    "id": "accountstatus.weekly_quota_remaining_is_10_or_less",
+    "other": "周额度剩余不高于 10%"
+  },
+  {
+    "id": "admin.a_conflicting_runtime_task_already_exists",
+    "other": "已有冲突的运行任务"
+  },
+  {
+    "id": "admin.account_availability_updated",
+    "other": "CPA 账号选择策略已更新"
+  },
+  {
+    "id": "admin.account_directory_service_is_not_ready",
+    "other": "账号目录服务尚未就绪"
+  },
+  {
+    "id": "admin.account_lifecycle_service_is_not_ready",
+    "other": "账号生命周期服务尚未就绪"
+  },
+  {
+    "id": "admin.account_load_balancing_completed",
+    "other": "账号用户负载均衡已完成，"
+  },
+  {
+    "id": "admin.account_load_balancing_completed_but",
+    "other": "账号用户负载均衡已完成，但"
+  },
+  {
+    "id": "admin.account_provisioning",
+    "other": "账号供应"
+  },
+  {
+    "id": "admin.account_quota_report",
+    "other": " · 账号额度报告"
+  },
+  {
+    "id": "admin.account_quota_status_is_unavailable_and_is_shown_as_unknown",
+    "other": "账号额度状态暂不可用，已按状态未知展示"
+  },
+  {
+    "id": "admin.account_report_sent_to_the_wecom_group",
+    "other": "账号报告已发送到企业微信群"
+  },
+  {
+    "id": "admin.account_requests_and_tokens_for_this_range_are_unavailable",
+    "other": "当前用量范围的账号请求与 Token 统计暂不可用"
+  },
+  {
+    "id": "admin.account_state_changed_or_safe_runtime_resources_are_unavailable_no",
+    "other": "账号状态已变化或没有安全运行资源，未执行切换"
+  },
+  {
+    "id": "admin.accounts_already_match_the_target_distribution_no_migration_is_needed",
+    "other": "账号已处于目标分布，无需迁移"
+  },
+  {
+    "id": "admin.accounts_at_or_below_this_remaining_quota_do_not_receive",
+    "other": "剩余额度不高于此值时不接收迁入。"
+  },
+  {
+    "id": "admin.accounts_releases",
+    "other": "账号与发布"
+  },
+  {
+    "id": "admin.active_user_count_is_unavailable",
+    "other": "活跃用户数暂不可用"
+  },
+  {
+    "id": "admin.active_user_counts_refreshed",
+    "other": "活跃用户数已刷新"
+  },
+  {
+    "id": "admin.active_user_window",
+    "other": "活跃用户统计窗口"
+  },
+  {
+    "id": "admin.activity_unavailable",
+    "other": "{{.Window}}活跃用户数暂不可用"
+  },
+  {
+    "id": "admin.added_weekly_bonus_quota_for_users_effective_after_the_next",
+    "other": "已为 {{.Count}} 位用户追加本周额度；将在下次采集后生效"
+  },
+  {
+    "id": "admin.admin_audit_log",
+    "other": "管理操作审计"
+  },
+  {
+    "id": "admin.affects_only_sessions_created_after_saving",
+    "other": "仅影响保存后的新登录会话。"
+  },
+  {
+    "id": "admin.alert_when_account_weekly_usage_reaches_this_percentage",
+    "other": "账号周额度已用比例达到此值时预警。"
+  },
+  {
+    "id": "admin.all_account_users_were_safely_migrated",
+    "other": "账号用户已全部安全迁移，"
+  },
+  {
+    "id": "admin.all_account_users_were_safely_migrated_but",
+    "other": "账号用户已全部安全迁移，但"
+  },
+  {
+    "id": "admin.allow_requests_and_alert_after_a_prolonged_collection_failure",
+    "other": "采集异常超时后放行并告警。"
+  },
+  {
+    "id": "admin.allowed_email_domains",
+    "other": "允许的邮箱域名"
+  },
+  {
+    "id": "admin.an_identical_task_already_exists_and_has_been_opened",
+    "other": "已有相同任务，已直接打开"
+  },
+  {
+    "id": "admin.another_weekly_report_is_being_generated_please_try_again_later",
+    "other": "正在生成其他周报，请稍后重试"
+  },
+  {
+    "id": "admin.applies_to_all_users_when_off_this_week_s_quota",
+    "other": "对所有用户生效。关闭时，本周额度不变，下周一 00:00 按系统时区恢复组织默认额度；开启时持续保留个人额度。每周用量仍重新累计，临时追加额度仍在换周后失效。"
+  },
+  {
+    "id": "admin.associated_user_counts_are_unavailable",
+    "other": "账号关联用户数暂不可用"
+  },
+  {
+    "id": "admin.automatic",
+    "other": "自动执行"
+  },
+  {
+    "id": "admin.automatic_account_switching",
+    "other": "账号自动切换"
+  },
+  {
+    "id": "admin.automatic_migration_when_quota_is_low",
+    "other": "额度不足时自动迁移。"
+  },
+  {
+    "id": "admin.automatic_switching_mode",
+    "other": "自动切换模式"
+  },
+  {
+    "id": "admin.automatically_move_users_when_official_weekly_quota_is_exhausted",
+    "other": "官方周额度耗尽后自动迁移用户。"
+  },
+  {
+    "id": "admin.brand_domains_and_client_configuration",
+    "other": "品牌、域名和客户端配置。"
+  },
+  {
+    "id": "admin.brand_identity",
+    "other": "品牌与身份"
+  },
+  {
+    "id": "admin.branding",
+    "other": "品牌信息"
+  },
+  {
+    "id": "admin.client_key_environment_variable",
+    "other": "客户端 Key 环境变量"
+  },
+  {
+    "id": "admin.client_provider_name",
+    "other": "客户端 Provider 名称"
+  },
+  {
+    "id": "admin.client_provider_name_2",
+    "other": "客户端 Provider 名称。"
+  },
+  {
+    "id": "admin.cliproxyapi_image",
+    "other": "CLIProxyAPI 镜像"
+  },
+  {
+    "id": "admin.close",
+    "other": "关闭"
+  },
+  {
+    "id": "admin.collection_polling_interval",
+    "other": "采集轮询间隔"
+  },
+  {
+    "id": "admin.collection_polling_interval_2",
+    "other": "采集轮询间隔。"
+  },
+  {
+    "id": "admin.configuration_center_runtime_directory_is_unavailable",
+    "other": "配置中心运行目录不可用"
+  },
+  {
+    "id": "admin.configuration_could_not_be_applied_restoration_of_the_previous_configuration",
+    "other": "配置应用失败，已尝试恢复原配置"
+  },
+  {
+    "id": "admin.configuration_values_must_be_an_object",
+    "other": "配置值必须为对象"
+  },
+  {
+    "id": "admin.configure_a_default_proxy_url_before_enabling_the_default_upstream",
+    "other": "启用默认上游代理前必须配置默认代理 URL"
+  },
+  {
+    "id": "admin.configure_a_webhook_before_enabling_wecom_notifications",
+    "other": "启用企业微信通知前必须先配置 Webhook"
+  },
+  {
+    "id": "admin.configure_a_webhook_for_quota_reports_and_error_alerts",
+    "other": "配置额度报告和异常提醒 Webhook。"
+  },
+  {
+    "id": "admin.configure_email_domains_allowed_for_user_creation_and_sign_in",
+    "other": "配置允许创建和登录用户的邮箱域名。"
+  },
+  {
+    "id": "admin.configure_only_when_a_proxy_is_required_to_reach_the",
+    "other": "仅在访问上游必须经过代理时配置。"
+  },
+  {
+    "id": "admin.configure_the_initial_usage_center_password_first",
+    "other": "请先配置使用中心初始密码"
+  },
+  {
+    "id": "admin.confirm_api_key_rotation",
+    "other": "请确认轮换 API Key"
+  },
+  {
+    "id": "admin.confirm_balancing_users_across_all_accounts",
+    "other": "请确认一键负载均衡全部账号"
+  },
+  {
+    "id": "admin.confirm_clearing_the_wecom_webhook",
+    "other": "请确认清除企业微信 Webhook"
+  },
+  {
+    "id": "admin.confirm_disabling_the_user_s_api_key",
+    "other": "请确认停用用户 API Key"
+  },
+  {
+    "id": "admin.confirm_resetting_the_usage_center_password",
+    "other": "请确认重置使用中心密码"
+  },
+  {
+    "id": "admin.confirm_restoring_the_default_logo",
+    "other": "请确认恢复默认 Logo"
+  },
+  {
+    "id": "admin.confirm_saving_configuration",
+    "other": "请确认保存配置"
+  },
+  {
+    "id": "admin.confirm_saving_general_settings",
+    "other": "请确认保存通用设置"
+  },
+  {
+    "id": "admin.confirm_saving_notification_settings",
+    "other": "请确认保存通知配置"
+  },
+  {
+    "id": "admin.confirm_saving_setup_preferences",
+    "other": "请确认保存初始化偏好"
+  },
+  {
+    "id": "admin.confirm_saving_the_wecom_webhook",
+    "other": "请确认保存企业微信 Webhook"
+  },
+  {
+    "id": "admin.confirm_the_quota_action",
+    "other": "请确认额度操作"
+  },
+  {
+    "id": "admin.confirm_the_runtime_operation_and_target",
+    "other": "请确认运行操作及目标"
+  },
+  {
+    "id": "admin.confirmation_must_exactly_match_the_cpa_id",
+    "other": "确认内容必须与 CPA 标识完全一致"
+  },
+  {
+    "id": "admin.confirmation_must_exactly_match_the_user_s_email",
+    "other": "确认内容必须与用户邮箱完全一致"
+  },
+  {
+    "id": "admin.contains_an_invalid_port",
+    "other": "{{.Field}} 包含无效端口"
+  },
+  {
+    "id": "admin.contains_an_invalid_time",
+    "other": "{{.Field}} 包含无效时间"
+  },
+  {
+    "id": "admin.control_plane_database",
+    "other": "控制面数据库"
+  },
+  {
+    "id": "admin.control_plane_encryption_key",
+    "other": "控制面加密主密钥"
+  },
+  {
+    "id": "admin.control_plane_ownership_changed_the_operation_stopped",
+    "other": "控制面所有权已变化，操作已停止"
+  },
+  {
+    "id": "admin.control_plane_ownership_changed_the_operation_stopped_and_was_rolled",
+    "other": "控制面所有权已变化，操作已停止并回滚"
+  },
+  {
+    "id": "admin.cooldown_after_transient_errors",
+    "other": "临时错误冷却时间。"
+  },
+  {
+    "id": "admin.cpa_account_created_and_runtime_probes_passed",
+    "other": "业务 CPA 已创建并通过运行探针"
+  },
+  {
+    "id": "admin.cpa_account_deleted_configuration_authorization_and_logs_were_safely_archived",
+    "other": "业务 CPA 已删除，配置、授权和日志已安全归档"
+  },
+  {
+    "id": "admin.cpa_account_does_not_exist",
+    "other": "CPA 账号不存在"
+  },
+  {
+    "id": "admin.cpa_account_is_required",
+    "other": "CPA 账号不能为空"
+  },
+  {
+    "id": "admin.cpa_account_updated_and_runtime_probes_passed",
+    "other": "CPA 账号已更新并通过运行探针"
+  },
+  {
+    "id": "admin.cpa_container_status_is_unavailable",
+    "other": "CPA 容器状态暂不可用"
+  },
+  {
+    "id": "admin.cpa_listen_address",
+    "other": "业务 CPA 监听地址"
+  },
+  {
+    "id": "admin.cpa_listen_address_and_update_image",
+    "other": "CPA 监听与更新镜像。"
+  },
+  {
+    "id": "admin.cpa_parameters_were_written_to_the_private_compose_configuration_and",
+    "other": "；业务 CPA 参数已写入私有 Compose 投影，重建对应账号后生效"
+  },
+  {
+    "id": "admin.cpa_renamed_and_recreated_runtime_probes_passed",
+    "other": "CPA 已重命名、重建并通过运行探针"
+  },
+  {
+    "id": "admin.cpa_request_and_proxy_settings",
+    "other": "CPA 请求与代理配置。"
+  },
+  {
+    "id": "admin.cpa_requests",
+    "other": "CPA 请求"
+  },
+  {
+    "id": "admin.cpas_have_no_quota_period_boundaries_usage_for_this_period",
+    "other": "{{.Count}} 个 CPA 未获得额度周期边界，本周期用量显示为不可用"
+  },
+  {
+    "id": "admin.credential_reuse_duration_such_as_30s",
+    "other": "凭据复用时长，如 30s。"
+  },
+  {
+    "id": "admin.current_users_with_no_assigned_team",
+    "other": "尚未分配团队的当前用户"
+  },
+  {
+    "id": "admin.customize_the_product_name_environment_label_and_logo_as_needed",
+    "other": "按需设置产品名称、环境说明和 Logo。"
+  },
+  {
+    "id": "admin.daily_delivery_times",
+    "other": "每日发送时间"
+  },
+  {
+    "id": "admin.debug_logging",
+    "other": "调试日志"
+  },
+  {
+    "id": "admin.default_client_model",
+    "other": "客户端默认模型"
+  },
+  {
+    "id": "admin.default_client_model_2",
+    "other": "客户端默认模型。"
+  },
+  {
+    "id": "admin.default_logo_restored",
+    "other": "已恢复默认 Logo"
+  },
+  {
+    "id": "admin.default_proxy_url_http_https_socks5",
+    "other": "默认代理地址（HTTP/HTTPS/SOCKS5）。"
+  },
+  {
+    "id": "admin.default_upstream_proxy",
+    "other": "默认上游代理"
+  },
+  {
+    "id": "admin.default_upstream_proxy_url",
+    "other": "默认上游代理 URL"
+  },
+  {
+    "id": "admin.default_weekly_quota",
+    "other": "默认周额度"
+  },
+  {
+    "id": "admin.default_weekly_quota_per_user",
+    "other": "用户周额度系统默认值"
+  },
+  {
+    "id": "admin.disable_all",
+    "other": "全部禁用"
+  },
+  {
+    "id": "admin.disable_in_regular_chats_only_recommended",
+    "other": "仅普通对话禁用（推荐）"
+  },
+  {
+    "id": "admin.disabling_stops_collection_of_new_token_usage",
+    "other": "关闭后停止采集新增 Token 用量。"
+  },
+  {
+    "id": "admin.display_color_in_account_details",
+    "other": "账号明细显示颜色。"
+  },
+  {
+    "id": "admin.docker_runtime_is_unavailable",
+    "other": "Docker 运行时暂时不可用"
+  },
+  {
+    "id": "admin.enable_all",
+    "other": "全部启用"
+  },
+  {
+    "id": "admin.enable_default_upstream_proxy",
+    "other": "启用默认上游代理"
+  },
+  {
+    "id": "admin.enable_for_troubleshooting_increases_log_volume",
+    "other": "排障时开启，会增加日志量。"
+  },
+  {
+    "id": "admin.enable_wecom_notifications",
+    "other": "启用企业微信通知"
+  },
+  {
+    "id": "admin.enable_weekly_quota_alerts",
+    "other": "启用周额度预警"
+  },
+  {
+    "id": "admin.end_port_for_new_cpas_must_not_be_below_the",
+    "other": "新 CPA 端口终点，不小于起点。"
+  },
+  {
+    "id": "admin.endpoint_not_found",
+    "other": "接口不存在"
+  },
+  {
+    "id": "admin.environment_label",
+    "other": "环境说明"
+  },
+  {
+    "id": "admin.error_file_limit_per_cpa",
+    "other": "单 CPA 错误文件上限"
+  },
+  {
+    "id": "admin.event_retention_during_interruptions",
+    "other": "中断时事件保留时间。"
+  },
+  {
+    "id": "admin.events_per_batch",
+    "other": "单批采集数量"
+  },
+  {
+    "id": "admin.general_settings_saved_and_effective_immediately",
+    "other": "通用设置已保存并实时生效"
+  },
+  {
+    "id": "admin.has_an_invalid_image_name",
+    "other": "{{.Field}} 的镜像名称无效"
+  },
+  {
+    "id": "admin.hh_mm_format_separate_multiple_times_with_commas",
+    "other": "HH:MM 格式，多个时间用逗号分隔。"
+  },
+  {
+    "id": "admin.how_long_a_missed_scheduled_notification_may_still_be_sent",
+    "other": "计划发送时间后允许补发的时长。"
+  },
+  {
+    "id": "admin.image_query_service_is_not_ready",
+    "other": "镜像查询服务尚未就绪"
+  },
+  {
+    "id": "admin.image_tool_availability_policy",
+    "other": "图片工具启用策略。"
+  },
+  {
+    "id": "admin.image_tool_policy",
+    "other": "图片工具策略"
+  },
+  {
+    "id": "admin.initial_user_password",
+    "other": "用户初始密码"
+  },
+  {
+    "id": "admin.initial_user_password_saved_securely_existing_passwords_are_unchanged",
+    "other": "用户初始密码已安全保存；已有用户密码不会自动变化"
+  },
+  {
+    "id": "admin.internal_service_error",
+    "other": "服务内部错误"
+  },
+  {
+    "id": "admin.invalid_account_creation_parameters",
+    "other": "账号创建参数无效"
+  },
+  {
+    "id": "admin.invalid_account_migration_parameters",
+    "other": "账号迁移参数无效"
+  },
+  {
+    "id": "admin.invalid_account_parameters_check_the_id_email_proxy_and_confirmation",
+    "other": "账号参数无效，请检查标识、邮箱、代理和确认字段"
+  },
+  {
+    "id": "admin.invalid_account_update_parameters",
+    "other": "账号更新参数无效"
+  },
+  {
+    "id": "admin.invalid_allowed_email_domain",
+    "other": "允许的邮箱域名包含无效域名：{{.Value}}"
+  },
+  {
+    "id": "admin.invalid_api_key_rotation_parameters",
+    "other": "API Key 轮换参数无效"
+  },
+  {
+    "id": "admin.invalid_custom_reporting_range",
+    "other": "自定义统计范围无效"
+  },
+  {
+    "id": "admin.invalid_data_type_for_setting",
+    "other": "设置 {{.Value}} 的数据类型无效"
+  },
+  {
+    "id": "admin.invalid_logo_file",
+    "other": "Logo 文件无效"
+  },
+  {
+    "id": "admin.invalid_logo_file_encoding",
+    "other": "Logo 文件编码无效"
+  },
+  {
+    "id": "admin.invalid_logo_parameters",
+    "other": "Logo 参数无效"
+  },
+  {
+    "id": "admin.invalid_management_key",
+    "other": "管理密钥无效"
+  },
+  {
+    "id": "admin.invalid_management_key_format",
+    "other": "管理密钥格式无效"
+  },
+  {
+    "id": "admin.invalid_notification_timezone",
+    "other": "通知时区无效"
+  },
+  {
+    "id": "admin.invalid_password_format",
+    "other": "密码格式无效"
+  },
+  {
+    "id": "admin.invalid_proxy_recovery_parameters",
+    "other": "代理恢复参数无效"
+  },
+  {
+    "id": "admin.invalid_quota_action_parameters",
+    "other": "额度操作参数无效"
+  },
+  {
+    "id": "admin.invalid_quota_action_parameters_or_target_state",
+    "other": "额度操作参数或目标状态无效"
+  },
+  {
+    "id": "admin.invalid_quota_mode_or_custom_weekly_quota",
+    "other": "额度模式或自定义周额度无效"
+  },
+  {
+    "id": "admin.invalid_reporting_range",
+    "other": "统计范围无效"
+  },
+  {
+    "id": "admin.invalid_request_parameters",
+    "other": "请求参数无效"
+  },
+  {
+    "id": "admin.invalid_runtime_operation_or_target",
+    "other": "运行操作或目标无效"
+  },
+  {
+    "id": "admin.invalid_runtime_operation_request",
+    "other": "运行操作请求无效"
+  },
+  {
+    "id": "admin.invalid_sort_direction",
+    "other": "排序方向无效"
+  },
+  {
+    "id": "admin.invalid_sort_field",
+    "other": "排序字段无效"
+  },
+  {
+    "id": "admin.invalid_task_cancellation_request",
+    "other": "取消任务请求无效"
+  },
+  {
+    "id": "admin.invalid_task_count_range",
+    "other": "任务数量范围无效"
+  },
+  {
+    "id": "admin.invalid_team_parameters",
+    "other": "团队参数无效"
+  },
+  {
+    "id": "admin.invalid_token_accounting_metric",
+    "other": "Token 统计口径无效"
+  },
+  {
+    "id": "admin.invalid_token_activity_filter",
+    "other": "Token 状态无效"
+  },
+  {
+    "id": "admin.invalid_trend_time_range",
+    "other": "趋势时间范围无效"
+  },
+  {
+    "id": "admin.invalid_user_directory_view",
+    "other": "用户目录视图无效"
+  },
+  {
+    "id": "admin.invalid_user_pagination_parameters",
+    "other": "用户分页参数无效"
+  },
+  {
+    "id": "admin.invalid_user_parameters",
+    "other": "用户参数无效"
+  },
+  {
+    "id": "admin.invalid_user_team_parameters",
+    "other": "用户团队参数无效"
+  },
+  {
+    "id": "admin.invalid_user_trend_count",
+    "other": "用户趋势数量无效"
+  },
+  {
+    "id": "admin.invalid_user_weekly_quota_parameters",
+    "other": "用户周额度参数无效"
+  },
+  {
+    "id": "admin.invalid_weekly_limit_reset_parameters",
+    "other": "周限额重置参数无效"
+  },
+  {
+    "id": "admin.is_required",
+    "other": "{{.Field}}不能为空"
+  },
+  {
+    "id": "admin.items",
+    "other": "个"
+  },
+  {
+    "id": "admin.keep_at_least_one_cpa_the_last_account_cannot_be",
+    "other": "至少保留一个业务 CPA，不能删除最后一个账号"
+  },
+  {
+    "id": "admin.label",
+    "other": "倍"
+  },
+  {
+    "id": "admin.last_hours",
+    "other": "近 {{.Count}} 小时"
+  },
+  {
+    "id": "admin.last_minutes",
+    "other": "近 {{.Count}} 分钟"
+  },
+  {
+    "id": "admin.load_balancing_service_is_not_ready",
+    "other": "负载均衡服务尚未就绪"
+  },
+  {
+    "id": "admin.log_capacity_per_cpa",
+    "other": "单 CPA 日志容量上限"
+  },
+  {
+    "id": "admin.logo_updated",
+    "other": "Logo 已更新"
+  },
+  {
+    "id": "admin.maintenance_service_is_not_ready",
+    "other": "运行维护服务尚未就绪"
+  },
+  {
+    "id": "admin.management_key_requests_do_not_need_session_renewal",
+    "other": "管理密钥请求不需要续期"
+  },
+  {
+    "id": "admin.management_key_updated_sign_in_using_the_new_key",
+    "other": "管理密钥已更新，请使用新密钥重新进入"
+  },
+  {
+    "id": "admin.management_session_not_found_enter_the_management_key_again",
+    "other": "管理会话不存在，请重新输入管理密钥"
+  },
+  {
+    "id": "admin.management_session_validation_failed",
+    "other": "管理会话校验失败"
+  },
+  {
+    "id": "admin.maximum_credential_retries",
+    "other": "最大重试凭据数"
+  },
+  {
+    "id": "admin.maximum_credential_switches_per_attempt",
+    "other": "单次切换凭据上限。"
+  },
+  {
+    "id": "admin.maximum_error_log_files_per_cpa",
+    "other": "单个 CPA 错误日志文件上限。"
+  },
+  {
+    "id": "admin.maximum_events_collected_per_cpa_in_each_batch",
+    "other": "单个 CPA 每批采集事件上限。"
+  },
+  {
+    "id": "admin.maximum_retry_wait",
+    "other": "最大重试等待"
+  },
+  {
+    "id": "admin.maximum_wait_for_credentials_in_cooldown",
+    "other": "冷却凭据最长等待时间。"
+  },
+  {
+    "id": "admin.migration_activity_refreshed",
+    "other": "账号全部用户已安全迁移，已刷新{{.Window}}活跃用户数"
+  },
+  {
+    "id": "admin.migration_activity_unavailable",
+    "other": "账号全部用户已安全迁移，但{{.Window}}活跃用户数暂无法刷新"
+  },
+  {
+    "id": "admin.minutes",
+    "other": "分钟"
+  },
+  {
+    "id": "admin.missed_delivery_window",
+    "other": "定时补发窗口"
+  },
+  {
+    "id": "admin.model_and_reasoning_effort_together_determine_the_user_quota_token",
+    "other": "模型与推理强度共同决定用户额度 Token 倍率；颜色只影响展示。"
+  },
+  {
+    "id": "admin.model_multiplier",
+    "other": " 模型倍率"
+  },
+  {
+    "id": "admin.model_testing_is_unavailable_please_try_again_later",
+    "other": "模型测试暂不可用，请稍后重试"
+  },
+  {
+    "id": "admin.model_testing_service_is_not_ready",
+    "other": "模型测试服务尚未就绪"
+  },
+  {
+    "id": "admin.model_token_multiplier_for_newly_collected_events",
+    "other": "新采集事件的模型 Token 倍率。"
+  },
+  {
+    "id": "admin.must_be_a_boolean",
+    "other": "{{.Field}} 必须为布尔值"
+  },
+  {
+    "id": "admin.must_be_a_finite_number",
+    "other": "{{.Field}} 必须为有限数字"
+  },
+  {
+    "id": "admin.must_be_a_number",
+    "other": "{{.Field}} 必须为数字"
+  },
+  {
+    "id": "admin.must_be_a_valid_http_s_url",
+    "other": "{{.Field}} 必须为有效的 HTTP(S) URL"
+  },
+  {
+    "id": "admin.must_be_a_valid_iana_timezone",
+    "other": "{{.Field}} 必须为有效 IANA 时区"
+  },
+  {
+    "id": "admin.must_be_a_valid_ipv4_address",
+    "other": "{{.Field}} 必须为有效 IPv4 地址"
+  },
+  {
+    "id": "admin.must_be_a_valid_uppercase_environment_variable_name",
+    "other": "{{.Field}}必须为有效的大写环境变量名"
+  },
+  {
+    "id": "admin.must_be_an_integer",
+    "other": "{{.Field}} 必须为整数"
+  },
+  {
+    "id": "admin.must_be_between_30_seconds_and_30_days",
+    "other": "{{.Field}} 必须在 30 秒至 30 天之间"
+  },
+  {
+    "id": "admin.must_be_between_and",
+    "other": "{{.Field}} 必须在 {{.Minimum}} 至 {{.Maximum}} 之间"
+  },
+  {
+    "id": "admin.must_be_one_of",
+    "other": "{{.Field}} 必须选择以下值之一：{{.Choices}}"
+  },
+  {
+    "id": "admin.must_contain_1_12_times",
+    "other": "{{.Field}} 必须包含 1 至 12 个时间"
+  },
+  {
+    "id": "admin.must_contain_3_32_lowercase_letters_digits_or_underscores_and",
+    "other": "{{.Field}}必须为 3-32 位小写字母、数字或下划线，并以下划线结尾"
+  },
+  {
+    "id": "admin.must_contain_at_least_characters",
+    "other": "{{.Field}}至少需要 {{.Minimum}} 个字符"
+  },
+  {
+    "id": "admin.must_not_contain_a_query_or_fragment",
+    "other": "{{.Field}} 不得包含查询参数或片段"
+  },
+  {
+    "id": "admin.must_not_contain_a_username_or_password",
+    "other": "{{.Field}} 不得包含账号或密码"
+  },
+  {
+    "id": "admin.must_not_contain_control_characters",
+    "other": "{{.Field}}不能包含控制字符"
+  },
+  {
+    "id": "admin.must_not_contain_whitespace_or_control_characters",
+    "other": "{{.Field}} 不得包含空白或控制字符"
+  },
+  {
+    "id": "admin.must_not_exceed_characters",
+    "other": "{{.Field}}不能超过 {{.Maximum}} 个字符"
+  },
+  {
+    "id": "admin.must_pin_the_image_using_name_tag_sha256_digest",
+    "other": "{{.Field}} 必须使用 name:tag@sha256:digest 固定镜像"
+  },
+  {
+    "id": "admin.must_use_the_hh_mm_format",
+    "other": "{{.Field}} 必须使用 HH:MM 格式"
+  },
+  {
+    "id": "admin.must_use_the_rrggbb_color_format",
+    "other": "{{.Field}} 必须使用 #RRGGBB 颜色格式"
+  },
+  {
+    "id": "admin.new_account_port_end",
+    "other": "新账号端口终点"
+  },
+  {
+    "id": "admin.new_account_port_start",
+    "other": "新账号端口起点"
+  },
+  {
+    "id": "admin.new_key_prefix",
+    "other": "新 Key 前缀"
+  },
+  {
+    "id": "admin.no_configuration_changes",
+    "other": "配置没有变化"
+  },
+  {
+    "id": "admin.no_custom_logo_configured",
+    "other": "未配置自定义 Logo"
+  },
+  {
+    "id": "admin.no_exhausted_weekly_limit_is_eligible_for_reset_wait_for",
+    "other": "当前没有已耗尽且可重置的周限额，请等待额度耗尽或刷新列表"
+  },
+  {
+    "id": "admin.no_management_key_configured",
+    "other": "当前管理密钥尚未配置"
+  },
+  {
+    "id": "admin.no_wecom_webhook_configured",
+    "other": "尚未配置企业微信 Webhook"
+  },
+  {
+    "id": "admin.notification_timezone_is_required",
+    "other": "通知时区不能为空"
+  },
+  {
+    "id": "admin.notifications_use_the_system_timezone_change_it_in_configuration_center",
+    "other": "通知使用系统时区，请在配置中心修改系统时区"
+  },
+  {
+    "id": "admin.oauth_authorization_cleared_original_files_were_safely_archived",
+    "other": "OAuth 授权已清除，原文件已安全归档"
+  },
+  {
+    "id": "admin.official_api_request_timeout",
+    "other": "官方接口超时时间。"
+  },
+  {
+    "id": "admin.official_api_timeout",
+    "other": "官方接口超时"
+  },
+  {
+    "id": "admin.official_quota_cache",
+    "other": "官方额度缓存"
+  },
+  {
+    "id": "admin.official_quota_cache_duration",
+    "other": "官方额度缓存时间。"
+  },
+  {
+    "id": "admin.official_quota_check_interval",
+    "other": "官方额度检查周期。"
+  },
+  {
+    "id": "admin.official_usage_events",
+    "other": "官方用量事件"
+  },
+  {
+    "id": "admin.only_host_loopback_addresses_are_allowed",
+    "other": "仅允许宿主机回环地址。"
+  },
+  {
+    "id": "admin.only_stop_operation_impact_queries_are_supported",
+    "other": "只支持查询停止操作影响"
+  },
+  {
+    "id": "admin.organization_access",
+    "other": "组织与访问"
+  },
+  {
+    "id": "admin.organization_weekly_quota_default_restored_the_quota_collector_will_publish",
+    "other": "已恢复继承组织默认周额度，将由额度采集器发布到 Gateway"
+  },
+  {
+    "id": "admin.other_unmatched_models",
+    "other": "其他 / 未匹配模型"
+  },
+  {
+    "id": "admin.overview_filter_directory_service_is_not_ready",
+    "other": "总览筛选目录服务尚未就绪"
+  },
+  {
+    "id": "admin.overview_runtime_status_service_is_not_ready",
+    "other": "总览运行状态服务尚未就绪"
+  },
+  {
+    "id": "admin.page_size_must_be_25_50_or_100",
+    "other": "每页数量只支持 25、50 或 100"
+  },
+  {
+    "id": "admin.per_cpa_limit_oldest_logs_are_deleted_when_exceeded",
+    "other": "单个 CPA 上限，超出删除最旧日志。"
+  },
+  {
+    "id": "admin.port_range_for_new_cpas",
+    "other": "新 CPA 端口范围。"
+  },
+  {
+    "id": "admin.portal_environment_label_may_be_left_blank",
+    "other": "入口页环境说明，可留空。"
+  },
+  {
+    "id": "admin.prefix_for_new_keys_ending_with_an_underscore",
+    "other": "新 Key 前缀，以下划线结尾。"
+  },
+  {
+    "id": "admin.preserve_personal_quota_changes",
+    "other": "保留修改后的额度"
+  },
+  {
+    "id": "admin.product_name",
+    "other": "产品名称"
+  },
+  {
+    "id": "admin.product_name_shown_on_pages",
+    "other": "页面产品名称。"
+  },
+  {
+    "id": "admin.provide_at_least_one_notification_setting",
+    "other": "至少需要提供一项通知配置"
+  },
+  {
+    "id": "admin.proxy_recovery_confirmation_must_exactly_match_the_cpa_id",
+    "other": "代理恢复确认内容必须与 CPA 标识完全一致"
+  },
+  {
+    "id": "admin.public_url",
+    "other": "公开访问地址"
+  },
+  {
+    "id": "admin.pull_and_verify_updates_in_accounts",
+    "other": "在账号管理中拉取并验证更新。"
+  },
+  {
+    "id": "admin.quota_check_interval",
+    "other": "额度检查间隔"
+  },
+  {
+    "id": "admin.quota_data_expiry",
+    "other": "额度数据失效时间"
+  },
+  {
+    "id": "admin.quota_data_expiry_must_not_be_shorter_than_the_automatic",
+    "other": "账号自动切换额度数据失效时间不能小于检查间隔"
+  },
+  {
+    "id": "admin.quota_failure_grace_period",
+    "other": "额度故障放行等待"
+  },
+  {
+    "id": "admin.quota_reports_and_alerts",
+    "other": "额度报告和预警。"
+  },
+  {
+    "id": "admin.quotas_and_usage_collection",
+    "other": "额度与用量采集。"
+  },
+  {
+    "id": "admin.reasoning_effort_color",
+    "other": " 推理强度颜色"
+  },
+  {
+    "id": "admin.reasoning_effort_multiplier",
+    "other": " 推理强度倍率"
+  },
+  {
+    "id": "admin.reasoning_effort_policy",
+    "other": "推理强度策略"
+  },
+  {
+    "id": "admin.rebalance_activity_refreshed",
+    "other": "账号负载均衡完成，已刷新{{.Window}}活跃用户数"
+  },
+  {
+    "id": "admin.rebalance_activity_unavailable",
+    "other": "账号负载均衡完成，但{{.Window}}活跃用户数暂无法刷新"
+  },
+  {
+    "id": "admin.rename_confirmation_must_exactly_match_the_current_cpa_id",
+    "other": "重命名确认内容必须与当前 CPA 标识完全一致"
+  },
+  {
+    "id": "admin.request_retries",
+    "other": "请求重试次数"
+  },
+  {
+    "id": "admin.reset_weekly_usage_for_users_effective_after_the_next_collection",
+    "other": "已清零 {{.Count}} 位用户的本周已用量；将在下次采集后生效"
+  },
+  {
+    "id": "admin.restored_the_organization_quota_default_for_users",
+    "other": "已将 {{.Count}} 位用户恢复为继承组织默认额度"
+  },
+  {
+    "id": "admin.retries_after_upstream_failures",
+    "other": "上游失败重试次数。"
+  },
+  {
+    "id": "admin.reuse_session_credentials",
+    "other": "是否复用会话凭据。"
+  },
+  {
+    "id": "admin.rolling_window_for_counting_unique_active_users_per_account",
+    "other": "账号活跃用户去重统计的滚动时间窗口。"
+  },
+  {
+    "id": "admin.runtime_task_does_not_exist",
+    "other": "运行任务不存在"
+  },
+  {
+    "id": "admin.runtime_task_has_already_finished",
+    "other": "运行任务已经结束"
+  },
+  {
+    "id": "admin.runtime_task_queue_is_full",
+    "other": "运行任务队列已满"
+  },
+  {
+    "id": "admin.runtime_task_service_is_shutting_down",
+    "other": "运行任务服务正在关闭"
+  },
+  {
+    "id": "admin.safe_account_migration_and_recovery_service_is_not_ready",
+    "other": "账号安全迁移与恢复服务尚未就绪"
+  },
+  {
+    "id": "admin.save_cpa_logs_to_files",
+    "other": "是否保存 CPA 日志。"
+  },
+  {
+    "id": "admin.saved_settings",
+    "other": "已保存 {{.Count}} 项配置"
+  },
+  {
+    "id": "admin.sec",
+    "other": "秒"
+  },
+  {
+    "id": "admin.select_a_reset_credit",
+    "other": "请选择要使用的重置额度"
+  },
+  {
+    "id": "admin.select_an_account_and_model",
+    "other": "请选择账号和模型"
+  },
+  {
+    "id": "admin.select_another_enabled_cpa_as_a_safe_migration_target",
+    "other": "请选择其他已启用 CPA 作为安全迁移目标"
+  },
+  {
+    "id": "admin.select_between_1_and_500_users",
+    "other": "请选择 1 到 500 位用户"
+  },
+  {
+    "id": "admin.select_the_cpa_whose_weekly_limit_should_be_reset",
+    "other": "请选择要重置周限额的 CPA"
+  },
+  {
+    "id": "admin.send_wecom_notifications",
+    "other": "是否发送企业微信通知。"
+  },
+  {
+    "id": "admin.send_weekly_quota_alerts",
+    "other": "是否发送周额度预警。"
+  },
+  {
+    "id": "admin.separate_with_commas_configure_at_least_one_domain_before_creating",
+    "other": "逗号分隔；创建用户前至少填一个。"
+  },
+  {
+    "id": "admin.session_affinity",
+    "other": "会话亲和"
+  },
+  {
+    "id": "admin.session_affinity_duration",
+    "other": "会话亲和有效期"
+  },
+  {
+    "id": "admin.session_and_collection_settings",
+    "other": "会话和采集设置。"
+  },
+  {
+    "id": "admin.sessions_collection",
+    "other": "会话与采集"
+  },
+  {
+    "id": "admin.set_an_organization_wide_default_token_limit_for_new_users",
+    "other": "为新用户设置组织级默认 Token 上限；留空表示默认不限额。"
+  },
+  {
+    "id": "admin.set_only_the_quota_retention_option_do_not_also_submit",
+    "other": "请只设置保留修改后的额度，不要同时提交旧版恢复默认配置"
+  },
+  {
+    "id": "admin.shared_time_and_date_boundaries_across_the_site",
+    "other": "站点统一的时间与日期边界。"
+  },
+  {
+    "id": "admin.shared_timezone_for_page_times_usage_calendar_week_quotas_and",
+    "other": "统一页面时间、用量统计、自然周额度与通知调度。"
+  },
+  {
+    "id": "admin.shell_variable_for_the_key",
+    "other": "Shell Key 变量名。"
+  },
+  {
+    "id": "admin.short_name",
+    "other": "产品简称"
+  },
+  {
+    "id": "admin.short_name_displayed_in_clients",
+    "other": "客户端显示的简称。"
+  },
+  {
+    "id": "admin.skipped_users_whose_current_usage_is_zero",
+    "other": "；{{.Count}} 位用户当前用量为 0，已跳过"
+  },
+  {
+    "id": "admin.specify_the_user_key_to_rotate",
+    "other": "请指定要轮换的用户 Key"
+  },
+  {
+    "id": "admin.specify_the_user_s_email",
+    "other": "请指定用户邮箱"
+  },
+  {
+    "id": "admin.start_port_for_new_cpas",
+    "other": "新 CPA 端口起点。"
+  },
+  {
+    "id": "admin.statistics_for_the_last_5_minutes_are_unavailable",
+    "other": "近 5 分钟统计暂不可用"
+  },
+  {
+    "id": "admin.stop_migration_when_quota_data_expires",
+    "other": "额度过期后停止迁移。"
+  },
+  {
+    "id": "admin.system_settings",
+    "other": "系统设置"
+  },
+  {
+    "id": "admin.system_timezone",
+    "other": "系统时区"
+  },
+  {
+    "id": "admin.target_account_safety_reserve",
+    "other": "目标账号安全余量"
+  },
+  {
+    "id": "admin.task_cancellation_requested",
+    "other": "任务取消请求已提交"
+  },
+  {
+    "id": "admin.task_submitted",
+    "other": "任务已提交"
+  },
+  {
+    "id": "admin.team_created",
+    "other": "团队已创建"
+  },
+  {
+    "id": "admin.team_deleted",
+    "other": "团队已删除"
+  },
+  {
+    "id": "admin.team_does_not_exist",
+    "other": "团队不存在"
+  },
+  {
+    "id": "admin.team_name_already_exists",
+    "other": "团队名称已存在"
+  },
+  {
+    "id": "admin.team_updated",
+    "other": "团队已更新"
+  },
+  {
+    "id": "admin.test_message_sent_to_the_wecom_group",
+    "other": "测试消息已发送到企业微信群"
+  },
+  {
+    "id": "admin.the_bonus_must_be_a_positive_integer",
+    "other": "追加额度必须为正整数"
+  },
+  {
+    "id": "admin.the_client_key_environment_variable_must_be_a_valid_uppercase",
+    "other": "客户端 Key 环境变量必须为有效的大写环境变量名"
+  },
+  {
+    "id": "admin.the_cpa_id_email_or_port_is_already_in_use",
+    "other": "CPA 标识、邮箱或端口已被占用"
+  },
+  {
+    "id": "admin.the_cpa_listen_address_must_be_a_host_loopback_address",
+    "other": "业务 CPA 监听地址必须使用宿主机回环地址"
+  },
+  {
+    "id": "admin.the_current_state_does_not_meet_restricted_proxy_recovery_conditions",
+    "other": "当前状态不满足受限代理恢复条件，请使用普通账号维护流程"
+  },
+  {
+    "id": "admin.the_default_logo_is_already_in_use",
+    "other": "当前已使用默认 Logo"
+  },
+  {
+    "id": "admin.the_initial_password_must_contain_8_128_characters",
+    "other": "初始密码长度必须为 8 到 128 位"
+  },
+  {
+    "id": "admin.the_initial_passwords_do_not_match",
+    "other": "两次输入的初始密码不一致"
+  },
+  {
+    "id": "admin.the_management_key_changed_enter_it_again",
+    "other": "管理密钥已更新，请重新输入管理密钥"
+  },
+  {
+    "id": "admin.the_management_key_must_contain_12_128_characters",
+    "other": "管理密钥长度必须为 12-128 个字符"
+  },
+  {
+    "id": "admin.the_management_key_must_not_contain_whitespace_or_control_characters",
+    "other": "管理密钥不能包含空白或控制字符"
+  },
+  {
+    "id": "admin.the_management_keys_do_not_match",
+    "other": "两次输入的管理密钥不一致"
+  },
+  {
+    "id": "admin.the_missed_delivery_window_must_be_between_0_and_120",
+    "other": "定时补发窗口必须在 0 到 120 分钟之间"
+  },
+  {
+    "id": "admin.the_new_key_prefix_must_contain_3_32_lowercase_letters",
+    "other": "新 Key 前缀必须为 3-32 位小写字母、数字或下划线，并以下划线结尾"
+  },
+  {
+    "id": "admin.the_new_management_key_must_differ_from_the_current_key",
+    "other": "新管理密钥不能与当前密钥相同"
+  },
+  {
+    "id": "admin.the_public_url_contains_an_invalid_port",
+    "other": "公开访问地址包含无效端口"
+  },
+  {
+    "id": "admin.the_public_url_must_be_a_valid_http_s_url",
+    "other": "公开访问地址必须为有效的 HTTP(S) URL"
+  },
+  {
+    "id": "admin.the_public_url_must_not_contain_a_username_or_password",
+    "other": "公开访问地址不得包含账号或密码"
+  },
+  {
+    "id": "admin.the_public_url_must_not_contain_whitespace_or_control_characters",
+    "other": "公开访问地址不得包含空白或控制字符"
+  },
+  {
+    "id": "admin.the_public_url_must_use_the_root_path_without_a",
+    "other": "公开访问地址只能使用根路径，且不得包含查询参数或片段"
+  },
+  {
+    "id": "admin.the_reset_request_was_processed_refresh_to_confirm_the_latest",
+    "other": "重置请求已处理，请刷新确认最新周限额"
+  },
+  {
+    "id": "admin.the_selected_reset_credit_was_used_expired_or_is_unavailable",
+    "other": "所选重置额度已使用、过期或不可用，请刷新列表后重新选择"
+  },
+  {
+    "id": "admin.the_start_port_must_not_exceed_the_end_port",
+    "other": "新账号端口起点不能大于终点"
+  },
+  {
+    "id": "admin.the_team_still_has_users_and_cannot_be_deleted",
+    "other": "团队仍有用户，不能删除"
+  },
+  {
+    "id": "admin.the_unavailable_cpa_s_proxy_configuration_was_restored_future_maintenance",
+    "other": "不可用 CPA 的代理投影已恢复；后续账号维护将继续使用安全迁移与请求排空"
+  },
+  {
+    "id": "admin.the_upstream_rejected_this_weekly_reset_refresh_the_quota_and",
+    "other": "上游已拒绝本次重置周限额，请刷新周限额后重试"
+  },
+  {
+    "id": "admin.the_user_already_has_an_active_api_key",
+    "other": "用户已有启用中的 API Key"
+  },
+  {
+    "id": "admin.the_user_s_email_domain_is_not_allowed",
+    "other": "用户邮箱不属于允许的域名"
+  },
+  {
+    "id": "admin.the_user_still_has_active_api_keys_confirm_disabling_them",
+    "other": "用户仍有有效 API Key，请确认同时停用后再删除"
+  },
+  {
+    "id": "admin.the_weekly_quota_alert_threshold_must_be_between_1_and",
+    "other": "周额度预警阈值必须在 1% 到 100% 之间"
+  },
+  {
+    "id": "admin.this_account_has_no_users_to_migrate",
+    "other": "该账号当前没有需要迁移的用户"
+  },
+  {
+    "id": "admin.this_cpa_has_no_quota_period_boundaries_refresh_its_quota",
+    "other": "未获得该 CPA 的额度周期边界，请刷新额度后重试"
+  },
+  {
+    "id": "admin.this_cpa_has_not_completed_oauth_authorization",
+    "other": "该 CPA 尚未完成 OAuth 授权"
+  },
+  {
+    "id": "admin.this_cpa_still_has_active_codex_requests_it_was_not",
+    "other": "该 CPA 仍有进行中的 Codex 请求，账号未重建或删除，请稍后重试"
+  },
+  {
+    "id": "admin.this_cpa_still_has_exclusive_active_keys_confirm_their_deactivation",
+    "other": "该 CPA 仍有独占有效 Key，请确认同时停用后再删除"
+  },
+  {
+    "id": "admin.this_retired_default_password_cannot_be_used",
+    "other": "不能使用已停用的历史默认密码"
+  },
+  {
+    "id": "admin.this_setup_step_cannot_be_skipped",
+    "other": "不支持跳过初始化项目：{{.Value}}"
+  },
+  {
+    "id": "admin.this_week_s_details_exceed_the_export_limit_a_complete",
+    "other": "该周统计明细超出导出上限，无法生成完整周报"
+  },
+  {
+    "id": "admin.token_multiplier_for_newly_collected_events",
+    "other": "新采集事件的 Token 倍率。"
+  },
+  {
+    "id": "admin.token_multiplier_for_newly_collected_events_with_an_unmatched_model",
+    "other": "模型未匹配时用于新采集事件的 Token 倍率。"
+  },
+  {
+    "id": "admin.transient_error_cooldown",
+    "other": "临时错误冷却"
+  },
+  {
+    "id": "admin.unable_to_reach_the_upstream_to_reset_the_weekly_limit",
+    "other": "无法连接上游完成重置周限额，请稍后重试"
+  },
+  {
+    "id": "admin.unable_to_read_account_weekly_quotas",
+    "other": "账号周额度读取失败"
+  },
+  {
+    "id": "admin.unable_to_read_statistics_for_the_last_5_minutes",
+    "other": "近 5 分钟统计读取失败"
+  },
+  {
+    "id": "admin.unable_to_read_upstream_weekly_reset_details_please_try_again",
+    "other": "无法读取上游周限额重置详情，请稍后重试"
+  },
+  {
+    "id": "admin.unable_to_refresh_active_user_counts",
+    "other": "活跃用户数刷新失败"
+  },
+  {
+    "id": "admin.unable_to_verify_the_wecom_webhook_configuration",
+    "other": "无法确认企业微信 Webhook 配置"
+  },
+  {
+    "id": "admin.ungrouped",
+    "other": "未分组"
+  },
+  {
+    "id": "admin.unified_user_key_disabled",
+    "other": "用户唯一 Key 已停用"
+  },
+  {
+    "id": "admin.unified_user_key_rotated_the_new_key_is_shown_only",
+    "other": "用户唯一 Key 已轮换，新密钥只显示一次"
+  },
+  {
+    "id": "admin.unknown_configuration_parameter",
+    "other": "配置中心包含未知参数：{{.Key}}"
+  },
+  {
+    "id": "admin.unknown_configuration_type",
+    "other": "未知配置类型：{{.Key}} ({{.Type}})"
+  },
+  {
+    "id": "admin.unknown_operation_target",
+    "other": "未知操作目标"
+  },
+  {
+    "id": "admin.unsupported_setting",
+    "other": "不支持的配置项："
+  },
+  {
+    "id": "admin.updated_team_membership_for_users_team_usage_is_calculated_using",
+    "other": "已更新 {{.Count}} 位用户的团队归属；团队用量按当前成员动态统计"
+  },
+  {
+    "id": "admin.upstream_oauth_authorization_expired_authorize_again_and_retry",
+    "other": "上游 OAuth 授权已失效，请重新完成 OAuth 后再重试"
+  },
+  {
+    "id": "admin.url_used_in_notifications_and_exports_leave_blank_to_use",
+    "other": "通知与导出地址；留空用当前站点。"
+  },
+  {
+    "id": "admin.usage_center_session_duration",
+    "other": "使用中心登录有效期"
+  },
+  {
+    "id": "admin.usage_collector_status_is_unavailable",
+    "other": "用量采集器状态暂不可用"
+  },
+  {
+    "id": "admin.usage_export_service_is_not_ready",
+    "other": "用量导出服务尚未就绪"
+  },
+  {
+    "id": "admin.usage_identity_synchronization_service_is_not_ready",
+    "other": "用量身份同步服务尚未就绪"
+  },
+  {
+    "id": "admin.usage_query_service_is_not_ready",
+    "other": "用量查询服务尚未就绪"
+  },
+  {
+    "id": "admin.usage_queue_retention",
+    "other": "用量队列保留时间"
+  },
+  {
+    "id": "admin.usage_quotas",
+    "other": "用量与额度"
+  },
+  {
+    "id": "admin.use_a_duration_such_as_30s_5m_1h_or_7d",
+    "other": "时间窗口格式应为 30s、5m、1h 或 7d"
+  },
+  {
+    "id": "admin.used_for_new_users_first_sign_in_must_be_changed",
+    "other": "新用户首次登录使用，登录后必须立即修改。"
+  },
+  {
+    "id": "admin.used_for_notifications_and_client_exports_if_blank_the_browser",
+    "other": "用于通知和客户端配置导出；留空时浏览器仍使用当前来源。"
+  },
+  {
+    "id": "admin.used_for_page_times_daily_usage_calendar_week_quotas_and",
+    "other": "统一用于页面时间、今日用量、自然周额度与通知调度。修改后将重新归集本周用量。"
+  },
+  {
+    "id": "admin.used_only_by_cpas_that_inherit_the_default_proxy",
+    "other": "仅用于继承默认代理的 CPA。"
+  },
+  {
+    "id": "admin.user_created_the_api_key_is_shown_only_once_usage",
+    "other": "用户已创建；API Key 仅显示本次，使用中心采用默认初始密码，首次登录必须修改"
+  },
+  {
+    "id": "admin.user_detail_service_is_not_ready",
+    "other": "用户详情服务尚未就绪"
+  },
+  {
+    "id": "admin.user_does_not_exist",
+    "other": "用户不存在"
+  },
+  {
+    "id": "admin.user_does_not_exist_2",
+    "other": "用户不存在："
+  },
+  {
+    "id": "admin.user_does_not_exist_or_has_no_active_api_key",
+    "other": "用户不存在或没有启用中的 API Key"
+  },
+  {
+    "id": "admin.user_is_required",
+    "other": "用户不能为空"
+  },
+  {
+    "id": "admin.user_lifecycle_service_is_not_ready",
+    "other": "用户生命周期服务尚未就绪"
+  },
+  {
+    "id": "admin.user_or_account_state_does_not_meet_safe_migration_conditions",
+    "other": "当前用户或账号状态不满足安全迁移条件，未执行任何迁移"
+  },
+  {
+    "id": "admin.user_or_api_key_state_is_unsafe_the_operation_was",
+    "other": "用户或 API Key 状态不安全，拒绝操作"
+  },
+  {
+    "id": "admin.user_password_reset_to_the_initial_password_existing_sessions_ended",
+    "other": "用户密码已重置为默认初始密码；现有登录会话已失效，首次登录必须修改"
+  },
+  {
+    "id": "admin.user_quotas",
+    "other": "用户额度"
+  },
+  {
+    "id": "admin.user_quotas_and_failure_policies",
+    "other": "用户额度和故障策略。"
+  },
+  {
+    "id": "admin.user_routes_login_credentials_and_current_quota_policy_deleted_historical",
+    "other": "用户、路由、登录凭据和当前配额策略已删除；历史用量继续保留"
+  },
+  {
+    "id": "admin.user_search_text_is_too_long",
+    "other": "用户搜索内容过长"
+  },
+  {
+    "id": "admin.user_state_changed_refresh_and_try_again",
+    "other": "用户状态已变化，请刷新后重试"
+  },
+  {
+    "id": "admin.user_team_membership_changed_refresh_and_try_again",
+    "other": "用户团队归属已变化，请刷新后重试"
+  },
+  {
+    "id": "admin.user_usage_database",
+    "other": "用户用量数据库"
+  },
+  {
+    "id": "admin.user_usage_directory_service_is_not_ready",
+    "other": "用户用量目录服务尚未就绪"
+  },
+  {
+    "id": "admin.user_weekly_quota_policy_saved_the_quota_collector_will_publish",
+    "other": "用户周额度策略已保存，将由额度采集器发布到 Gateway"
+  },
+  {
+    "id": "admin.wecom_notification_settings_saved",
+    "other": "企业微信通知配置已保存"
+  },
+  {
+    "id": "admin.wecom_notifications",
+    "other": "企业微信通知"
+  },
+  {
+    "id": "admin.wecom_webhook_cleared_notifications_are_disabled",
+    "other": "企业微信 Webhook 已清除，通知已关闭"
+  },
+  {
+    "id": "admin.wecom_webhook_saved",
+    "other": "企业微信 Webhook 已保存"
+  },
+  {
+    "id": "admin.weekly_limit_refresh_status_is_unavailable",
+    "other": "周限额刷新状态暂不可用"
+  },
+  {
+    "id": "admin.weekly_limit_reset_detail_service_is_not_ready",
+    "other": "周限额重置详情服务尚未就绪"
+  },
+  {
+    "id": "admin.weekly_limit_reset_service_is_not_ready",
+    "other": "周限额重置服务尚未就绪"
+  },
+  {
+    "id": "admin.weekly_limit_reset_status_is_unavailable",
+    "other": "周限额重置状态暂不可用"
+  },
+  {
+    "id": "admin.weekly_limit_reset_windows_refreshed",
+    "other": "周限额已重置，共刷新 {{.Count}} 个窗口"
+  },
+  {
+    "id": "admin.weekly_quota_alert_threshold",
+    "other": "周额度预警阈值"
+  },
+  {
+    "id": "admin.weekly_report_generation_timed_out_or_was_cancelled_please_try",
+    "other": "周报生成超时或已取消，请稍后重试"
+  },
+  {
+    "id": "admin.weighted_limit_per_user_per_calendar_week_blank_means_unlimited",
+    "other": "每人自然周加权上限；留空不限额，个人策略优先。"
+  },
+  {
+    "id": "admin.with_units_must_be_true_or_false",
+    "other": "with_units 必须为 true 或 false"
+  },
+  {
+    "id": "admin.write_cpa_log_files",
+    "other": "写入 CPA 日志文件"
+  },
+  {
+    "id": "admin.your_management_session_ended_enter_the_management_key_again",
+    "other": "管理会话已结束，请重新输入管理密钥"
+  },
+  {
+    "id": "admin.your_management_session_expired_enter_the_management_key_again",
+    "other": "管理会话已过期，请重新输入管理密钥"
+  },
+  {
+    "id": "configuration.language_chinese",
+    "other": "简体中文"
+  },
+  {
+    "id": "configuration.language_english",
+    "other": "英文"
+  },
+  {
+    "id": "configuration.model_multiplier",
+    "other": "{{.Model}} 模型倍率"
+  },
+  {
+    "id": "configuration.reasoning_color",
+    "other": "{{.Effort}} 推理强度颜色"
+  },
+  {
+    "id": "configuration.reasoning_multiplier",
+    "other": "{{.Effort}} 推理强度倍率"
+  },
+  {
+    "id": "configuration.system_language",
+    "other": "后台通知语言"
+  },
+  {
+    "id": "configuration.system_language_description",
+    "other": "后台定时通知使用的语言；页面与报表语言跟随语言切换器。"
+  },
+  {
+    "id": "notifications.account_change_weekly_quota_used",
+    "other": "| 账号 | 变化 | 周额度已用 ↑ | "
+  },
+  {
+    "id": "notifications.account_quota_changed",
+    "other": " · 账号额度变更"
+  },
+  {
+    "id": "notifications.account_weekly_quota_used",
+    "other": "| 账号 | 周额度已用 ↑ | "
+  },
+  {
+    "id": "notifications.affected_accounts",
+    "other": "> 本次涉及：**{{.Count}} 个账号**"
+  },
+  {
+    "id": "notifications.application_url",
+    "other": "> 应用地址：[{{.Value1}}]({{.Value2}})"
+  },
+  {
+    "id": "notifications.application_url_not_configured",
+    "other": "> 应用地址：未配置"
+  },
+  {
+    "id": "notifications.at_least_one_notification_time_is_required",
+    "other": "至少需要一个通知发送时间"
+  },
+  {
+    "id": "notifications.invalid_notification_timezone",
+    "other": "通知时区无效: {{.Detail}}"
+  },
+  {
+    "id": "notifications.invalid_wecom_webhook_configuration",
+    "other": "企业微信 Webhook 配置无效"
+  },
+  {
+    "id": "notifications.no_matching_accounts",
+    "other": "| 暂无匹配账号 | — | — | — | — | — |"
+  },
+  {
+    "id": "notifications.no_matching_accounts_2",
+    "other": "| 暂无匹配账号 | — | — | — | — |"
+  },
+  {
+    "id": "notifications.notification_test",
+    "other": " · 通知测试"
+  },
+  {
+    "id": "notifications.notification_times_must_use_hh_mm",
+    "other": "通知发送时间必须使用 HH:MM"
+  },
+  {
+    "id": "notifications.notification_type_status_channel_test_wecom_notification_channel_connected_successfully",
+    "other": "| 通知类型 | 状态 |\n| :--- | :--- |\n| 通道测试 | 企业微信通知通道连接正常。 |"
+  },
+  {
+    "id": "notifications.quota_exhausted",
+    "other": "🔴 额度耗尽"
+  },
+  {
+    "id": "notifications.quota_recovered",
+    "other": "🟢 额度恢复"
+  },
+  {
+    "id": "notifications.quota_recovered_2",
+    "other": " · 额度恢复"
+  },
+  {
+    "id": "notifications.quota_recovered_still_within_the_warning_range",
+    "other": "🟠 额度恢复，仍处于预警范围"
+  },
+  {
+    "id": "notifications.quota_recovered_still_within_the_warning_range_2",
+    "other": " · 额度恢复，仍处于预警范围"
+  },
+  {
+    "id": "notifications.read_wecom_webhook",
+    "other": "读取企业微信 Webhook: {{.Detail}}"
+  },
+  {
+    "id": "notifications.report_time",
+    "other": "> 统计时间："
+  },
+  {
+    "id": "notifications.total_accounts_active_accounts_healthy_quota_warning_exhausted_unavailable",
+    "other": "> **账号总数 {{.Value1}}**　{{.Value2}}活跃账号 {{.Value3}}\n> 🟢 额度正常 {{.Value4}}　🟠 预警 {{.Value5}}　🔴 耗尽 {{.Value6}}　⚪ 数据不可用 {{.Value7}}"
+  },
+  {
+    "id": "notifications.users_resets_remaining_next_period_reset",
+    "other": "用户 | 剩余重置次数 | 下次周期重置 |"
+  },
+  {
+    "id": "notifications.waiting_for_quota_update",
+    "other": "等待额度更新"
+  },
+  {
+    "id": "notifications.warning_threshold",
+    "other": "> 预警阈值：{{.Value}}"
+  },
+  {
+    "id": "notifications.warning_threshold_reached",
+    "other": "🟠 达到预警"
+  },
+  {
+    "id": "notifications.webhook_url_must_be_a_wecom_message_delivery_https_url",
+    "other": "Webhook 地址必须是企业微信消息推送 HTTPS 地址"
+  },
+  {
+    "id": "notifications.wecom_markdown_v2_content_exceeds_4096_bytes",
+    "other": "企业微信 markdown_v2 内容超过 4096 字节"
+  },
+  {
+    "id": "notifications.wecom_message_delivery_failed",
+    "other": "企业微信消息发送失败：{{.Value}}"
+  },
+  {
+    "id": "notifications.wecom_message_delivery_failed_http",
+    "other": "企业微信消息发送失败：HTTP {{.Status}}"
+  },
+  {
+    "id": "notifications.wecom_message_delivery_failed_invalid_response",
+    "other": "企业微信消息发送失败：响应无效"
+  },
+  {
+    "id": "notifications.wecom_sender_requires_a_secret_store",
+    "other": "企业微信发送器缺少密钥存储"
+  },
+  {
+    "id": "notifications.weekly_limit",
+    "other": "常规周限额"
+  },
+  {
+    "id": "notifications.weekly_quota_exhausted",
+    "other": " · 周额度耗尽"
+  },
+  {
+    "id": "notifications.weekly_quota_reset",
+    "other": "🔄 周额度已重置"
+  },
+  {
+    "id": "notifications.weekly_quota_reset_2",
+    "other": " · 周额度已重置"
+  },
+  {
+    "id": "notifications.weekly_quota_warning",
+    "other": " · 周额度预警"
+  },
+  {
+    "id": "portal.account_assignment_state_changed_please_try_again",
+    "other": "账号分配状态已变化，请重试"
+  },
+  {
+    "id": "portal.account_does_not_exist",
+    "other": "账号不存在"
+  },
+  {
+    "id": "portal.account_quota_status_service_is_not_ready",
+    "other": "账号额度状态服务尚未就绪"
+  },
+  {
+    "id": "portal.account_weekly_quota_service_is_not_ready",
+    "other": "账号周额度服务尚未就绪"
+  },
+  {
+    "id": "portal.api_key_refresh_service_is_not_ready",
+    "other": "API Key 刷新服务尚未就绪"
+  },
+  {
+    "id": "portal.api_key_refreshed_the_old_key_expired_update_your_client",
+    "other": "API Key 已刷新，旧 Key 已失效，请更新客户端配置"
+  },
+  {
+    "id": "portal.api_key_state_changed_refresh_and_try_again",
+    "other": "API Key 状态已变化，请刷新后重试"
+  },
+  {
+    "id": "portal.change_the_initial_password_before_continuing",
+    "other": "首次登录请先修改初始密码"
+  },
+  {
+    "id": "portal.confirm_refreshing_the_api_key",
+    "other": "请确认刷新 API Key"
+  },
+  {
+    "id": "portal.current_account_assigned_automatically",
+    "other": "已自动分配当前账号"
+  },
+  {
+    "id": "portal.current_account_switched",
+    "other": "当前账号已切换"
+  },
+  {
+    "id": "portal.includes_only_business_requests_persisted_by_the_collector_grouped_by",
+    "other": "仅统计 Collector 已持久化的业务请求；按配置时区自然日聚合，加权 Token 使用事件写入时冻结的倍率"
+  },
+  {
+    "id": "portal.includes_only_business_requests_persisted_by_the_collector_weighted_tokens",
+    "other": "仅统计 Collector 已持久化的业务请求；加权 Token 使用事件写入时冻结的倍率"
+  },
+  {
+    "id": "portal.incorrect_current_password",
+    "other": "当前密码错误"
+  },
+  {
+    "id": "portal.incorrect_email_or_password",
+    "other": "邮箱或密码错误"
+  },
+  {
+    "id": "portal.invalid_email_or_password_format",
+    "other": "邮箱或密码格式无效"
+  },
+  {
+    "id": "portal.invalid_trend_dimension",
+    "other": "趋势统计维度无效"
+  },
+  {
+    "id": "portal.invalid_trend_reporting_range",
+    "other": "趋势统计范围无效"
+  },
+  {
+    "id": "portal.invalid_usage_timezone_configuration",
+    "other": "用量时区配置无效"
+  },
+  {
+    "id": "portal.no_available_account_has_reliable_quota_status",
+    "other": "当前没有额度状态可靠且可用的账号"
+  },
+  {
+    "id": "portal.password_changed",
+    "other": "密码已修改"
+  },
+  {
+    "id": "portal.personal_trends_do_not_accept_a_user_parameter",
+    "other": "个人趋势不接受用户参数"
+  },
+  {
+    "id": "portal.personal_weekly_quota_service_is_not_ready",
+    "other": "个人周额度服务尚未就绪"
+  },
+  {
+    "id": "portal.public_usage_service_is_not_ready",
+    "other": "公开用量服务尚未就绪"
+  },
+  {
+    "id": "portal.quota_refresh_service_is_not_ready",
+    "other": "额度刷新服务尚未就绪"
+  },
+  {
+    "id": "portal.quota_refresh_status_is_unavailable",
+    "other": "额度刷新状态暂不可用"
+  },
+  {
+    "id": "portal.route_switching_service_is_not_ready",
+    "other": "路由切换服务尚未就绪"
+  },
+  {
+    "id": "portal.target_account_does_not_exist",
+    "other": "目标账号不存在"
+  },
+  {
+    "id": "portal.target_account_is_required",
+    "other": "目标账号不能为空"
+  },
+  {
+    "id": "portal.the_new_password_must_contain_at_least_characters",
+    "other": "新密码至少需要 {{.Count}} 位"
+  },
+  {
+    "id": "portal.the_new_password_must_differ_from_the_initial_password",
+    "other": "新密码不能与初始密码相同"
+  },
+  {
+    "id": "portal.the_target_account_cannot_currently_be_selected",
+    "other": "目标账号当前不可选择"
+  },
+  {
+    "id": "portal.the_user_already_has_an_account",
+    "other": "当前用户已有账号"
+  },
+  {
+    "id": "portal.the_user_is_disabled_deleted_or_its_key_is_being",
+    "other": "用户已停用、删除或 Key 正在迁移"
+  },
+  {
+    "id": "portal.the_user_or_target_account_does_not_meet_safe_assignment",
+    "other": "当前用户或目标账号不满足安全分配条件"
+  },
+  {
+    "id": "portal.the_user_or_target_account_does_not_meet_safe_switching",
+    "other": "当前用户或目标账号不满足安全切换条件"
+  },
+  {
+    "id": "portal.this_account_is_already_selected",
+    "other": "当前已使用该账号"
+  },
+  {
+    "id": "portal.too_many_sign_in_attempts_please_try_again_later",
+    "other": "登录尝试过于频繁，请稍后重试"
+  },
+  {
+    "id": "portal.unable_to_read_the_usage_timezone",
+    "other": "读取用量时区失败"
+  },
+  {
+    "id": "portal.user_credentials_are_uninitialized_or_invalid",
+    "other": "用户凭据未初始化或已失效"
+  },
+  {
+    "id": "portal.your_current_account_changed_refresh_and_try_again",
+    "other": "当前账号已变化，请刷新后重试"
+  },
+  {
+    "id": "portal.your_session_expired",
+    "other": "用户会话已失效"
+  },
+  {
+    "id": "quota.additional_weekly_limit",
+    "other": "附加周限额 "
+  },
+  {
+    "id": "runtimeops.a_model_test_is_already_running_please_try_again_later",
+    "other": "已有模型测试正在执行，请稍后重试"
+  },
+  {
+    "id": "runtimeops.account_authorization_failed_check_oauth_status",
+    "other": "账号授权失败，请检查 OAuth 状态"
+  },
+  {
+    "id": "runtimeops.account_quota_is_insufficient_or_requests_are_limited_check_the",
+    "other": "账号额度不足或请求受限，请检查额度后重试"
+  },
+  {
+    "id": "runtimeops.cannot_read_test_credentials_right_now",
+    "other": "暂时无法读取测试凭据"
+  },
+  {
+    "id": "runtimeops.cannot_read_the_account_catalog_right_now",
+    "other": "暂时无法读取账号目录"
+  },
+  {
+    "id": "runtimeops.cannot_read_the_account_runtime_status_right_now",
+    "other": "暂时无法读取账号运行状态"
+  },
+  {
+    "id": "runtimeops.cannot_read_this_account_s_model_list_check_the_container",
+    "other": "无法读取此账号的模型列表，请检查容器和授权状态后重试"
+  },
+  {
+    "id": "runtimeops.cpa_account_is_disabled_and_cannot_be_updated",
+    "other": "{{.Detail}}: CPA 账号已停用，不能更新镜像：{{.Value2}}"
+  },
+  {
+    "id": "runtimeops.cpa_image_update_completed",
+    "other": "CPA 镜像更新完成：{{.Count}} 个\n"
+  },
+  {
+    "id": "runtimeops.health_check",
+    "other": "健康检查"
+  },
+  {
+    "id": "runtimeops.image_has_no_recognizable_version",
+    "other": "镜像未提供可识别版本"
+  },
+  {
+    "id": "runtimeops.image_ready",
+    "other": "镜像已就绪：{{.Value1}} · {{.Value2}} ({{.Value3}})\n"
+  },
+  {
+    "id": "runtimeops.image_update_failed_restoring_processed_cpas",
+    "other": "镜像更新失败，正在恢复已处理的 CPA：{{.Value}}\n"
+  },
+  {
+    "id": "runtimeops.invalid_account_id",
+    "other": "账号标识无效"
+  },
+  {
+    "id": "runtimeops.maintenance",
+    "other": "运行维护"
+  },
+  {
+    "id": "runtimeops.model_connection_failed_or_the_response_was_incomplete_check_the",
+    "other": "模型连接失败或响应不完整，请检查账号网络和日志"
+  },
+  {
+    "id": "runtimeops.no_internal_credentials_are_available_create_a_user_first_binding",
+    "other": "尚无可用的内部凭据，请先创建一名用户；无需绑定到此账号"
+  },
+  {
+    "id": "runtimeops.no_running_cpas_the_applied_version_was_not_changed",
+    "other": "没有运行中的 CPA；未改变已应用版本"
+  },
+  {
+    "id": "runtimeops.oauth_authorization",
+    "other": "OAuth 授权"
+  },
+  {
+    "id": "runtimeops.oauth_authorization_did_not_complete_no_new_or_updated_authentication",
+    "other": "OAuth 授权未完成：没有检测到新增或更新的认证文件"
+  },
+  {
+    "id": "runtimeops.output_truncated",
+    "other": "\n[输出已截断]\n"
+  },
+  {
+    "id": "runtimeops.pull_cpa_image",
+    "other": "拉取 CPA 镜像"
+  },
+  {
+    "id": "runtimeops.pulling_cpa_image",
+    "other": "正在拉取 CPA 镜像：{{.Value}}\n"
+  },
+  {
+    "id": "runtimeops.render_and_validate_configuration",
+    "other": "渲染并校验配置"
+  },
+  {
+    "id": "runtimeops.restart_service",
+    "other": "重启服务"
+  },
+  {
+    "id": "runtimeops.restored",
+    "other": "已恢复 {{.Value}}\n"
+  },
+  {
+    "id": "runtimeops.running_cpas_verified_the_target_version_is_pinned",
+    "other": "运行中的 CPA 已验证；已固定目标版本"
+  },
+  {
+    "id": "runtimeops.select_a_valid_model",
+    "other": "请选择有效的模型"
+  },
+  {
+    "id": "runtimeops.select_all_or_a_valid_cpa_account_for_the_image",
+    "other": "{{.Detail}}: 镜像更新必须选择 all 或有效 CPA 账号"
+  },
+  {
+    "id": "runtimeops.skipping_already_running_the_target_image",
+    "other": "跳过 {{.Value}}：已经运行目标镜像\n"
+  },
+  {
+    "id": "runtimeops.skipping_cpa_is_disabled",
+    "other": "跳过 {{.Value}}：CPA 已停用\n"
+  },
+  {
+    "id": "runtimeops.skipping_cpa_is_stopped_the_next_start_will_use_the",
+    "other": "跳过 {{.Value}}：CPA 未运行；下次启动会使用目标镜像\n"
+  },
+  {
+    "id": "runtimeops.some_cpa_rollbacks_failed",
+    "other": "部分 CPA 回退失败: {{.Detail}}"
+  },
+  {
+    "id": "runtimeops.start_service",
+    "other": "启动服务"
+  },
+  {
+    "id": "runtimeops.stop_service",
+    "other": "停止服务"
+  },
+  {
+    "id": "runtimeops.the_account_container_is_stopped_start_it_first",
+    "other": "账号容器未运行，请先启动容器"
+  },
+  {
+    "id": "runtimeops.the_account_returned_an_invalid_model_list",
+    "other": "账号返回了无效的模型列表"
+  },
+  {
+    "id": "runtimeops.the_model_completed_generation_and_returned_text",
+    "other": "模型已完成生成并返回文本"
+  },
+  {
+    "id": "runtimeops.the_model_did_not_complete_generation_check_the_account_logs",
+    "other": "模型未完成生成，请查看账号日志"
+  },
+  {
+    "id": "runtimeops.the_model_service_is_unavailable_retry_later_or_check_the",
+    "other": "模型服务暂时不可用，请稍后重试或查看账号日志"
+  },
+  {
+    "id": "runtimeops.the_model_test_timed_out_after_25_seconds_please_try",
+    "other": "模型通信测试超时（25 秒），请稍后重试"
+  },
+  {
+    "id": "runtimeops.the_target_image_has_no_applicable_immutable_identifier",
+    "other": "目标镜像缺少可应用的不可变标识"
+  },
+  {
+    "id": "runtimeops.the_target_image_has_not_been_pulled_run_pull_image",
+    "other": "目标镜像尚未拉取，请先执行“拉取镜像”"
+  },
+  {
+    "id": "runtimeops.this_account_cannot_use_the_selected_model_or_test_parameters",
+    "other": "此账号无法使用所选模型或测试参数"
+  },
+  {
+    "id": "runtimeops.unknown_digest",
+    "other": "摘要未知"
+  },
+  {
+    "id": "runtimeops.update_all_cpa_images",
+    "other": "更新全部 CPA 镜像"
+  },
+  {
+    "id": "runtimeops.update_cpa_image",
+    "other": "更新 CPA 镜像"
+  },
+  {
+    "id": "runtimeops.updating",
+    "other": "正在更新 {{.Value1}}：{{.Value2}} -> {{.Value3}}\n"
+  },
+  {
+    "id": "runtimeops.verified_runtime_probe",
+    "other": "{{.Field}} 验证通过：运行探针\n"
+  },
+  {
+    "id": "runtimeops.verify_routes",
+    "other": "路由验证"
+  },
+  {
+    "id": "sitetime.select_a_valid_iana_timezone",
+    "other": "必须选择有效 IANA 时区"
+  },
+  {
+    "id": "sitetime.select_a_valid_iana_timezone_2",
+    "other": "必须选择有效 IANA 时区: {{.Detail}}"
+  },
+  {
+    "id": "usagereport.account",
+    "other": "账号"
+  },
+  {
+    "id": "usagereport.account_activity_rate",
+    "other": "账号活跃率"
+  },
+  {
+    "id": "usagereport.account_details",
+    "other": "账号明细"
+  },
+  {
+    "id": "usagereport.account_id",
+    "other": "账号编号"
+  },
+  {
+    "id": "usagereport.accounts_used",
+    "other": "使用账号数"
+  },
+  {
+    "id": "usagereport.active",
+    "other": "活跃"
+  },
+  {
+    "id": "usagereport.active_accounts",
+    "other": "活跃账号"
+  },
+  {
+    "id": "usagereport.active_days",
+    "other": "活跃天数"
+  },
+  {
+    "id": "usagereport.active_means_at_least_one_request_in_the_reporting_period",
+    "other": "活跃指统计期内有请求。人数、账号数合计去重；活跃率按报表纳入的有标识身份计算，空身份用量仍计入合计。"
+  },
+  {
+    "id": "usagereport.active_teams",
+    "other": "活跃团队"
+  },
+  {
+    "id": "usagereport.active_users",
+    "other": "活跃用户"
+  },
+  {
+    "id": "usagereport.average_weight",
+    "other": "平均加权系数"
+  },
+  {
+    "id": "usagereport.both_periods_use_current_team_membership_account_usage_is_attributed",
+    "other": "两期均按当前团队归属汇总；账号用量按请求实际所属账号统计。当前绑定关系不改变历史用量归属。"
+  },
+  {
+    "id": "usagereport.cached_input",
+    "other": "其中缓存"
+  },
+  {
+    "id": "usagereport.ccpa_token_report_xlsx",
+    "other": "CCPA_Token周报_{{.Start}}_{{.End}}.xlsx"
+  },
+  {
+    "id": "usagereport.change",
+    "other": "环比"
+  },
+  {
+    "id": "usagereport.change_from_previous",
+    "other": "较上期"
+  },
+  {
+    "id": "usagereport.current_account",
+    "other": "当前绑定账号"
+  },
+  {
+    "id": "usagereport.current_bindings",
+    "other": "当前绑定"
+  },
+  {
+    "id": "usagereport.current_team",
+    "other": "当前团队"
+  },
+  {
+    "id": "usagereport.current_week_is_incomplete",
+    "other": "  本周未结束"
+  },
+  {
+    "id": "usagereport.daily_token_usage",
+    "other": "每日 Token 消耗"
+  },
+  {
+    "id": "usagereport.daily_trends",
+    "other": "每日趋势"
+  },
+  {
+    "id": "usagereport.daily_trends_c_8_c_14",
+    "other": "'每日趋势'!$C$8:$C$14"
+  },
+  {
+    "id": "usagereport.date",
+    "other": "日期"
+  },
+  {
+    "id": "usagereport.dates_use_the_system_timezone_previous_dates_align_by_weekday",
+    "other": "日期按系统时区划分，上期按星期对齐。未发生的日期留空；活跃人数与账号数合计去重。"
+  },
+  {
+    "id": "usagereport.end_exclusive",
+    "other": "{{.Start}} — {{.End}}（结束不含）  {{.Timezone}}"
+  },
+  {
+    "id": "usagereport.friday",
+    "other": "周五"
+  },
+  {
+    "id": "usagereport.highest_usage",
+    "other": "用量最高"
+  },
+  {
+    "id": "usagereport.includes_current_and_historical_identities_including_those_without_request_records",
+    "other": "；包含当前及历史身份，明细保留无请求记录。"
+  },
+  {
+    "id": "usagereport.input_tokens",
+    "other": "输入 Token"
+  },
+  {
+    "id": "usagereport.largest_decrease",
+    "other": "下降最多"
+  },
+  {
+    "id": "usagereport.largest_increase",
+    "other": "增长最快"
+  },
+  {
+    "id": "usagereport.last_request",
+    "other": "最后请求时间"
+  },
+  {
+    "id": "usagereport.monday",
+    "other": "周一"
+  },
+  {
+    "id": "usagereport.no",
+    "other": "序号"
+  },
+  {
+    "id": "usagereport.no_data",
+    "other": "暂无数据"
+  },
+  {
+    "id": "usagereport.no_request_records",
+    "other": "无请求记录"
+  },
+  {
+    "id": "usagereport.no_requests",
+    "other": "无请求"
+  },
+  {
+    "id": "usagereport.no_team_usage_in_this_period",
+    "other": "本期无团队用量"
+  },
+  {
+    "id": "usagereport.output_tokens",
+    "other": "输出 Token"
+  },
+  {
+    "id": "usagereport.outside_the_reporting_period",
+    "other": "未到统计时间"
+  },
+  {
+    "id": "usagereport.previous_date",
+    "other": "上期日期"
+  },
+  {
+    "id": "usagereport.previous_period_end_exclusive_change_is_when_previous_usage_is",
+    "other": "上期：{{.Start}} — {{.End}}（结束不含）；无记录或上期为零时环比为 —，未采集到记录不保证没有实际用量。"
+  },
+  {
+    "id": "usagereport.previous_records",
+    "other": "上期记录"
+  },
+  {
+    "id": "usagereport.previous_tokens",
+    "other": "上期 Token"
+  },
+  {
+    "id": "usagereport.previous_weighted_tokens",
+    "other": "上期加权 Token"
+  },
+  {
+    "id": "usagereport.raw_tokens",
+    "other": "原始 Token"
+  },
+  {
+    "id": "usagereport.recorded",
+    "other": "有记录"
+  },
+  {
+    "id": "usagereport.reporting_rules",
+    "other": "统计口径"
+  },
+  {
+    "id": "usagereport.request_statistics",
+    "other": "请求统计"
+  },
+  {
+    "id": "usagereport.requests",
+    "other": "请求数"
+  },
+  {
+    "id": "usagereport.saturday",
+    "other": "周六"
+  },
+  {
+    "id": "usagereport.select_a_valid_monday_no_later_than_the_current_week",
+    "other": "请选择有效的周一日期，且不能晚于本周"
+  },
+  {
+    "id": "usagereport.share_default_ranking_per_user_usage_and_changes_use_raw",
+    "other": "占比、默认排序、人均与环比以原始 Token 为准。原始值使用采集记录的 total_tokens，缓存输入不重复相加。"
+  },
+  {
+    "id": "usagereport.sorted_by_raw_tokens_cached_tokens_are_included_in_input",
+    "other": "按原始 Token 降序。缓存包含在输入中；原始和加权值均保留历史记录。使用账号数、活跃天数合计去重。"
+  },
+  {
+    "id": "usagereport.sorted_by_raw_tokens_current_bindings_are_routes_at_export",
+    "other": "按原始 Token 降序。当前绑定为导出时路由；用量按请求实际账号统计。缓存包含在输入中，活跃用户合计去重。"
+  },
+  {
+    "id": "usagereport.sorted_by_raw_tokens_share_change_and_per_user_usage",
+    "other": "按原始 Token 降序；占比、环比和人均以原始 Token 计算。团队按当前归属汇总。"
+  },
+  {
+    "id": "usagereport.success_rate",
+    "other": "成功率"
+  },
+  {
+    "id": "usagereport.sunday",
+    "other": "周日"
+  },
+  {
+    "id": "usagereport.team",
+    "other": "团队"
+  },
+  {
+    "id": "usagereport.team_statistics",
+    "other": "团队统计"
+  },
+  {
+    "id": "usagereport.team_token_usage",
+    "other": "团队 Token 消耗"
+  },
+  {
+    "id": "usagereport.this_week",
+    "other": "本周状态"
+  },
+  {
+    "id": "usagereport.thursday",
+    "other": "周四"
+  },
+  {
+    "id": "usagereport.tokens_per_user",
+    "other": "人均 Token"
+  },
+  {
+    "id": "usagereport.total",
+    "other": "合计"
+  },
+  {
+    "id": "usagereport.total_deduplicated",
+    "other": "合计（去重）"
+  },
+  {
+    "id": "usagereport.tuesday",
+    "other": "周二"
+  },
+  {
+    "id": "usagereport.unassigned",
+    "other": "未分配"
+  },
+  {
+    "id": "usagereport.unidentified_account",
+    "other": "未识别账号"
+  },
+  {
+    "id": "usagereport.unidentified_user",
+    "other": "未识别用户"
+  },
+  {
+    "id": "usagereport.usage_overview",
+    "other": "用量总览"
+  },
+  {
+    "id": "usagereport.usage_share",
+    "other": "用量占比"
+  },
+  {
+    "id": "usagereport.usage_through",
+    "other": "统计截至 "
+  },
+  {
+    "id": "usagereport.user",
+    "other": "用户"
+  },
+  {
+    "id": "usagereport.user_activity_rate",
+    "other": "用户活跃率"
+  },
+  {
+    "id": "usagereport.user_usage_details",
+    "other": "用户使用明细"
+  },
+  {
+    "id": "usagereport.wednesday",
+    "other": "周三"
+  },
+  {
+    "id": "usagereport.weekday",
+    "other": "星期"
+  },
+  {
+    "id": "usagereport.weekly_observations",
+    "other": "本周观察"
+  },
+  {
+    "id": "usagereport.weekly_token_usage_report",
+    "other": "Token 用量周报"
+  },
+  {
+    "id": "usagereport.weighted_tokens",
+    "other": "加权 Token"
+  },
+  {
+    "id": "usagereport.weighted_tokens_use_values_saved_when_requests_were_collected_historical",
+    "other": "加权 Token 沿用请求采集时保存的结果；历史记录不按当前倍率重算，旧版无加权值的记录沿用原始值。"
+  }
+]

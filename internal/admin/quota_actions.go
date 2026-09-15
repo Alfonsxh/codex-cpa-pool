@@ -11,6 +11,8 @@ import (
 	"unicode/utf8"
 
 	"github.com/Alfonsxh/codex-cpa-pool/internal/controlplane"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/identity"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/usage"
 	"github.com/gin-gonic/gin"
@@ -60,7 +62,7 @@ func (server *Server) readUserQuotaOperations(c *gin.Context) {
 		server.writeUserLifecycleError(c, "read user quota operation summary", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	httpi18n.JSON(c, http.StatusOK, result)
 }
 
 func (server *Server) applyUserQuotaAction(c *gin.Context) {
@@ -69,7 +71,7 @@ func (server *Server) applyUserQuotaAction(c *gin.Context) {
 	}
 	var body quotaActionPayload
 	if err := c.ShouldBindJSON(&body); err != nil {
-		writeError(c, http.StatusBadRequest, "额度操作参数无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_quota_action_parameters"), "invalid_request")
 		return
 	}
 	action := strings.ToLower(strings.TrimSpace(body.Action))
@@ -80,7 +82,7 @@ func (server *Server) applyUserQuotaAction(c *gin.Context) {
 	if !validQuotaActionConfirmation(action, scope, body.Confirm) ||
 		(scope == "all" && action != "reset_usage") ||
 		(scope != "all" && scope != "selected") {
-		writeError(c, http.StatusBadRequest, "请确认额度操作", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.confirm_the_quota_action"), "invalid_request")
 		return
 	}
 	tokenAmount := int64(0)
@@ -88,7 +90,7 @@ func (server *Server) applyUserQuotaAction(c *gin.Context) {
 		var err error
 		tokenAmount, err = parseQuotaActionTokens(body.TokenAmount)
 		if err != nil {
-			writeError(c, http.StatusBadRequest, "追加额度必须为正整数", "invalid_request")
+			writeError(c, http.StatusBadRequest, i18n.M("admin.the_bonus_must_be_a_positive_integer"), "invalid_request")
 			return
 		}
 	}
@@ -100,7 +102,7 @@ func (server *Server) applyUserQuotaAction(c *gin.Context) {
 		server.writeUserLifecycleError(c, "apply user quota action", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	httpi18n.JSON(c, http.StatusOK, result)
 }
 
 func validQuotaActionConfirmation(action string, scope string, confirmation string) bool {
@@ -243,7 +245,7 @@ func (manager *UserManager) ApplyUserQuotaAction(
 	}
 	return UserQuotaActionResponse{
 		QuotaActionResult: result,
-		Message:           quotaActionMessage(request.Action, len(users), result),
+		Message:           quotaActionMessage(request.Action, len(users), result, i18n.FromContext(ctx)),
 		QuotaOperations:   summarizeQuotaOperations(knownUsers, quotas),
 	}, nil
 }
@@ -284,16 +286,16 @@ func (manager *UserManager) ReadQuotaOperations(
 	return summarizeQuotaOperations(knownUsers, quotas), nil
 }
 
-func quotaActionMessage(action string, selected int, result usage.QuotaActionResult) string {
+func quotaActionMessage(action string, selected int, result usage.QuotaActionResult, languages ...i18n.Language) string {
 	switch action {
 	case "restore_default":
-		return fmt.Sprintf("已将 %d 位用户恢复为继承组织默认额度", selected)
+		return i18n.M("admin.restored_the_organization_quota_default_for_users", i18n.Params{"Count": selected}).Render(i18n.Selected(languages))
 	case "add_bonus":
-		return fmt.Sprintf("已为 %d 位用户追加本周额度；将在下次采集后生效", selected)
+		return i18n.M("admin.added_weekly_bonus_quota_for_users_effective_after_the_next", i18n.Params{"Count": selected}).Render(i18n.Selected(languages))
 	default:
-		message := fmt.Sprintf("已清零 %d 位用户的本周已用量；将在下次采集后生效", len(result.AppliedUsers))
+		message := i18n.M("admin.reset_weekly_usage_for_users_effective_after_the_next_collection", i18n.Params{"Count": len(result.AppliedUsers)}).Render(i18n.Selected(languages))
 		if len(result.SkippedUsers) > 0 {
-			message += fmt.Sprintf("；%d 位用户当前用量为 0，已跳过", len(result.SkippedUsers))
+			message += i18n.M("admin.skipped_users_whose_current_usage_is_zero", i18n.Params{"Count": len(result.SkippedUsers)}).Render(i18n.Selected(languages))
 		}
 		return message
 	}

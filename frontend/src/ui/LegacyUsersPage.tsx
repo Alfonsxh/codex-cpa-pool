@@ -1,3 +1,5 @@
+import "../i18n/admin";
+import { t, getIntlLocale } from "../i18n";
 import { useSiteTimezone, formatSiteTimestamp, getSiteTimezone } from "./site-time";
 import { DownOutlined } from "@ant-design/icons";
 import {
@@ -120,13 +122,13 @@ type QuotaActionDraft = {
 };
 
 const usageWindowOptions: Array<{ value: Exclude<UsageWindow, "custom">; label: string }> = [
-  { value: "3600", label: "1 小时" },
-  { value: "today", label: "今日" },
-  { value: "86400", label: "24 小时" },
-  { value: "604800", label: "7 天" },
-  { value: "2592000", label: "30 天" },
-  { value: "current_week", label: "本周" },
-  { value: "all", label: "全部" }
+  { value: "3600", label: t("common.1h") },
+  { value: "today", label: t("common.today") },
+  { value: "86400", label: t("common.24h") },
+  { value: "604800", label: t("common.7d") },
+  { value: "2592000", label: t("common.30d") },
+  { value: "current_week", label: t("common.this_week") },
+  { value: "all", label: t("admin.all") }
 ];
 
 export function LegacyUsersPage({ csrfToken }: { csrfToken: string }) {
@@ -232,9 +234,9 @@ export function LegacyUsersPage({ csrfToken }: { csrfToken: string }) {
         queryClient.refetchQueries({ queryKey: [...usageBreakdownQueryRoot, "user"], type: "active" })
       ]);
       setRefreshLabel(userRefreshLabel(catalog.summary_generated_at || catalog.generated_at, catalog.summary_cached));
-      showToast("数据已刷新");
+      showToast(t("admin.data_refreshed"));
     } catch (error) {
-      setRefreshLabel("刷新失败");
+      setRefreshLabel(t("admin.refresh_failed"));
       throw error;
     }
   }, [listParams, queryClient, setRefreshLabel, showToast, usageRange]);
@@ -252,7 +254,7 @@ export function LegacyUsersPage({ csrfToken }: { csrfToken: string }) {
   useEffect(() => {
     if (!users.isError || reportedError.current === users.error) return;
     reportedError.current = users.error;
-    setRefreshLabel("刷新失败");
+    setRefreshLabel(t("admin.refresh_failed"));
     showToast(errorMessage(users.error), "error");
   }, [setRefreshLabel, showToast, users.error, users.isError]);
   useEffect(() => () => {
@@ -423,14 +425,14 @@ export function LegacyUsersPage({ csrfToken }: { csrfToken: string }) {
     toggleSelected
   ]);
   const teamOptions = [
-    { value: "unassigned", label: "未分组" },
+    { value: "unassigned", label: t("admin.ungrouped") },
     ...(catalog?.teams ?? []).map((team) => ({ value: team.id, label: team.name }))
   ];
   const rangeUpdating = users.isFetching && (users.isPlaceholderData || !catalog);
   const rangeBoundary = (timestamp: number | null | undefined, unbounded = false) => {
     if (rangeUpdating) return "…";
     if (!catalog || users.isPlaceholderData) return "—";
-    if (timestamp == null || timestamp <= 0) return unbounded ? "不限" : "—";
+    if (timestamp == null || timestamp <= 0) return unbounded ? t("admin.unlimited") : "—";
     return formatLastUsed(timestamp);
   };
   const total = catalog?.pagination.total ?? 0;
@@ -444,7 +446,7 @@ export function LegacyUsersPage({ csrfToken }: { csrfToken: string }) {
       <div className="legacy-user-management-panel">
         <div className="management-toolbar user-management-toolbar user-time-filter-toolbar">
           <ManagementUsageTimeFilter
-            value={usageWindow} options={usageWindowOptions} label="用户用量"
+            value={usageWindow} options={usageWindowOptions} label={t("admin.user_usage")}
             onChange={(value) => { setUsageWindow(value); setPage(1); setExpandedUsers([]); }}
             onCustomSelect={() => setCustomRangeOpen(true)}
             start={rangeBoundary(catalog?.window_start_at, usageWindow === "all")}
@@ -453,14 +455,14 @@ export function LegacyUsersPage({ csrfToken }: { csrfToken: string }) {
           <div className="user-toolbar-actions management-toolbar-controls">
             <div className="management-filter-grid user-filter-grid">
               <div className="user-filter-field user-search-filter-field">
-                <label htmlFor="user-search-filter">用户</label>
+                <label htmlFor="user-search-filter">{t("common.user")}</label>
                 <label className="search-field user-search-input">
                   <span aria-hidden="true">⌕</span>
                   <input
                     id="user-search-filter"
                     type="search"
-                    aria-label="搜索用户"
-                    placeholder="搜索用户邮箱"
+                    aria-label={t("admin.search_users")}
+                    placeholder={t("admin.search_user_emails")}
                     value={searchDraft}
                     onChange={(event) => setSearchDraft(event.target.value)}
                     onKeyDown={(event) => {
@@ -474,12 +476,12 @@ export function LegacyUsersPage({ csrfToken }: { csrfToken: string }) {
                 </label>
               </div>
               <label className="window-field filter-field user-filter-field user-team-filter-field">
-                <span>团队</span>
+                <span>{t("admin.team_2")}</span>
                 <LegacyEnhancedSelect
                   id="user-team-filter"
-                  label="团队"
+                  label={t("admin.team_2")}
                   value={teamID}
-                  options={[{ value: "", label: "全部团队" }, ...teamOptions]}
+                  options={[{ value: "", label: t("admin.all_teams") }, ...teamOptions]}
                   onChange={(value) => {
                     setTeamID(value);
                     setPage(1);
@@ -492,35 +494,35 @@ export function LegacyUsersPage({ csrfToken }: { csrfToken: string }) {
               <Button type="primary" onClick={() => {
                 createMutation.reset();
                 setCreateOpen(true);
-              }}>添加用户</Button>
+              }}>{t("admin.add_user")}</Button>
             </div>
           </div>
         </div>
 
         {catalog?.collector.status && catalog.collector.status !== "healthy" ? (
           <div className="notice user-usage-notice" role="status">
-            {catalog.collector.status === "starting" ? "用量采集器正在启动" : "用量采集暂不可用，用户管理不受影响"}
+            {catalog.collector.status === "starting" ? t("admin.the_usage_collector_is_starting") : t("admin.usage_collection_is_unavailable_user_management_is_unaffected")}
           </div>
         ) : null}
 
         {selectedUsers.length ? (
           <div className="user-selection-bar">
             <div className="user-selection-summary">
-              <span className="selection-count">已选择 {selectedUsers.length} 位用户</span>
-              <small>批量操作只影响已勾选用户，并保留原始用量和审计记录。</small>
+              <span className="selection-count">{t("admin.selected")} {selectedUsers.length} {t("admin.users_3")}</span>
+              <small>{t("admin.bulk_actions_affect_only_selected_users_and_preserve_raw_usage")}</small>
             </div>
             <div className="user-selection-actions">
-              <button className="button ghost" type="button" onClick={() => setSelectedUsers([])}>取消选择</button>
-              <button className="button secondary" type="button" onClick={() => setAssignment({ users: selectedUsers, targetTeamID: null })}>分配团队</button>
+              <button className="button ghost" type="button" onClick={() => setSelectedUsers([])}>{t("admin.clear_selection")}</button>
+              <button className="button secondary" type="button" onClick={() => setAssignment({ users: selectedUsers, targetTeamID: null })}>{t("admin.assign_team")}</button>
               <button className="button secondary" type="button" onClick={() => {
                 quotaActionMutation.reset();
                 setRestoreQuotaUsers([...selectedUsers]);
-              }}>恢复组织默认</button>
+              }}>{t("admin.restore_organization_default")}</button>
               <button className="button danger-outline" type="button" onClick={() => setQuotaAction({
                 action: "reset_usage",
                 scope: "selected",
                 users: selectedUsers
-              })}>清零本周已用量</button>
+              })}>{t("admin.reset_weekly_usage")}</button>
             </div>
           </div>
         ) : null}
@@ -576,20 +578,20 @@ export function LegacyUsersPage({ csrfToken }: { csrfToken: string }) {
           {!users.isPending && !users.isError && !total ? (
             <div className="user-empty-state">
               <div className="empty-icon" aria-hidden="true">◎</div>
-              <h3>{query || teamID ? "没有匹配的用户" : "还没有用户"}</h3>
-              <p>{query || teamID ? "请调整搜索条件。" : "添加用户邮箱后，将创建一个统一 API Key 并关联全部 CPA。"}</p>
-              <Button type="primary" onClick={() => setCreateOpen(true)}>添加第一个用户</Button>
+              <h3>{query || teamID ? t("admin.no_matching_users") : t("admin.no_users_yet")}</h3>
+              <p>{query || teamID ? t("admin.adjust_your_search") : t("admin.adding_an_email_creates_a_unified_api_key_and_links")}</p>
+              <Button type="primary" onClick={() => setCreateOpen(true)}>{t("admin.add_first_user")}</Button>
             </div>
           ) : null}
 
           {total ? (
-            <div className="table-pagination user-pagination" aria-label="用户分页">
-              <span className="pagination-summary">共 {formatNumber(total)} 位用户 · {formatNumber(startIndex)}–{formatNumber(endIndex)}</span>
+            <div className="table-pagination user-pagination" aria-label={t("admin.user_pagination")}>
+              <span className="pagination-summary">{t("admin.total")} {formatNumber(total)} {t("admin.users_4")} {formatNumber(startIndex)}–{formatNumber(endIndex)}</span>
               <div className="pagination-actions">
                 <label className="pagination-size">
-                  <span>每页</span>
+                  <span>{t("admin.per_page")}</span>
                   <LegacyEnhancedSelect
-                    label="每页条数"
+                    label={t("admin.rows_per_page")}
                     value={String(pageSize)}
                     options={[25, 50, 100].map((value) => ({ value: String(value), label: String(value) }))}
                     onChange={(nextValue) => {
@@ -598,13 +600,13 @@ export function LegacyUsersPage({ csrfToken }: { csrfToken: string }) {
                       setExpandedUsers([]);
                     }}
                   />
-                  <span>条</span>
+                  <span>{t("admin.rows")}</span>
                 </label>
-                <nav className="pagination-controls" aria-label="用户列表页码">
+                <nav className="pagination-controls" aria-label={t("admin.user_list_pages")}>
                   <Button disabled={page <= 1} onClick={() => {
                     setPage((current) => Math.max(1, current - 1));
                     setExpandedUsers([]);
-                  }}>上一页</Button>
+                  }}>{t("admin.previous")}</Button>
                   <div className="pagination-pages">
                     {paginationItems(page, totalPages).map((item, index) => (
                       item === "…"
@@ -623,7 +625,7 @@ export function LegacyUsersPage({ csrfToken }: { csrfToken: string }) {
                   <Button disabled={page >= totalPages} onClick={() => {
                     setPage((current) => Math.min(totalPages, current + 1));
                     setExpandedUsers([]);
-                  }}>下一页</Button>
+                  }}>{t("admin.next")}</Button>
                 </nav>
               </div>
             </div>
@@ -633,7 +635,7 @@ export function LegacyUsersPage({ csrfToken }: { csrfToken: string }) {
 
       <CustomUsageRangeModal
         open={customRangeOpen}
-        title="选择时间范围"
+        title={t("common.select_time_range")}
         timezone={getSiteTimezone()}
         range={customRange}
         onCancel={() => setCustomRangeOpen(false)}
@@ -701,9 +703,9 @@ export function LegacyUsersPage({ csrfToken }: { csrfToken: string }) {
         onSubmit={(input) => quotaActionMutation.mutate(input)}
       />
       <LegacyConfirmModal
-        title={`恢复 ${restoreQuotaUsers?.length ?? 0} 位用户的组织默认额度？`}
+        title={t("admin.restore_the_organization_quota_default_for_users", [restoreQuotaUsers?.length ?? 0])}
         open={restoreQuotaUsers !== null}
-        okText="恢复组织默认"
+        okText={t("admin.restore_organization_default")}
         pending={quotaActionMutation.isPending}
         onCancel={() => {
           if (!quotaActionMutation.isPending) {
@@ -729,8 +731,8 @@ export function LegacyUsersPage({ csrfToken }: { csrfToken: string }) {
           {restoreQuotaUsers && pageUsers.filter((user) => (
             restoreQuotaUsers.includes(user.email) && user.weekly_quota.policy_mode !== "inherit"
           )).length
-            ? `将删除所选用户的个人额度策略；当前周追加额度与用量调整保持不变。`
-            : "所选用户已经继承组织默认额度，不会修改当前周追加额度或用量调整。"}
+            ? t("admin.personal_quota_policies_will_be_removed_for_the_selected_users")
+            : t("admin.the_selected_users_already_inherit_the_organization_default_this_week")}
         </>
       </LegacyConfirmModal>
       <TeamUsageDrawer
@@ -779,8 +781,8 @@ function userColumns({
         className={"legacy-sort-button" + (sortField === field ? " active" : "")}
         type="button"
         aria-label={sortField === field
-          ? label + "，当前" + (sortDirection === "asc" ? "升序" : "降序") + "，点击切换排序方向"
-          : label + "，点击排序"}
+          ? label + t("admin.currently") + (sortDirection === "asc" ? t("common.ascending") : t("common.descending")) + t("admin.click_to_reverse_the_sort_order")
+          : label + t("common.click_to_sort")}
         onClick={(event) => {
           event.stopPropagation();
           onSort(field);
@@ -796,7 +798,7 @@ function userColumns({
   });
   return [
     {
-      title: "序号",
+      title: t("common.no"),
       key: "index",
       className: "table-index-column",
       width: "4%",
@@ -805,7 +807,7 @@ function userColumns({
     {
       title: (
         <IndeterminateCheckbox
-          ariaLabel="选择本页用户"
+          ariaLabel={t("admin.select_users_on_this_page")}
           checked={allSelected}
           indeterminate={partiallySelected}
           onChange={onSelectPage}
@@ -817,7 +819,7 @@ function userColumns({
       render: (_, user) => (
         <input
           type="checkbox"
-          aria-label={"选择 " + user.email}
+          aria-label={t("admin.select") + user.email}
           checked={selectedUsers.includes(user.email)}
           onClick={(event) => event.stopPropagation()}
           onChange={(event) => onSelect(user.email, event.target.checked)}
@@ -829,42 +831,42 @@ function userColumns({
       key: "toggle",
       className: "user-toggle-column",
       width: "3%",
-      onHeaderCell: () => ({ "aria-label": "展开" }),
+      onHeaderCell: () => ({ "aria-label": t("admin.expand") }),
       render: () => <span className="user-chevron" aria-hidden="true">›</span>
     },
     {
-      ...sortable("email", "用户"),
+      ...sortable("email", t("common.user")),
       key: "email",
       width: "15%",
       render: (_, user) => (
         <>
           <span className="table-primary">{user.email}</span>
-          <span className="table-secondary">{user.total_records} 条历史记录</span>
+          <span className="table-secondary">{user.total_records} {t("admin.historical_records")}</span>
         </>
       )
     },
     {
-      title: "团队",
+      title: t("admin.team_2"),
       key: "team",
       width: "9%",
       render: (_, user) => (
         <button
           className="classification-button"
           type="button"
-          aria-label={"设置 " + user.email + " 的团队"}
+          aria-label={t("admin.set") + user.email + t("admin.s_team")}
           onClick={(event) => {
             event.stopPropagation();
             onTeam(user);
           }}
         >
           <span className={teamTagClassName(user.team?.tag_style, !user.team)}>
-            {user.team?.name ?? "未分组"}
+            {user.team?.name ?? t("admin.ungrouped")}
           </span>
         </button>
       )
     },
     {
-      title: "状态",
+      title: t("admin.status_2"),
       key: "status",
       width: "6%",
       render: (_, user) => (
@@ -880,33 +882,33 @@ function userColumns({
       render: (_, user) => <UserCoverage user={user} />
     },
     {
-      ...sortable("requests", "使用次数"),
+      ...sortable("requests", t("admin.requests")),
       key: "requests",
       className: "number-cell",
       width: "7%",
       render: (_, user) => (
         <>
           {formatNumber(user.usage.request_count)}
-          {user.usage.failed_count ? <span className="usage-failed">{formatNumber(user.usage.failed_count)} 失败</span> : null}
+          {user.usage.failed_count ? <span className="usage-failed">{formatNumber(user.usage.failed_count)} {t("common.failed")}</span> : null}
         </>
       )
     },
     {
-      ...sortable("tokens", "Token 用量"),
+      ...sortable("tokens", t("admin.token_usage_3")),
       key: "tokens",
       className: "user-token-column user-token-cell",
       width: "14%",
       render: (_, user) => <UserTokenCell user={user} window={usageWindow} />
     },
     {
-      ...sortable("quota", "本周额度状态"),
+      ...sortable("quota", t("admin.weekly_quota_status")),
       key: "quota",
       className: "user-quota-column",
       width: "23%",
       render: (_, user) => <UserQuotaCell user={user} onOpen={() => onQuota(user)} />
     },
     {
-      ...sortable("last_used", "最后使用"),
+      ...sortable("last_used", t("common.last_used")),
       key: "last-used",
       width: "10%",
       render: (_, user) => <UserLastUsed timestamp={user.usage.last_used_at} />
@@ -960,11 +962,11 @@ function UserTokenCell({ user, window }: { user: UserSummary; window: UsageWindo
   return (
     <div className="user-token-summary">
       <div className="user-token-stat user-token-weighted">
-        <span>{usageWindowLabel(window)}加权</span>
+        <span>{t("common.weighted", [usageWindowLabel(window)])}</span>
         <LegacyTokenValue value={user.usage.weighted_tokens} />
       </div>
       <div className="user-token-stat user-token-current">
-        <span>{usageWindowLabel(window)}未加权</span>
+        <span>{t("common.unweighted", [usageWindowLabel(window)])}</span>
         <LegacyTokenValue value={user.usage.total_tokens} />
       </div>
     </div>
@@ -973,19 +975,19 @@ function UserTokenCell({ user, window }: { user: UserSummary; window: UsageWindo
 
 function UserQuotaCell({ user, onOpen }: { user: UserSummary; onOpen: () => void }) {
   const quota = user.weekly_quota;
-  if (!quota.period) return <span className="quota-unavailable">暂不可用</span>;
+  if (!quota.period) return <span className="quota-unavailable">{t("admin.unavailable")}</span>;
   const weightedUsed = quota.weighted_used_tokens ?? quota.used_tokens;
   const rawUsed = quota.raw_used_tokens ?? 0;
   const progress = Math.min(100, Math.max(0, Number(quota.used_percent) || 0));
   const adjustments = [
-    quota.bonus_tokens > 0 ? "本周已追加 " + tokenText(quota.bonus_tokens) : "",
-    quota.usage_reset_tokens > 0 ? "本周已重置 " + tokenText(quota.usage_reset_tokens) : ""
+    quota.bonus_tokens > 0 ? t("admin.bonus_this_week") + tokenText(quota.bonus_tokens) : "",
+    quota.usage_reset_tokens > 0 ? t("admin.reset_this_week") + tokenText(quota.usage_reset_tokens) : ""
   ].filter(Boolean);
   return (
     <div className="user-quota-cell">
       <div className="user-quota-primary">
         <span className="user-quota-source">{quotaSourceLabel(quota)}</span>
-        <strong>上限 {quota.unlimited ? "不限额" : tokenText(quota.limit_tokens)}</strong>
+        <strong>{t("admin.limit")} {quota.unlimited ? t("common.unlimited") : tokenText(quota.limit_tokens)}</strong>
         <button
           className="inline-action"
           type="button"
@@ -993,20 +995,20 @@ function UserQuotaCell({ user, onOpen }: { user: UserSummary; onOpen: () => void
             event.stopPropagation();
             onOpen();
           }}
-        >配置</button>
+        >{t("admin.settings")}</button>
       </div>
       <div className="user-quota-meter-copy">
-        <span>本周加权用量</span>
+        <span>{t("admin.weighted_usage_this_week_2")}</span>
         <LegacyTokenValue value={weightedUsed} />
       </div>
       {quota.unlimited ? null : (
-        <progress aria-label="本周额度使用比例" className="user-quota-progress" max={100} value={progress} />
+        <progress aria-label={t("admin.weekly_quota_usage")} className="user-quota-progress" max={100} value={progress} />
       )}
       <div className="user-quota-progress-copy">
-        <span>{quota.unlimited ? "无比例限制" : "已用 " + formatPercent(quota.used_percent)}</span>
-        <span>{quota.unlimited ? "剩余不限" : "剩余 " + tokenText(quota.remaining_tokens)}</span>
+        <span>{quota.unlimited ? t("admin.no_percentage_limit") : t("admin.used_2") + formatPercent(quota.used_percent)}</span>
+        <span>{quota.unlimited ? t("admin.unlimited_remaining") : t("admin.remaining") + tokenText(quota.remaining_tokens)}</span>
       </div>
-      <div className="user-quota-raw-copy"><span>本周未加权</span><LegacyTokenValue value={rawUsed} /></div>
+      <div className="user-quota-raw-copy"><span>{t("admin.raw_tokens_this_week")}</span><LegacyTokenValue value={rawUsed} /></div>
       {adjustments.length ? <span className="user-quota-adjustment-copy">{adjustments.join(" · ")}</span> : null}
     </div>
   );
@@ -1069,7 +1071,7 @@ function UserExpandedRow({
   if (detail.isPending) {
     return (
       <div className="user-detail-panel">
-        <div className="account-model-usage-skeleton" aria-label="正在加载用户详情">
+        <div className="account-model-usage-skeleton" aria-label={t("admin.loading_user_details")}>
           <span />
           <span />
         </div>
@@ -1081,7 +1083,7 @@ function UserExpandedRow({
       <div className="user-detail-panel">
         <div className="account-model-usage-message error" role="alert">
           <span>{errorMessage(detail.error)}</span>
-          <button className="inline-action" type="button" onClick={() => void detail.refetch()}>重试</button>
+          <button className="inline-action" type="button" onClick={() => void detail.refetch()}>{t("common.retry")}</button>
         </div>
       </div>
     );
@@ -1107,23 +1109,23 @@ function UserExpandedRow({
         onRetry={() => void breakdown.refetch()}
       />
       <div className="usage-analysis-title">
-        <strong>CPA 账号用量分析</strong>
+        <strong>{t("admin.cpa_account_usage_analysis")}</strong>
       </div>
-      <NativeTableViewport className="user-account-table-wrap" aria-label="用户账号明细表格">
+      <NativeTableViewport className="user-account-table-wrap" aria-label={t("admin.user_account_details_table")}>
         <table className="user-account-table">
           <thead>
             <tr>
-              <th className="table-index-column">序号</th>
-              <LegacyNativeSortHeader label="CPA 账号" field="account" sort={accountSort} onSort={setAccountSort} />
-              <LegacyNativeSortHeader label="Key 状态" field="status" sort={accountSort} onSort={setAccountSort} />
-              <LegacyNativeSortHeader label="次数" field="requests" sort={accountSort} onSort={setAccountSort} />
-              <LegacyNativeSortHeader label="输入 Token" field="input_tokens" sort={accountSort} onSort={setAccountSort} />
-              <LegacyNativeSortHeader label="输出 Token" field="output_tokens" sort={accountSort} onSort={setAccountSort} />
-              <LegacyNativeSortHeader label="推理 Token" field="reasoning_tokens" sort={accountSort} onSort={setAccountSort} />
-              <LegacyNativeSortHeader label="缓存 Token" field="cached_tokens" sort={accountSort} onSort={setAccountSort} />
-              <LegacyNativeSortHeader label="未加权 Token" field="total_tokens" sort={accountSort} onSort={setAccountSort} />
-              <LegacyNativeSortHeader label="加权 Token" field="weighted_tokens" sort={accountSort} onSort={setAccountSort} />
-              <LegacyNativeSortHeader label="最后使用" field="last_used_at" sort={accountSort} onSort={setAccountSort} />
+              <th className="table-index-column">{t("common.no")}</th>
+              <LegacyNativeSortHeader label={t("common.cpa_account")} field="account" sort={accountSort} onSort={setAccountSort} />
+              <LegacyNativeSortHeader label={t("admin.key_status")} field="status" sort={accountSort} onSort={setAccountSort} />
+              <LegacyNativeSortHeader label={t("admin.count")} field="requests" sort={accountSort} onSort={setAccountSort} />
+              <LegacyNativeSortHeader label={t("common.input_tokens")} field="input_tokens" sort={accountSort} onSort={setAccountSort} />
+              <LegacyNativeSortHeader label={t("common.output_tokens")} field="output_tokens" sort={accountSort} onSort={setAccountSort} />
+              <LegacyNativeSortHeader label={t("common.reasoning_tokens")} field="reasoning_tokens" sort={accountSort} onSort={setAccountSort} />
+              <LegacyNativeSortHeader label={t("common.cached_tokens")} field="cached_tokens" sort={accountSort} onSort={setAccountSort} />
+              <LegacyNativeSortHeader label={t("common.raw_tokens")} field="total_tokens" sort={accountSort} onSort={setAccountSort} />
+              <LegacyNativeSortHeader label={t("common.weighted_tokens_2")} field="weighted_tokens" sort={accountSort} onSort={setAccountSort} />
+              <LegacyNativeSortHeader label={t("common.last_used")} field="last_used_at" sort={accountSort} onSort={setAccountSort} />
             </tr>
           </thead>
           <tbody>
@@ -1145,10 +1147,10 @@ function UserExpandedRow({
           </tbody>
         </table>
       </NativeTableViewport>
-      <div className="user-detail-actions" role="group" aria-label="用户管理操作">
-        <Button onClick={onTeam}>设置团队</Button>
-        <Button onClick={onQuota}>配置周额度</Button>
-        <Button onClick={() => onLifecycle({ kind: "reset-password", user })}>重置密码</Button>
+      <div className="user-detail-actions" role="group" aria-label={t("admin.user_actions")}>
+        <Button onClick={onTeam}>{t("admin.set_team")}</Button>
+        <Button onClick={onQuota}>{t("admin.configure_weekly_quota")}</Button>
+        <Button onClick={() => onLifecycle({ kind: "reset-password", user })}>{t("admin.reset_password")}</Button>
         <Dropdown
           trigger={["click"]}
           placement="topRight"
@@ -1158,14 +1160,14 @@ function UserExpandedRow({
           destroyOnHidden
           classNames={{ root: "user-detail-actions-menu" }}
           menu={{
-            "aria-label": "更多用户操作",
+            "aria-label": t("admin.more_user_actions"),
             items: [
               ...(user.active_keys && keyLabel ? [
-                { key: "rotate", label: "轮换唯一 Key" },
-                { key: "revoke", label: "停用唯一 Key", danger: true },
+                { key: "rotate", label: t("admin.rotate_unified_key") },
+                { key: "revoke", label: t("admin.disable_unified_key"), danger: true },
                 { type: "divider" as const }
               ] : []),
-              { key: "delete", label: "删除用户", danger: true }
+              { key: "delete", label: t("admin.delete_user"), danger: true }
             ],
             onClick: ({ key }) => {
               setMoreActionsOpen(false);
@@ -1175,7 +1177,7 @@ function UserExpandedRow({
             }
           }}
         >
-          <Button aria-haspopup="menu" aria-expanded={moreActionsOpen}>更多操作 <DownOutlined aria-hidden="true" /></Button>
+          <Button aria-haspopup="menu" aria-expanded={moreActionsOpen}>{t("admin.more_actions")} <DownOutlined aria-hidden="true" /></Button>
         </Dropdown>
       </div>
     </div>
@@ -1203,14 +1205,14 @@ function UserUsageAnalysis({
   const header = () => (
     <div className="usage-analysis-header">
       <div className="usage-analysis-title">
-        <strong>模型与推理分析</strong>
+        <strong>{t("admin.model_reasoning_analysis")}</strong>
       </div>
       <div className="usage-analysis-filter">
         <LegacyEnhancedSelect
           label="CPA"
           value={accountFilter}
           options={[
-            { value: "", label: "全部 CPA" },
+            { value: "", label: t("common.all_cpas") },
             ...accounts.map((account) => ({ value: account, label: account }))
           ]}
           onChange={(account) => {
@@ -1225,7 +1227,7 @@ function UserUsageAnalysis({
     return (
       <section className="user-usage-analysis">
         {header()}
-        <div className="usage-analysis-skeleton" aria-label="正在加载模型分析"><span /><span /><span /></div>
+        <div className="usage-analysis-skeleton" aria-label={t("admin.loading_model_analysis")}><span /><span /><span /></div>
       </section>
     );
   }
@@ -1234,9 +1236,9 @@ function UserUsageAnalysis({
       <section className="user-usage-analysis">
         {header()}
         <div className="usage-analysis-message error" role="alert">
-          <strong>模型分析加载失败</strong>
+          <strong>{t("admin.unable_to_load_model_analysis")}</strong>
           <span>{errorMessage(error)}</span>
-          <button className="inline-action" type="button" onClick={onRetry}>重试</button>
+          <button className="inline-action" type="button" onClick={onRetry}>{t("common.retry")}</button>
         </div>
       </section>
     );
@@ -1246,8 +1248,8 @@ function UserUsageAnalysis({
       <section className="user-usage-analysis">
         {header()}
         <div className="usage-analysis-message">
-          <strong>等待新统计开始</strong>
-          <span>用量采集器启动后，将从该时刻开始记录模型和推理强度。</span>
+          <strong>{t("admin.waiting_for_statistics")}</strong>
+          <span>{t("admin.models_and_reasoning_effort_are_recorded_from_the_moment_the")}</span>
         </div>
       </section>
     );
@@ -1259,13 +1261,13 @@ function UserUsageAnalysis({
   const summary = (
     <div className="usage-analysis-summary">
       <div className="usage-analysis-call-stat">
-        <span>成功调用</span><strong>{formatNumber(successCount)}</strong>
-        <span>失败调用</span><strong className="usage-analysis-failed-count">{formatNumber(failedCount)}</strong>
+        <span>{t("admin.successful_calls")}</span><strong>{formatNumber(successCount)}</strong>
+        <span>{t("admin.failed_calls")}</span><strong className="usage-analysis-failed-count">{formatNumber(failedCount)}</strong>
       </div>
-      <div><span>强度覆盖率</span><strong>{formatUsageRatio(query.totals.known_effort_count ?? 0, successCount)}</strong></div>
-      <div className="usage-analysis-token-stat"><span>未加权 Token</span><strong><LegacyTokenValue value={query.totals.total_tokens} /></strong></div>
-      <div className="usage-analysis-token-stat"><span>加权 Token</span><strong><LegacyTokenValue value={totalWeighted} /></strong></div>
-      <div className="usage-analysis-time-stat"><span>统计开始</span><strong>{formatSiteTimestamp(query.collection_started_at)}</strong></div>
+      <div><span>{t("admin.effort_coverage")}</span><strong>{formatUsageRatio(query.totals.known_effort_count ?? 0, successCount)}</strong></div>
+      <div className="usage-analysis-token-stat"><span>{t("common.raw_tokens")}</span><strong><LegacyTokenValue value={query.totals.total_tokens} /></strong></div>
+      <div className="usage-analysis-token-stat"><span>{t("common.weighted_tokens_2")}</span><strong><LegacyTokenValue value={totalWeighted} /></strong></div>
+      <div className="usage-analysis-time-stat"><span>{t("admin.tracking_since")}</span><strong>{formatSiteTimestamp(query.collection_started_at)}</strong></div>
     </div>
   );
   if (!successCount) {
@@ -1274,8 +1276,8 @@ function UserUsageAnalysis({
         {header()}
         {summary}
         <div className="usage-analysis-message compact">
-          <strong>当前范围暂无成功调用</strong>
-          <span>{failedCount ? `有 ${formatNumber(failedCount)} 次失败调用，未计入占比。` : "产生新调用后将在这里显示模型与推理强度组合。"}</span>
+          <strong>{t("admin.no_successful_calls_in_this_range")}</strong>
+          <span>{failedCount ? t("admin.failed_calls_are_excluded_from_the_shares", [formatNumber(failedCount)]) : t("admin.model_and_reasoning_effort_combinations_will_appear_after_new_calls")}</span>
         </div>
       </section>
     );
@@ -1284,9 +1286,9 @@ function UserUsageAnalysis({
     <section className="user-usage-analysis">
       {header()}
       {summary}
-      <NativeTableViewport className="usage-model-table-wrap" aria-label="模型用量表格">
+      <NativeTableViewport className="usage-model-table-wrap" aria-label={t("admin.model_usage_table")}>
         <table className="usage-model-table">
-          <thead><tr><th className="table-index-column">序号</th><th>模型</th><th>使用量</th><th>推理强度构成</th><th>Token 明细</th><th>调用</th></tr></thead>
+          <thead><tr><th className="table-index-column">{t("common.no")}</th><th>{t("common.model")}</th><th>{t("admin.usage_2")}</th><th>{t("admin.reasoning_effort_mix")}</th><th>{t("admin.token_details")}</th><th>{t("common.calls")}</th></tr></thead>
           <tbody>
             {models.map((model, index) => (
               <tr key={model.model}>
@@ -1296,10 +1298,10 @@ function UserUsageAnalysis({
                 <td><UserModelEffortProgress model={model} onSelect={setSelectedEffort} /></td>
                 <td>
                   <dl className="usage-model-token-details">
-                    <div><dt>输入</dt><dd><LegacyTokenValue value={model.inputTokens} /></dd></div>
-                    <div><dt>输出</dt><dd><LegacyTokenValue value={model.outputTokens} /></dd></div>
-                    <div><dt>推理</dt><dd><LegacyTokenValue value={model.reasoningTokens} /></dd></div>
-                    <div><dt>缓存</dt><dd><LegacyTokenValue value={model.cachedTokens} /></dd></div>
+                    <div><dt>{t("admin.input")}</dt><dd><LegacyTokenValue value={model.inputTokens} /></dd></div>
+                    <div><dt>{t("admin.output")}</dt><dd><LegacyTokenValue value={model.outputTokens} /></dd></div>
+                    <div><dt>{t("admin.reasoning")}</dt><dd><LegacyTokenValue value={model.reasoningTokens} /></dd></div>
+                    <div><dt>{t("admin.cached")}</dt><dd><LegacyTokenValue value={model.cachedTokens} /></dd></div>
                   </dl>
                 </td>
                 <td className="number-cell">{formatNumber(model.successCount)}</td>
@@ -1308,7 +1310,7 @@ function UserUsageAnalysis({
           </tbody>
         </table>
       </NativeTableViewport>
-      {error ? <div className="usage-analysis-stale">刷新失败，当前展示上一次成功数据：{errorMessage(error)}</div> : null}
+      {error ? <div className="usage-analysis-stale">{t("admin.refresh_failed_showing_the_last_successful_data")}{errorMessage(error)}</div> : null}
       {selectedEffort ? (
         <UserModelAccountDrawer
           key={JSON.stringify(selectedEffort)}
@@ -1327,11 +1329,11 @@ function UserUsageAnalysis({
 type UserModelEffortSelection = { model: string; effort: string };
 
 function userUsageModelName(model: string) {
-  return model && model !== "unknown" ? model : "未上报模型";
+  return model && model !== "unknown" ? model : t("admin.model_not_reported");
 }
 
 function userUsageEffortName(effort: string) {
-  return effort && effort !== "unknown" ? effort : "未上报强度";
+  return effort && effort !== "unknown" ? effort : t("admin.effort_not_reported");
 }
 
 function UserModelAccountDrawer({
@@ -1375,14 +1377,14 @@ function UserModelAccountDrawer({
   const multiplier = (row: UsageCombination) => row.total_tokens > 0 ? (row.weighted_tokens ?? row.total_tokens) / row.total_tokens : 0;
   const average = (row: UsageCombination) => row.success_count > 0 ? Math.round(row.total_tokens / row.success_count) : 0;
   const columns: TableColumnsType<UsageCombination> = [
-    { title: "CPA 账号", dataIndex: "account", key: "account", width: 160, sorter: (left, right) => String(left.account).localeCompare(String(right.account)), render: (account: string) => <span className="table-primary">{account || "未上报 CPA"}</span> },
-    { title: "调用", dataIndex: "success_count", key: "calls", className: "user-model-account-number", width: 84, align: "right", sorter: (left, right) => left.success_count - right.success_count, render: (count: number) => formatNumber(count) },
-    { title: <Tooltip title="占当前 CPA 筛选范围内，该模型与推理强度成功调用的比例">调用占比</Tooltip>, key: "share", className: "user-model-account-number", width: 100, align: "right", render: (_, row) => formatUsageRatio(row.success_count, successCount) },
-    { title: "未加权 Token", dataIndex: "total_tokens", key: "raw", width: 150, align: "right", defaultSortOrder: "descend", sorter: (left, right) => left.total_tokens - right.total_tokens, render: (tokens: number) => <LegacyTokenValue value={tokens} /> },
-    { title: "实际倍率", key: "multiplier", className: "user-model-account-number", width: 96, align: "right", sorter: (left, right) => multiplier(left) - multiplier(right), render: (_, row) => "×" + multiplier(row).toFixed(2) },
-    { title: "加权 Token", key: "weighted", width: 150, align: "right", sorter: (left, right) => (left.weighted_tokens ?? left.total_tokens) - (right.weighted_tokens ?? right.total_tokens), render: (_, row) => <LegacyTokenValue value={row.weighted_tokens ?? row.total_tokens} /> },
-    { title: <span className="user-model-account-column-title">平均/次<small>未加权 Token</small></span>, key: "average", width: 144, align: "right", sorter: (left, right) => average(left) - average(right), render: (_, row) => <LegacyTokenValue value={average(row)} /> },
-    { title: "最后使用", key: "last_used_at", width: 150, align: "right", sorter: (left, right) => (left.last_used_at || 0) - (right.last_used_at || 0), render: (_, row) => <UserLastUsed timestamp={row.last_used_at} /> }
+    { title: t("common.cpa_account"), dataIndex: "account", key: "account", width: 160, sorter: (left, right) => String(left.account).localeCompare(String(right.account)), render: (account: string) => <span className="table-primary">{account || t("admin.cpa_not_reported")}</span> },
+    { title: t("common.calls"), dataIndex: "success_count", key: "calls", className: "user-model-account-number", width: 84, align: "right", sorter: (left, right) => left.success_count - right.success_count, render: (count: number) => formatNumber(count) },
+    { title: <Tooltip title={t("admin.share_of_successful_calls_for_this_model_and_reasoning_effort")}>{t("admin.call_share")}</Tooltip>, key: "share", className: "user-model-account-number", width: 100, align: "right", render: (_, row) => formatUsageRatio(row.success_count, successCount) },
+    { title: t("common.raw_tokens"), dataIndex: "total_tokens", key: "raw", width: 150, align: "right", defaultSortOrder: "descend", sorter: (left, right) => left.total_tokens - right.total_tokens, render: (tokens: number) => <LegacyTokenValue value={tokens} /> },
+    { title: t("admin.effective_multiplier"), key: "multiplier", className: "user-model-account-number", width: 96, align: "right", sorter: (left, right) => multiplier(left) - multiplier(right), render: (_, row) => "×" + multiplier(row).toFixed(2) },
+    { title: t("common.weighted_tokens_2"), key: "weighted", width: 150, align: "right", sorter: (left, right) => (left.weighted_tokens ?? left.total_tokens) - (right.weighted_tokens ?? right.total_tokens), render: (_, row) => <LegacyTokenValue value={row.weighted_tokens ?? row.total_tokens} /> },
+    { title: <span className="user-model-account-column-title">{t("admin.average_call")}<small>{t("common.raw_tokens")}</small></span>, key: "average", width: 144, align: "right", sorter: (left, right) => average(left) - average(right), render: (_, row) => <LegacyTokenValue value={average(row)} /> },
+    { title: t("common.last_used"), key: "last_used_at", width: 150, align: "right", sorter: (left, right) => (left.last_used_at || 0) - (right.last_used_at || 0), render: (_, row) => <UserLastUsed timestamp={row.last_used_at} /> }
   ];
   return (
     <Drawer
@@ -1391,7 +1393,7 @@ function UserModelAccountDrawer({
         <span className="user-model-account-title">
           <span>{selection.model}</span>{" · "}
           <Tag className={`user-model-effort-tag account-model-effort-${effortColorKey(selection.effort)}`}>{selection.effort}</Tag>
-          {" · CPA 用量分布"}
+ {t("admin.cpa_usage_distribution")}
         </span>
       )}
       placement="right"
@@ -1406,7 +1408,7 @@ function UserModelAccountDrawer({
           <span>{formatLastUsed(query.window_start_at)} — {formatLastUsed(query.window_end_at)}</span>
         </div>
       </div>
-      {error ? <div className="usage-analysis-stale" role="alert">刷新失败，当前展示上一次成功数据：{errorMessage(error)} <button type="button" className="inline-action" onClick={onRetry}>重试</button></div> : null}
+      {error ? <div className="usage-analysis-stale" role="alert">{t("admin.refresh_failed_showing_the_last_successful_data")}{errorMessage(error)} <button type="button" className="inline-action" onClick={onRetry}>{t("common.retry")}</button></div> : null}
       <AdminTable
         className="user-model-account-table"
         rowKey={(row) => JSON.stringify(row.account ?? "")}
@@ -1423,7 +1425,7 @@ function UserModelAccountDrawer({
         showSorterTooltip={false}
         sortDirections={["descend", "ascend", "descend"]}
         loading={pending}
-        emptyText="当前范围暂无该模型与推理强度的 CPA 用量"
+        emptyText={t("admin.no_cpa_usage_for_this_model_and_reasoning_effort_in")}
       />
     </Drawer>
   );
@@ -1471,7 +1473,7 @@ function groupUserModels(combinations: UsageCombination[]): UserModelRow[] {
     const totalTokens = efforts.reduce((total, item) => total + item.total_tokens, 0);
     let allocated = 0;
     const normalized = efforts
-      .sort((left, right) => right.total_tokens - left.total_tokens || left.reasoning_effort.localeCompare(right.reasoning_effort, "zh-CN"))
+      .sort((left, right) => right.total_tokens - left.total_tokens || left.reasoning_effort.localeCompare(right.reasoning_effort, getIntlLocale()))
       .map((item, index, sorted) => {
         const sharePercent = index === sorted.length - 1
           ? Math.max(0, 100 - allocated)
@@ -1489,12 +1491,12 @@ function groupUserModels(combinations: UsageCombination[]): UserModelRow[] {
       successCount: efforts.reduce((total, item) => total + item.success_count, 0),
       efforts: normalized
     };
-  }).sort((left, right) => right.totalTokens - left.totalTokens || left.model.localeCompare(right.model, "zh-CN"));
+  }).sort((left, right) => right.totalTokens - left.totalTokens || left.model.localeCompare(right.model, getIntlLocale()));
 }
 
 function UserModelEffortProgress({ model, onSelect }: { model: UserModelRow; onSelect: (selection: UserModelEffortSelection) => void }) {
   return (
-    <div className="account-model-progress" role="group" aria-label={`${model.model} 各推理强度 Token 占比`}>
+    <div className="account-model-progress" role="group" aria-label={t("common.token_share_by_reasoning_effort", [model.model])}>
       {model.efforts.map((effort) => {
         const tooltip = modelEffortTooltipDetails(model.model, effort);
         const shareUnits = Math.max(1, Math.min(100, Math.round(effort.sharePercent)));
@@ -1505,7 +1507,7 @@ function UserModelEffortProgress({ model, onSelect }: { model: UserModelRow; onS
                 {...events}
                 className={`account-model-progress-segment account-model-effort-${effortColorKey(effort.reasoning_effort)} account-model-share-tens-${Math.floor(shareUnits / 10)} account-model-share-ones-${shareUnits % 10}${effort.sharePercent < 18 ? " compact" : ""}`}
                 type="button"
-                aria-label={`查看 ${model.model} · ${effort.reasoning_effort} 的 CPA 用量分布`}
+                aria-label={t("admin.view_cpa_usage_for", [model.model, effort.reasoning_effort])}
                 aria-haspopup="dialog"
                 onClick={() => {
                   events.onBlur();
@@ -1529,13 +1531,13 @@ function modelEffortTooltipDetails(model: string, effort: UserModelEffort | Team
   return {
     title: `${model} · ${effort.reasoning_effort}`,
     metrics: [
-      { label: "调用", value: formatNumber(effort.request_count) },
-      { label: "输入", value: formatNumber(effort.input_tokens) },
-      { label: "输出", value: formatNumber(effort.output_tokens) },
-      { label: "推理", value: formatNumber(effort.reasoning_tokens) },
-      { label: "缓存", value: formatNumber(effort.cached_tokens) },
-      { label: "总 Token", value: formatNumber(effort.total_tokens) },
-      { label: "加权 Token", value: formatNumber(effort.weighted_tokens ?? effort.total_tokens) }
+      { label: t("common.calls"), value: formatNumber(effort.request_count) },
+      { label: t("admin.input"), value: formatNumber(effort.input_tokens) },
+      { label: t("admin.output"), value: formatNumber(effort.output_tokens) },
+      { label: t("admin.reasoning"), value: formatNumber(effort.reasoning_tokens) },
+      { label: t("admin.cached"), value: formatNumber(effort.cached_tokens) },
+      { label: t("admin.total_tokens_2"), value: formatNumber(effort.total_tokens) },
+      { label: t("common.weighted_tokens_2"), value: formatNumber(effort.weighted_tokens ?? effort.total_tokens) }
     ]
   };
 }
@@ -1660,15 +1662,15 @@ function UserAssignmentModal({
   return (
     <Modal
       className="legacy-user-form-modal"
-      title={<LegacyDialogTitle title={(assignment?.users.length ?? 0) > 1 ? "批量分配团队" : "设置团队"} kicker="TEAM ASSIGNMENT" subtitle={assignment?.users.length === 1 ? assignment.users[0] : "已选择 " + (assignment?.users.length ?? 0) + " 位用户"} />}
+      title={<LegacyDialogTitle title={(assignment?.users.length ?? 0) > 1 ? t("admin.bulk_team_assignment") : t("admin.set_team")} kicker="TEAM ASSIGNMENT" subtitle={assignment?.users.length === 1 ? assignment.users[0] : t("admin.selected_2") + (assignment?.users.length ?? 0) + t("admin.users")} />}
       open={assignment !== null}
       width={560}
       centered
       closeIcon={<span className="legacy-dialog-close" aria-hidden="true">×</span>}
       transitionName=""
       maskTransitionName=""
-      okText="保存团队"
-      cancelText="取消"
+      okText={t("admin.save_team")}
+      cancelText={t("common.cancel")}
       confirmLoading={pending}
       onCancel={onCancel}
       onOk={onSubmit}
@@ -1677,16 +1679,16 @@ function UserAssignmentModal({
     >
       <div className="legacy-user-form-body">
         <label className="field">
-          <span>统计团队</span>
+          <span>{t("admin.reporting_team")}</span>
           <LegacyEnhancedSelect
-            label="统计团队"
+            label={t("admin.reporting_team")}
             value={assignment?.targetTeamID ?? ""}
             options={teams.map((team) => ({ value: team.value === "unassigned" ? "" : team.value, label: team.label }))}
             onChange={(nextValue) => onChange(nextValue || null)}
           />
-          <small>每位用户只能属于一个团队，用于团队用量统计。</small>
+          <small>{t("admin.each_user_can_belong_to_one_team_for_usage_reporting")}</small>
         </label>
-        <div className="inline-notice">保存后，团队报表会按当前成员动态汇总所选范围内的 Token；历史事件本身不会改写。</div>
+        <div className="inline-notice">{t("admin.team_reports_aggregate_tokens_for_the_selected_range_using_current")}</div>
         <LegacyFormError error={error} />
       </div>
     </Modal>
@@ -1752,7 +1754,7 @@ function CreateUserModal({
     const parsed = parseFullEmail(email);
     const localPart = parsed?.localPart ?? email.trim();
     if (!/^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+$/i.test(localPart)) {
-      setEmailError(email.includes("@") ? "邮箱后缀不匹配，请仅输入用户名并选择已配置的后缀。" : "请输入有效的邮箱用户名。");
+      setEmailError(email.includes("@") ? t("common.the_email_domain_does_not_match_enter_only_the_username") : t("admin.enter_a_valid_email_username"));
       emailInputRef.current?.focus();
       return;
     }
@@ -1762,15 +1764,15 @@ function CreateUserModal({
   return (
     <Modal
       className="legacy-user-form-modal"
-      title={<LegacyDialogTitle title="添加用户" kicker="NEW USER" />}
+      title={<LegacyDialogTitle title={t("admin.add_user")} kicker="NEW USER" />}
       open={open}
       width={560}
       centered
       closeIcon={<span className="legacy-dialog-close" aria-hidden="true">×</span>}
       transitionName=""
       maskTransitionName=""
-      okText="创建用户"
-      cancelText="取消"
+      okText={t("admin.create_user")}
+      cancelText={t("common.cancel")}
       okButtonProps={{ disabled: pending || !emailDomainsReady }}
       onCancel={onCancel}
       onOk={submit}
@@ -1782,16 +1784,16 @@ function CreateUserModal({
     >
       <div className="legacy-user-form-body">
         <div className="field">
-          <span id="new-user-email-label">用户邮箱</span>
+          <span id="new-user-email-label">{t("common.user_email")}</span>
           <div className="user-email-fields" role="group" aria-labelledby="new-user-email-label">
             <input
               type="text"
               inputMode="email"
               ref={emailInputRef}
-              aria-label="邮箱用户名"
+              aria-label={t("common.email_username")}
               aria-invalid={Boolean(emailError)}
               aria-describedby={emailError ? "new-user-email-error" : undefined}
-              placeholder="输入用户名"
+              placeholder={t("common.enter_username")}
               value={email}
               autoFocus
               autoCapitalize="none"
@@ -1816,11 +1818,11 @@ function CreateUserModal({
             />
             <LegacyEnhancedSelect
               id="new-user-email-domain"
-              label="邮箱后缀"
+              label={t("common.email_domain")}
               value={selectedDomain}
               options={domains.length
                 ? domains.map((domain) => ({ value: domain, label: `@${domain}` }))
-                : [{ value: "", label: emailDomainsLoading ? "正在加载后缀…" : "暂无可用后缀" }]}
+                : [{ value: "", label: emailDomainsLoading ? t("common.loading_domains") : t("common.no_available_domains") }]}
               disabled={pending || !emailDomainsReady}
               onChange={(domain) => {
                 const parts = email.trim().split("@");
@@ -1830,29 +1832,26 @@ function CreateUserModal({
               }}
             />
           </div>
-          {emailDomainsLoading ? <small role="status">正在读取企业邮箱后缀…</small>
-            : emailDomainsFailed ? <small role="alert">邮箱后缀加载失败。<Button type="link" size="small" onClick={onRetryEmailDomains}>重试</Button></small>
-              : !domains.length ? <small role="alert">尚未配置企业邮箱后缀，请先到<Link to="/configuration?group=品牌与身份&key=identity.allowed_email_domains" onClick={onCancel}>系统配置</Link>设置。</small>
+          {emailDomainsLoading ? <small role="status">{t("common.loading_organization_email_domains")}</small>
+            : emailDomainsFailed ? <small role="alert">{t("common.unable_to_load_email_domains")}<Button type="link" size="small" onClick={onRetryEmailDomains}>{t("common.retry")}</Button></small>
+              : !domains.length ? <small role="alert">{t("admin.no_organization_email_domain_is_configured_open")}<Link to="/configuration?section=identity&key=identity.allowed_email_domains" onClick={onCancel}>{t("admin.system_configuration")}</Link>{t("admin.to_configure_one")}</small>
                 : null}
           {emailError ? <small className="user-email-error" id="new-user-email-error" role="alert">{emailError}</small> : null}
         </div>
         <label className="field add-user-team-field">
-          <span>所属团队</span>
+          <span>{t("admin.team_membership_2")}</span>
           <LegacyEnhancedSelect
-            label="所属团队"
+            label={t("admin.team_membership_2")}
             value={teamID}
             options={teams.map((team) => ({ value: team.value === "unassigned" ? "" : team.value, label: team.label }))}
             onChange={setTeamID}
           />
-          <small>可选；团队仅用于用量统计，不影响 CPA 自动分配。</small>
+          <small>{t("admin.optional_teams_are_used_for_usage_reporting_and_do_not")}</small>
         </label>
         <div className="inline-notice">
-          系统会创建统一 API Key，并为用户设置系统默认初始密码。
-          <br />
-          API Key 只显示一次；
-          <br />
-          用户首次登录必须修改默认密码。
-        </div>
+ {t("admin.a_unified_api_key_is_created_and_the_system_s")} <br />
+ {t("admin.the_api_key_is_shown_only_once")} <br />
+ {t("admin.the_user_must_change_the_default_password_on_first_sign")} </div>
         <LegacyFormError error={error} />
       </div>
     </Modal>
@@ -1920,7 +1919,7 @@ function LegacyConfirmModal({
       destroyOnHidden
       mask={{ closable: false }}
       footer={[
-        <Button key="cancel" disabled={pending} onClick={onCancel}>取消</Button>,
+        <Button key="cancel" disabled={pending} onClick={onCancel}>{t("common.cancel")}</Button>,
         <Button key="confirm" danger={danger} type={danger ? "default" : "primary"} loading={pending} onClick={onConfirm}>{okText}</Button>
       ]}
     >
@@ -2000,7 +1999,7 @@ function UserQuotaDrawer({
   };
   const update = useMutation({
     mutationFn: () => updateUserQuota(user || "", mode, mode === "custom" ? Number(tokens) : null, csrfToken),
-    onSuccess: (result) => void finish(result.message || "用户周额度策略已保存")
+    onSuccess: (result) => void finish(result.message || t("admin.user_weekly_quota_policy_saved"))
   });
   const restore = useMutation({
     mutationFn: () => applyUserQuotaAction({
@@ -2025,7 +2024,7 @@ function UserQuotaDrawer({
       return;
     }
     if (mode === "custom" && (!/^\d+$/.test(tokens.trim()) || Number(tokens) <= 0)) {
-      setValidationError("自定义周额度必须为正整数");
+      setValidationError(t("admin.the_custom_weekly_quota_must_be_a_positive_integer"));
       tokenInputRef.current?.focus();
       return;
     }
@@ -2035,7 +2034,7 @@ function UserQuotaDrawer({
     <>
       <Drawer
         className="legacy-user-quota-drawer"
-        title={<LegacyDialogTitle title="配置用户周额度" kicker="USER WEEKLY QUOTA" subtitle={user || ""} />}
+        title={<LegacyDialogTitle title={t("admin.configure_user_weekly_quota")} kicker="USER WEEKLY QUOTA" subtitle={user || ""} />}
         placement="right"
         size={500}
         open={Boolean(user)}
@@ -2047,12 +2046,12 @@ function UserQuotaDrawer({
         destroyOnHidden
         footer={(
           <div className="legacy-drawer-footer">
-            <Button onClick={onClose}>取消</Button>
+            <Button onClick={onClose}>{t("common.cancel")}</Button>
             <Button
               type="primary"
               disabled={!quota || pending}
               onClick={save}
-            >{update.isPending ? "正在保存…" : "保存额度策略"}</Button>
+            >{update.isPending ? t("admin.saving") : t("admin.save_quota_policy")}</Button>
           </div>
         )}
       >
@@ -2060,60 +2059,60 @@ function UserQuotaDrawer({
         {quota ? (
           <div className="user-quota-drawer-content">
             <dl className="user-quota-summary">
-              <QuotaFact label="本周加权已用" value={<LegacyTokenValue value={quota.weighted_used_tokens ?? quota.used_tokens} />} emphasize={false} />
-              <QuotaFact label="本周未加权" value={<LegacyTokenValue value={quota.raw_used_tokens} />} emphasize={false} />
+              <QuotaFact label={t("admin.weighted_usage_this_week")} value={<LegacyTokenValue value={quota.weighted_used_tokens ?? quota.used_tokens} />} emphasize={false} />
+              <QuotaFact label={t("admin.raw_tokens_this_week")} value={<LegacyTokenValue value={quota.raw_used_tokens} />} emphasize={false} />
               <QuotaFact
-                label="当前加权上限"
-                value={quota.unlimited ? "不限额" : tokenReadableText(quota.limit_tokens)}
-                detail={quota.bonus_tokens > 0 ? `（含追加 ${tokenReadableText(quota.bonus_tokens)}）` : undefined}
+                label={t("admin.current_weighted_limit")}
+                value={quota.unlimited ? t("common.unlimited") : tokenReadableText(quota.limit_tokens)}
+                detail={quota.bonus_tokens > 0 ? t("admin.including_bonus", [tokenReadableText(quota.bonus_tokens)]) : undefined}
               />
-              <QuotaFact label="基础额度" value={quota.base_limit_tokens == null ? "不限额" : tokenReadableText(quota.base_limit_tokens)} />
-              <QuotaFact label="加权剩余额度" value={quota.unlimited ? "不限额" : tokenReadableText(quota.remaining_tokens)} />
-              <QuotaFact label="下次重置" value={formatSiteTimestamp(quota.week_end_at)} />
+              <QuotaFact label={t("admin.base_quota")} value={quota.base_limit_tokens == null ? t("common.unlimited") : tokenReadableText(quota.base_limit_tokens)} />
+              <QuotaFact label={t("admin.weighted_quota_remaining")} value={quota.unlimited ? t("common.unlimited") : tokenReadableText(quota.remaining_tokens)} />
+              <QuotaFact label={t("admin.next_reset")} value={formatSiteTimestamp(quota.week_end_at)} />
             </dl>
-            <div className="inline-notice">额度按该用户在全部 CPA 的 Token 总量汇总。达到额度后只拒绝新请求，已经开始的请求（含流式输出）可以完成。</div>
+            <div className="inline-notice">{t("admin.quota_includes_the_user_s_tokens_across_all_cpas_reaching")}</div>
             <fieldset className="quota-policy-options">
-              <legend>额度策略</legend>
+              <legend>{t("admin.quota_policy")}</legend>
               <label><input type="radio" name="user-quota-mode" value="inherit" checked={mode === "inherit"} onChange={() => {
                 setMode("inherit");
                 setValidationError("");
-              }} /><span><strong>继承组织默认</strong><small>{quota.default_limit_tokens == null ? "当前组织默认不限额" : "当前组织默认 " + tokenReadableText(quota.default_limit_tokens)}</small></span></label>
+              }} /><span><strong>{t("admin.inherit_organization_default")}</strong><small>{quota.default_limit_tokens == null ? t("admin.the_organization_default_is_unlimited") : t("admin.organization_default") + tokenReadableText(quota.default_limit_tokens)}</small></span></label>
               <label><input type="radio" name="user-quota-mode" value="unlimited" checked={mode === "unlimited"} onChange={() => {
                 setMode("unlimited");
                 setValidationError("");
-              }} /><span><strong>单独不限额</strong><small>不受以后组织默认值变化影响</small></span></label>
+              }} /><span><strong>{t("common.personal_unlimited_quota")}</strong><small>{t("admin.unaffected_by_future_changes_to_the_organization_default")}</small></span></label>
               <label><input type="radio" name="user-quota-mode" value="custom" checked={mode === "custom"} onChange={() => {
                 setMode("custom");
                 setValidationError("");
-              }} /><span><strong>自定义额度</strong><small>每个自然周一 00:00 重新计算</small></span></label>
+              }} /><span><strong>{t("admin.custom_quota")}</strong><small>{t("admin.recalculated_every_monday_at_00_00")}</small></span></label>
             </fieldset>
             <label className={"field" + (mode === "custom" ? "" : " disabled")}>
-              <span>每周 Token</span>
+              <span>{t("admin.weekly_tokens")}</span>
               <div className="token-input-control">
                 <input
                   ref={tokenInputRef}
-                  aria-label="每周 Token"
+                  aria-label={t("admin.weekly_tokens")}
                   type="number"
                   inputMode="numeric"
                   value={tokens}
                   min={1}
                   max={1_000_000_000_000}
                   step={1}
-                  placeholder="例如 100000000"
+                  placeholder={t("admin.e_g_100000000")}
                   disabled={mode !== "custom"}
                   onChange={(event) => {
                     setTokens(event.target.value);
                     setValidationError("");
                   }}
                 />
-                <TokenInputPreview value={tokens} emptyLabel="请输入自定义周额度" />
+                <TokenInputPreview value={tokens} emptyLabel={t("admin.enter_custom_weekly_quota")} />
               </div>
             </label>
             <section className="user-quota-operations">
               <div className="user-quota-operations-head">
-                <div><strong>本周额度操作</strong><small>仅作用于当前自然周，不修改原始用量记录。</small></div>
+                <div><strong>{t("admin.weekly_quota_actions")}</strong><small>{t("admin.affects_only_the_current_calendar_week_raw_usage_records_are")}</small></div>
                 <span className={"status-chip " + (adjustments.length ? "success" : "neutral")}>
-                  {adjustments.length ? adjustments.length + " 条调整" : "暂无调整"}
+                  {adjustments.length ? adjustments.length + t("admin.adjustments") : t("admin.no_adjustments")}
                 </span>
               </div>
               <div className="user-quota-operation-grid">
@@ -2124,13 +2123,13 @@ function UserQuotaDrawer({
                   onClick={() => {
                     onAction({ action: "add_bonus", scope: "selected", users: user ? [user] : [] });
                   }}
-                ><span>追加本周额度</span><small>临时增加可用额度，下周自动失效</small></button>
+                ><span>{t("admin.add_weekly_bonus")}</span><small>{t("admin.temporarily_increase_available_quota_expires_next_week")}</small></button>
                 <button
                   className="quota-operation-card"
                   type="button"
                   disabled={quota.policy_mode === "inherit"}
                   onClick={() => setRestoreConfirm(true)}
-                ><span>恢复组织默认</span><small>删除个人策略，当前周临时调整保持不变</small></button>
+                ><span>{t("admin.restore_organization_default")}</span><small>{t("admin.remove_the_personal_policy_and_retain_this_week_s_temporary")}</small></button>
                 <button
                   className="quota-operation-card danger"
                   type="button"
@@ -2138,12 +2137,12 @@ function UserQuotaDrawer({
                   onClick={() => {
                     onAction({ action: "reset_usage", scope: "selected", users: user ? [user] : [] });
                   }}
-                ><span>清零本周已用量</span><small>保留历史事件，以调整账本抵扣当前用量</small></button>
+                ><span>{t("admin.reset_weekly_usage")}</span><small>{t("admin.retain_historical_events_and_offset_current_usage_in_the_adjustment")}</small></button>
               </div>
               <div className="quota-adjustment-history">
                 {adjustments.slice(0, 4).map((adjustment, index) => (
                   <div className="quota-adjustment-history-row" key={adjustment.created_at + ":" + index}>
-                    <strong>{adjustment.action === "bonus" ? "追加本周额度" : "清零本周已用量"} · {tokenText(adjustment.token_amount)}</strong>
+                    <strong>{adjustment.action === "bonus" ? t("admin.add_weekly_bonus") : t("admin.reset_weekly_usage")} · {tokenText(adjustment.token_amount)}</strong>
                     <time>{formatSiteTimestamp(adjustment.created_at)}</time>
                     <p title={adjustment.reason}>{adjustment.reason}</p>
                   </div>
@@ -2155,9 +2154,9 @@ function UserQuotaDrawer({
         ) : null}
       </Drawer>
       <LegacyConfirmModal
-        title="恢复 1 位用户的组织默认额度？"
+        title={t("admin.restore_the_organization_quota_default_for_1_user")}
         open={restoreConfirm}
-        okText="恢复组织默认"
+        okText={t("admin.restore_organization_default")}
         pending={restore.isPending}
         onCancel={() => setRestoreConfirm(false)}
         onConfirm={() => {
@@ -2166,8 +2165,8 @@ function UserQuotaDrawer({
         }}
       >
         {summaryQuota?.policy_mode !== "inherit"
-          ? "将删除 1 位用户的个人额度策略；当前周追加额度与用量调整保持不变。"
-          : "所选用户已经继承组织默认额度，不会修改当前周追加额度或用量调整。"}
+          ? t("admin.the_user_s_personal_quota_policy_will_be_removed_this")
+          : t("admin.the_selected_users_already_inherit_the_organization_default_this_week")}
       </LegacyConfirmModal>
     </>
   );
@@ -2198,12 +2197,12 @@ function TokenInputPreview({
   return (
     <div className="token-input-preview" data-state={presentation.state} aria-live="polite">
       {presentation.state === "empty" ? <small>{presentation.emptyLabel}</small> : null}
-      {presentation.state === "invalid" ? <small>请输入正整数 Token</small> : null}
+      {presentation.state === "invalid" ? <small>{t("admin.enter_a_positive_integer_token_amount")}</small> : null}
       {presentation.state === "ready" ? (
         <>
           <strong>{presentation.compact}</strong>
           {presentation.localized ? <> <span>{presentation.localized}</span></> : null}
-          {presentation.compacted ? <> <small>精确值 {presentation.exact}</small></> : null}
+          {presentation.compacted ? <> <small>{t("admin.exact_value")} {presentation.exact}</small></> : null}
         </>
       ) : null}
     </div>
@@ -2247,7 +2246,7 @@ function QuotaActionModal({
   const totalUsed = selected.reduce((total, user) => total + user.weekly_quota.used_tokens, 0);
   const totalRaw = selected.reduce((total, user) => total + user.weekly_quota.raw_used_tokens, 0);
   const confirmPhrase = draft?.action === "reset_usage"
-    ? (draft.scope === "all" ? "确认清零全部" : "确认清零")
+    ? (draft.scope === "all" ? t("admin.confirm_reset_for_all") : t("admin.confirm_usage_reset"))
     : "";
   const submit = () => {
     if (!draft) return;
@@ -2268,17 +2267,17 @@ function QuotaActionModal({
       return;
     }
     if (!reason.trim()) {
-      setValidationError("请填写额度操作原因");
+      setValidationError(t("admin.enter_a_reason_for_the_quota_change"));
       reasonInputRef.current?.focus();
       return;
     }
     if (draft.action === "add_bonus" && (!/^\d+$/.test(tokenAmount.trim()) || Number(tokenAmount) <= 0)) {
-      setValidationError("追加额度必须为正整数");
+      setValidationError(t("admin.the_bonus_must_be_a_positive_integer"));
       tokenInputRef.current?.focus();
       return;
     }
     if (confirmPhrase && confirmation.trim() !== confirmPhrase) {
-      setValidationError(`请输入“${confirmPhrase}”`);
+      setValidationError(t("admin.enter", [confirmPhrase]));
       confirmationInputRef.current?.focus();
       return;
     }
@@ -2298,12 +2297,12 @@ function QuotaActionModal({
       className="legacy-user-form-modal quota-action-modal"
       title={<LegacyDialogTitle
         title={draft?.action === "add_bonus"
-          ? "追加本周额度"
-          : (draft?.scope === "all" ? "清零全部用户本周已用量" : "清零本周已用量")}
+          ? t("admin.add_weekly_bonus")
+          : (draft?.scope === "all" ? t("admin.reset_all_users_weekly_usage") : t("admin.reset_weekly_usage"))}
         kicker="QUOTA ADJUSTMENT"
         subtitle={draft?.scope === "all"
-          ? `全部 ${formatNumber(targetCount)} 位用户`
-          : (targetCount === 1 ? draft?.users[0] : "已选择 " + formatNumber(targetCount) + " 位用户")}
+          ? t("admin.all_users", [formatNumber(targetCount)])
+          : (targetCount === 1 ? draft?.users[0] : t("admin.selected_2") + formatNumber(targetCount) + t("admin.users"))}
       />}
       open={draft !== null}
       width={520}
@@ -2311,7 +2310,7 @@ function QuotaActionModal({
       closeIcon={<span className="legacy-dialog-close" aria-hidden="true">×</span>}
       transitionName=""
       maskTransitionName=""
-      okText={pending ? "正在处理…" : (draft?.action === "add_bonus" ? "确认追加" : "确认清零")}
+      okText={pending ? t("admin.processing") : (draft?.action === "add_bonus" ? t("admin.confirm_bonus") : t("admin.confirm_usage_reset"))}
       okButtonProps={{ danger: draft?.action === "reset_usage", disabled: !draft || pending }}
       onCancel={onCancel}
       onOk={submit}
@@ -2325,54 +2324,54 @@ function QuotaActionModal({
     >
       <div className="legacy-user-form-body">
         <div className="quota-action-impact">
-          <strong>{draft?.action === "add_bonus" ? "增加本周可用额度，基础策略保持不变" : "清零计费用量，原始 Token 事件与统计历史保持不变"}</strong>
+          <strong>{draft?.action === "add_bonus" ? t("admin.increase_this_week_s_available_quota_without_changing_the_base") : t("admin.reset_billable_usage_while_retaining_raw_token_events_and_reporting")}</strong>
           <dl>
-            <div><dt>影响用户</dt><dd>{formatNumber(targetCount)} 位</dd></div>
-            <div><dt>有本周用量</dt><dd>{formatNumber(usedCount)} 位</dd></div>
-            <div><dt>当前加权已用</dt><dd>{tokenText(totalUsed)}</dd></div>
-            <div><dt>未加权累计</dt><dd>{tokenText(totalRaw)}</dd></div>
+            <div><dt>{t("admin.affected_users")}</dt><dd>{formatNumber(targetCount)} {t("admin.users_2")}</dd></div>
+            <div><dt>{t("admin.users_with_weekly_usage")}</dt><dd>{formatNumber(usedCount)} {t("admin.users_2")}</dd></div>
+            <div><dt>{t("admin.current_weighted_usage")}</dt><dd>{tokenText(totalUsed)}</dd></div>
+            <div><dt>{t("admin.cumulative_raw_tokens")}</dt><dd>{tokenText(totalRaw)}</dd></div>
           </dl>
         </div>
         {draft?.action === "add_bonus" ? (
           <label className="field">
-            <span>追加 Token</span>
+            <span>{t("admin.bonus_tokens")}</span>
             <div className="token-input-control">
               <input
                 ref={tokenInputRef}
-                aria-label="追加 Token"
+                aria-label={t("admin.bonus_tokens")}
                 type="number"
                 inputMode="numeric"
                 min={1}
                 max={1_000_000_000_000}
                 step={1}
                 required
-                placeholder="例如 100000000"
+                placeholder={t("admin.e_g_100000000")}
                 value={tokenAmount}
                 onChange={(event) => {
                   setTokenAmount(event.target.value);
                   setValidationError("");
                 }}
               />
-              <TokenInputPreview value={tokenAmount} emptyLabel="请输入本周追加额度" />
+              <TokenInputPreview value={tokenAmount} emptyLabel={t("admin.enter_this_week_s_bonus_quota")} />
             </div>
           </label>
         ) : null}
         <label className="field">
-          <span>操作原因</span>
+          <span>{t("admin.reason")}</span>
           <textarea
             ref={reasonInputRef}
-            aria-label="操作原因"
+            aria-label={t("admin.reason")}
             maxLength={200}
             rows={3}
             required
             value={reason}
-            placeholder="说明业务原因或异常情况，最多 200 字"
+            placeholder={t("admin.describe_the_business_reason_or_incident_up_to_200_characters")}
             onChange={(event) => setReason(event.target.value)}
           />
         </label>
         {confirmPhrase ? (
           <label className="field confirmation-field">
-            <span>输入“{confirmPhrase}”后继续</span>
+            <span>{t("admin.enter_2")}{confirmPhrase}{t("admin.to_continue")}</span>
             <input
               ref={confirmationInputRef}
               value={confirmation}
@@ -2384,8 +2383,8 @@ function QuotaActionModal({
         ) : null}
         <div className="inline-notice">
           {draft?.action === "add_bonus"
-            ? "追加额度只在当前自然周有效，下周一 00:00 自动回到基础额度。"
-            : "系统会记录本次抵扣基准；后续新增 Token 仍会继续计入本周已用量。"}
+            ? t("admin.the_bonus_applies_only_to_the_current_week_the_base")
+            : t("admin.this_offset_is_recorded_as_a_baseline_new_tokens_continue")}
         </div>
         <LegacyFormError error={validationError ? new Error(validationError) : error} />
       </div>
@@ -2419,9 +2418,9 @@ function TeamUsageDrawer({
     <Drawer
       className="legacy-team-usage-drawer"
       title={<LegacyDialogTitle
-        title={team ? team.name + " · Token 用量" : "团队 Token 用量"}
+        title={team ? team.name + t("admin.token_usage") : t("admin.team_token_usage")}
         kicker="TEAM TOKEN ANALYTICS"
-        subtitle={usageWindowLabel(range.window) + " · 模型 × 推理强度"}
+        subtitle={usageWindowLabel(range.window) + t("admin.model_reasoning_effort")}
       />}
       placement="right"
       size={780}
@@ -2430,15 +2429,15 @@ function TeamUsageDrawer({
       closeIcon={<span className="legacy-dialog-close" aria-hidden="true">×</span>}
       destroyOnHidden
       mask={{ closable: false }}
-      footer={<Button onClick={onClose}>关闭</Button>}
+      footer={<Button onClick={onClose}>{t("common.close")}</Button>}
     >
       {query.isPending ? (
-        <div className="team-usage-skeleton" aria-label="正在加载团队 Token 用量">
+        <div className="team-usage-skeleton" aria-label={t("admin.loading_team_token_usage")}>
           <span /><span /><span /><span />
         </div>
       ) : null}
       {query.isError ? (
-        <div className="team-usage-state error">团队用量加载失败：{errorMessage(query.error)}</div>
+        <div className="team-usage-state error">{t("admin.unable_to_load_team_usage_2")}{errorMessage(query.error)}</div>
       ) : null}
       {team && query.data ? <TeamUsageContent team={team} payload={query.data} range={range} /> : null}
     </Drawer>
@@ -2462,32 +2461,32 @@ function TeamUsageContent({
     <div className="team-usage-content">
       <section className="team-detail-summary">
         <div className="team-detail-primary">
-          <span>{usageWindowLabel(range.window)}加权 Token</span>
+          <span>{t("common.weighted_tokens", [usageWindowLabel(range.window)])}</span>
           <strong><LegacyTokenValue value={weightedTokens} /></strong>
-          <small>{formatNumber(payload.totals.request_count)} 次调用 · {formatNumber(payload.totals.failed_count)} 次失败</small>
+          <small>{formatNumber(payload.totals.request_count)} {t("admin.calls_2")} {formatNumber(payload.totals.failed_count)} {t("admin.failed_2")}</small>
         </div>
         <div className="team-detail-facts">
-          <div><span>未加权 Token</span><strong><LegacyTokenValue value={rawTokens} /></strong></div>
-          <div><span>平均倍率</span><strong>×{multiplier.toFixed(2)}</strong></div>
-          <div><span>当前成员</span><strong>{formatNumber(team.current_user_count)}</strong></div>
-          <div><span>活跃成员</span><strong>{formatNumber(team.usage.active_users)}</strong></div>
+          <div><span>{t("common.raw_tokens")}</span><strong><LegacyTokenValue value={rawTokens} /></strong></div>
+          <div><span>{t("admin.average_multiplier")}</span><strong>×{multiplier.toFixed(2)}</strong></div>
+          <div><span>{t("admin.current_members")}</span><strong>{formatNumber(team.current_user_count)}</strong></div>
+          <div><span>{t("admin.active_members")}</span><strong>{formatNumber(team.usage.active_users)}</strong></div>
         </div>
       </section>
       <TeamUsageTrend series={payload.series} />
       <section className="team-combination-section">
         <div className="team-detail-heading">
-          <div><h4>模型与推理强度</h4><p className="section-kicker">MODEL × EFFORT</p></div>
-          <span>色块表示该模型各推理强度 Token 占比</span>
+          <div><h4>{t("common.model_reasoning_effort")}</h4><p className="section-kicker">MODEL × EFFORT</p></div>
+          <span>{t("admin.color_segments_show_token_shares_by_reasoning_effort_for_this")}</span>
         </div>
         <div className="team-combination-list">
           {models.length ? models.map((model) => (
             <div className="team-combination-row" key={model.model}>
               <span className="team-combination-label">
                 <strong title={model.model}>{model.model}</strong>
-                <small>{formatNumber(model.requestCount)} 次调用</small>
+                <small>{formatNumber(model.requestCount)} {t("admin.calls")}</small>
               </span>
               <span className="team-combination-progress">
-                <span className="account-model-progress" role="group" aria-label={model.model + " 各推理强度 Token 占比"}>
+                <span className="account-model-progress" role="group" aria-label={model.model + t("admin.token_share_by_reasoning_effort")}>
                   {model.efforts.map((effort) => {
                     const tooltip = modelEffortTooltipDetails(model.model, effort);
                     const shareUnits = Math.max(1, Math.min(100, Math.round(effort.sharePercent)));
@@ -2511,21 +2510,21 @@ function TeamUsageContent({
               </span>
               <span className="team-combination-value">
                 <strong><LegacyTokenValue value={model.weightedTokens} /></strong>
-                <small>加权 Token</small>
+                <small>{t("common.weighted_tokens_2")}</small>
               </span>
             </div>
           )) : (
             <div className="team-usage-state">
-              <strong>暂无模型明细</strong>
-              <span>当前范围内没有成功记录模型与推理强度的调用。</span>
+              <strong>{t("admin.no_model_details")}</strong>
+              <span>{t("admin.no_successful_calls_with_recorded_model_and_reasoning_effort_in")}</span>
             </div>
           )}
         </div>
       </section>
       <section className="team-member-section">
         <div className="team-detail-heading">
-          <div><h4>活跃成员排行</h4><p className="section-kicker">MEMBERS</p></div>
-          <span>前 8 位</span>
+          <div><h4>{t("admin.active_member_ranking")}</h4><p className="section-kicker">MEMBERS</p></div>
+          <span>{t("admin.top_8")}</span>
         </div>
         <div className="team-member-ranking">
           {payload.users.length ? payload.users.slice(0, 8).map((user, index) => (
@@ -2534,7 +2533,7 @@ function TeamUsageContent({
               <strong title={user.user}>{user.user}</strong>
               <em>{tokenText(user.weighted_tokens)}</em>
             </div>
-          )) : <div className="team-usage-state"><span>当前范围暂无活跃成员</span></div>}
+          )) : <div className="team-usage-state"><span>{t("admin.no_active_members_in_this_range")}</span></div>}
         </div>
       </section>
     </div>
@@ -2545,7 +2544,7 @@ function TeamUsageTrend({ series }: { series: TeamUsageSeries }) {
   const values = Array.isArray(series.values) ? series.values.map((value) => Number(value) || 0) : [];
   const buckets = Array.isArray(series.buckets) ? series.buckets : [];
   if (!values.length || !buckets.length) {
-    return <div className="team-trend-empty">当前范围暂无趋势数据</div>;
+    return <div className="team-trend-empty">{t("admin.no_trend_data_in_this_range")}</div>;
   }
   const width = 640;
   const height = 120;
@@ -2560,15 +2559,15 @@ function TeamUsageTrend({ series }: { series: TeamUsageSeries }) {
   const lastPoint = points.at(-1) ?? { x: width / 2, y: height - paddingY };
   return (
     <section className="team-trend">
-      <div className="team-trend-head"><h4>加权 Token 趋势</h4><span>每 {Math.max(1, Math.round(series.bucket_seconds / 60))} 分钟</span></div>
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`团队加权 Token 趋势，最高 ${formatNumber(maximum)} Token`}>
+      <div className="team-trend-head"><h4>{t("admin.weighted_token_trend")}</h4><span>{t("admin.every")} {Math.max(1, Math.round(series.bucket_seconds / 60))} {t("admin.minutes")}</span></div>
+      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={t("admin.team_weighted_token_trend_peak_tokens", [formatNumber(maximum)])}>
         <line x1={paddingX} y1={height - paddingY} x2={width - paddingX} y2={height - paddingY} />
         <polyline points={points.map((point) => `${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(" ")} />
         <circle cx={lastPoint.x} cy={lastPoint.y} r="4" />
       </svg>
       <div className="team-trend-axis">
         <span>{formatSiteTimestamp(series.start_at)}</span>
-        <strong>峰值 <LegacyTokenValue value={maximum} /></strong>
+        <strong>{t("common.peak")} <LegacyTokenValue value={maximum} /></strong>
         <span>{formatSiteTimestamp(series.end_at)}</span>
       </div>
     </section>
@@ -2606,34 +2605,34 @@ function groupTeamModels(combinations: TeamCombinationUsage[]): TeamModelRow[] {
 function lifecycleCopy(action: LifecycleAction) {
   if (action.kind === "rotate") {
     return {
-      title: "轮换 Key？",
-      message: "旧 Key 将立即失效，新 Key 只展示一次。",
-      okText: "确认轮换",
+      title: t("admin.rotate_key"),
+      message: t("admin.the_old_key_expires_immediately_the_new_key_is_shown"),
+      okText: t("admin.confirm_rotation"),
       danger: false
     };
   }
   if (action.kind === "reset-password") {
     return {
-      title: "重置用户密码？",
-      message: action.user.email + " 将恢复为系统默认初始密码，现有登录会话会立即失效；下次登录必须修改密码。",
-      okText: "确认重置",
+      title: t("admin.reset_user_password"),
+      message: action.user.email + t("admin.s_password_will_reset_to_the_system_s_initial_password"),
+      okText: t("admin.confirm_reset"),
       danger: true
     };
   }
   if (action.kind === "revoke") {
     return {
-      title: "停用用户的 API Key？",
-      message: action.user.email + " 的统一 API Key 会立即失效。",
-      okText: "全部停用",
+      title: t("admin.disable_the_user_s_api_key"),
+      message: action.user.email + t("admin.s_unified_api_key_will_expire_immediately"),
+      okText: t("admin.disable_all"),
       danger: true
     };
   }
   return {
-    title: "删除用户与 API Key？",
+    title: t("admin.delete_user_and_api_key"),
     message: action.user.active_keys
-      ? `${action.user.email} 将从管理列表移除，其 ${action.user.active_keys} 个有效 Key 会立即失效。历史用量与签发审计仍会保留。`
-      : `${action.user.email} 将从管理列表移除。历史用量与签发审计仍会保留。`,
-    okText: "删除用户",
+      ? t("admin.will_be_removed_from_the_user_list_and_active_keys", [action.user.email, action.user.active_keys])
+      : t("admin.will_be_removed_from_the_user_list_historical_usage_and", [action.user.email]),
+    okText: t("admin.delete_user"),
     danger: true
   };
 }
@@ -2662,8 +2661,8 @@ function compareRows(
   if (left != null && right == null) return -1;
   let comparison = 0;
   if (typeof left === "number" && typeof right === "number") comparison = left - right;
-  else comparison = String(left ?? "").localeCompare(String(right ?? ""), "zh-CN");
-  if (comparison === 0) comparison = leftFallback.localeCompare(rightFallback, "zh-CN");
+  else comparison = String(left ?? "").localeCompare(String(right ?? ""), getIntlLocale());
+  if (comparison === 0) comparison = leftFallback.localeCompare(rightFallback, getIntlLocale());
   return direction === "desc" ? -comparison : comparison;
 }
 
@@ -2676,25 +2675,25 @@ function statusTone(status: string) {
 }
 
 function statusLabel(status: string) {
-  return { active: "启用", inactive: "已停用", revoked: "已吊销", missing: "未创建" }[status] ?? status;
+  return { active: t("admin.enable"), inactive: t("common.disabled"), revoked: t("admin.revoked"), missing: t("admin.not_created_2") }[status] ?? status;
 }
 
 function quotaSourceLabel(quota: UserWeeklyQuota) {
   return {
-    default: "组织默认",
-    user_unlimited: "单独不限额",
-    user_custom: "用户自定义"
-  }[quota.source] || "额度未知";
+    default: t("common.organization_default"),
+    user_unlimited: t("common.personal_unlimited_quota"),
+    user_custom: t("common.user_override")
+  }[quota.source] || t("common.unknown_quota");
 }
 
 function quotaPolicyLifetime(quota: UserWeeklyQuota) {
   return quota.personal_policy_reset_enabled
-    ? "仅本周生效，下周恢复组织默认"
-    : "持续生效，直到手动恢复组织默认";
+    ? t("admin.this_week_only_restores_the_organization_default_next_week")
+    : t("admin.persists_until_the_organization_default_is_restored_manually");
 }
 
 function tokenText(value: number | null | undefined) {
-  if (value == null) return "不限额";
+  if (value == null) return t("common.unlimited");
   const formatted = formatTokenAmount(Number(value) || 0);
   return formatted.includes(" ") ? formatted : formatted + " Token";
 }
@@ -2706,30 +2705,30 @@ function formatPercent(value: number | null | undefined) {
 function formatUsageRatio(value: number | null | undefined, total: number | null | undefined) {
   const denominator = Number(total) || 0;
   if (denominator <= 0) return "0%";
-  return new Intl.NumberFormat("zh-CN", { maximumFractionDigits: 1 }).format((Number(value) || 0) * 100 / denominator) + "%";
+  return new Intl.NumberFormat(getIntlLocale(), { maximumFractionDigits: 1 }).format((Number(value) || 0) * 100 / denominator) + "%";
 }
 
 function usageWindowLabel(window: UsageWindow) {
   return {
-    "3600": "1 小时",
-    "21600": "6 小时",
-    today: "今日",
-    "86400": "24 小时",
-    "604800": "7 天",
-    "2592000": "30 天",
-    current_week: "本周",
-    since_reset: "额度周期",
-    all: "累计",
-    custom: "自定义范围"
-  }[window] || "当前范围";
+    "3600": t("common.1h"),
+    "21600": t("common.6h"),
+    today: t("common.today"),
+    "86400": t("common.24h"),
+    "604800": t("common.7d"),
+    "2592000": t("common.30d"),
+    current_week: t("common.this_week"),
+    since_reset: t("admin.quota_cycle"),
+    all: t("admin.all_time"),
+    custom: t("admin.custom_range")
+  }[window] || t("common.current_range");
 }
 
 function formatNumber(value: number | null | undefined) {
-  return new Intl.NumberFormat("zh-CN").format(Number(value) || 0);
+  return new Intl.NumberFormat(getIntlLocale()).format(Number(value) || 0);
 }
 
 function UserLastUsed({ timestamp }: { timestamp: number | null | undefined }) {
-  if (!timestamp || !Number.isFinite(timestamp) || timestamp <= 0) return <span className="user-last-used">从未使用</span>;
+  if (!timestamp || !Number.isFinite(timestamp) || timestamp <= 0) return <span className="user-last-used">{t("admin.never_used")}</span>;
   const label = formatLastUsed(timestamp);
   return (
     <time className="user-last-used" dateTime={new Date(timestamp * 1000).toISOString()} title={label}>
@@ -2739,21 +2738,21 @@ function UserLastUsed({ timestamp }: { timestamp: number | null | undefined }) {
 }
 
 function formatLastUsed(timestamp: number | null | undefined) {
-  return timestamp && Number.isFinite(timestamp) && timestamp > 0 ? formatSiteTimestamp(timestamp) : "从未使用";
+  return timestamp && Number.isFinite(timestamp) && timestamp > 0 ? formatSiteTimestamp(timestamp) : t("admin.never_used");
 }
 
 function effortLabel(value: string) {
   return {
-    none: "无",
-    minimal: "最小",
-    low: "低",
-    medium: "中",
-    high: "高",
-    xhigh: "超高",
-    max: "最大",
-    ultra: "极高",
-    auto: "自动",
-    unknown: "未知"
+    none: t("common.none"),
+    minimal: t("common.minimal"),
+    low: t("common.low"),
+    medium: t("common.medium"),
+    high: t("common.high"),
+    xhigh: t("common.ultra"),
+    max: t("common.max"),
+    ultra: t("common.extra_high"),
+    auto: t("common.auto"),
+    unknown: t("common.unknown")
   }[value] ?? value;
 }
 
@@ -2776,11 +2775,11 @@ function paginationItems(current: number, total: number): Array<number | "…"> 
 }
 
 function userRefreshLabel(timestamp: number, cached: boolean) {
-  return "用户数据更新于 " + formatSiteTimestamp(timestamp) + (cached ? "（缓存）" : "");
+  return t("admin.user_data_updated") + formatSiteTimestamp(timestamp) + (cached ? t("admin.cached_3") : "");
 }
 
 function errorMessage(error: unknown) {
-  return error instanceof ApiError || error instanceof Error ? error.message : "请刷新后重试";
+  return error instanceof ApiError || error instanceof Error ? error.message : t("admin.refresh_and_try_again");
 }
 
 function isInteractiveRowTarget(target: EventTarget | null) {

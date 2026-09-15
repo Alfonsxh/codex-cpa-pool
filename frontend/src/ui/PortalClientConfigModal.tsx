@@ -1,3 +1,5 @@
+import "../i18n/usage";
+import { t } from "../i18n";
 import { Alert, Button, Modal, Skeleton, Space, Typography } from "antd";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
@@ -32,7 +34,7 @@ type ClientConfigSection = {
   copyLabel?: string;
 };
 
-const historyPrompt = "由于登录方式已从 OAuth 变为 API Key，请将 Codex 之前的会话迁移到当前 API Key 的会话历史中。";
+const historyPrompt = t("usage.my_sign_in_method_has_changed_from_oauth_to_an");
 
 export function PortalClientConfigModal({
   open,
@@ -82,7 +84,7 @@ export function PortalClientConfigModal({
         onSessionExpired();
         return;
       }
-      setError(reason instanceof Error ? reason.message : "客户端配置读取失败");
+      setError(reason instanceof Error ? reason.message : t("usage.unable_to_read_client_configuration"));
     }).finally(() => {
       if (request.current !== controller) return;
       request.current = null;
@@ -114,12 +116,12 @@ export function PortalClientConfigModal({
     onClose();
   };
 
-  const copy = async (value: string, label = "已复制") => {
+  const copy = async (value: string, label = t("common.copied_2")) => {
     try {
       await writeClipboardText(value);
       setCopied(label);
     } catch {
-      setCopied("复制失败，请手动选择配置内容");
+      setCopied(t("usage.copy_failed_select_the_configuration_and_copy_it_manually"));
     }
   };
 
@@ -148,16 +150,16 @@ export function PortalClientConfigModal({
         <Skeleton active paragraph={{ rows: 8 }} />
       ) : error ? (
         <Space orientation="vertical" size={14} className="portal-config-stack">
-          <Alert type="error" showIcon title="客户端配置读取失败" description={error} />
-          <Button onClick={close}>关闭</Button>
+          <Alert type="error" showIcon title={t("usage.unable_to_read_client_configuration")} description={error} />
+          <Button onClick={close}>{t("common.close")}</Button>
         </Space>
       ) : apiKey ? (
         <Space orientation="vertical" size={16} className="portal-config-stack">
-          {mode === "claude" && config.notice ? <Alert type="warning" showIcon title="配置包含完整 API Key" description={config.notice} /> : null}
+          {mode === "claude" && config.notice ? <Alert type="warning" showIcon title={t("usage.configuration_contains_the_full_api_key")} description={config.notice} /> : null}
           {mode === "claude" ? (
             <div className="portal-config-guide">
-              <div><Typography.Text type="secondary">操作文件</Typography.Text><code>{config.file}</code></div>
-              <div><Typography.Text type="secondary">操作步骤</Typography.Text><ol>{config.steps?.map((step) => <li key={step}>{step}</li>)}</ol></div>
+              <div><Typography.Text type="secondary">{t("usage.file_to_edit")}</Typography.Text><code>{config.file}</code></div>
+              <div><Typography.Text type="secondary">{t("usage.steps")}</Typography.Text><ol>{config.steps?.map((step) => <li key={step}>{step}</li>)}</ol></div>
             </div>
           ) : null}
           {config.sections?.length ? (
@@ -168,7 +170,7 @@ export function PortalClientConfigModal({
                   <div>
                     <header>
                       <span><strong>{section.title}</strong><code>{section.file}</code></span>
-                      {section.copyLabel ? <Button size="small" onClick={() => void copy(section.value, `${section.title}已复制`)}>{section.copyLabel}</Button> : null}
+                      {section.copyLabel ? <Button size="small" onClick={() => void copy(section.value, t("common.copied", [section.title]))}>{section.copyLabel}</Button> : null}
                     </header>
                     <p>{section.description}</p>
                     <pre className="portal-config-preview"><code>{section.value}</code></pre>
@@ -181,8 +183,8 @@ export function PortalClientConfigModal({
           <ConfigActions
             copied={copied}
             onClose={close}
-            onCopy={mode === "codex" ? undefined : mode === "ccswitch" ? () => void copyAndImport() : () => void copy(config.value, "配置已复制")}
-            copyLabel={mode === "ccswitch" ? "复制并导入" : config.copyLabel ?? "复制配置"}
+            onCopy={mode === "codex" ? undefined : mode === "ccswitch" ? () => void copyAndImport() : () => void copy(config.value, t("usage.configuration_copied"))}
+            copyLabel={mode === "ccswitch" ? t("usage.copy_import") : config.copyLabel ?? t("usage.copy_configuration")}
           />
         </Space>
       ) : null}
@@ -195,7 +197,7 @@ function ConfigActions({
   onClose,
   onCopy,
   copyLabel,
-  closeLabel = "关闭"
+  closeLabel = t("common.close")
 }: {
   copied: string;
   onClose: () => void;
@@ -205,7 +207,7 @@ function ConfigActions({
 }) {
   return (
     <div className="portal-config-actions">
-      <Typography.Text type={copied.startsWith("复制失败") ? "danger" : "secondary"} role="status">{copied}</Typography.Text>
+      <Typography.Text type={copied.startsWith(t("common.copy_failed")) ? "danger" : "secondary"} role="status">{copied}</Typography.Text>
       <Space wrap>
         <Button onClick={onClose}>{closeLabel}</Button>
         {onCopy ? <Button type="primary" onClick={onCopy}>{copyLabel}</Button> : null}
@@ -237,23 +239,23 @@ export function buildClientConfig({
   const codex = buildCodexConfig(provider, baseURL, model, apiKey);
   if (mode === "codex") {
     return {
-      title: "配置 Codex",
+      title: t("common.configure_codex"),
       value: codex,
       sections: [
         {
-          title: "Codex 配置内容",
+          title: t("usage.codex_configuration"),
           file: "~/.codex/config.toml",
-          description: "将下方内容合并到 Codex 配置文件，保存后重新启动 Codex。",
+          description: t("usage.merge_the_following_into_your_codex_configuration_file_save_it"),
           value: codex,
-          hint: "配置包含当前 API Key，仅在自己的可信设备保存。",
-          copyLabel: "复制配置"
+          hint: t("usage.this_configuration_contains_your_current_api_key_save_it_only"),
+          copyLabel: t("usage.copy_configuration")
         },
         {
-          title: "迁移旧会话",
+          title: t("usage.migrate_previous_sessions"),
           file: "Codex Agent",
-          description: "将下方指令交给 Codex Agent，把 OAuth 登录时期的会话迁移到当前 API Key 会话历史。",
+          description: t("usage.give_the_following_instruction_to_codex_agent_to_migrate_sessions"),
           value: historyPrompt,
-          copyLabel: "复制迁移指令"
+          copyLabel: t("usage.copy_migration_instruction")
         }
       ]
     };
@@ -261,32 +263,32 @@ export function buildClientConfig({
   const launcher = buildClaudeLauncher(environment, origin, model);
   if (mode === "claude") {
     return {
-      title: "Claude Code 终端配置",
+      title: t("usage.claude_code_terminal_setup"),
       file: "~/.config/claude-cpa/",
-      steps: ["准备目录", "保存 Key", "创建启动脚本", "加载并验证"],
+      steps: [t("usage.prepare_directory"), t("usage.save_key"), t("usage.create_launch_script"), t("usage.load_verify")],
       value: launcher,
-      notice: "以下内容已包含你的完整 API Key。仅在可信设备保存，不要粘贴到聊天、Issue 或 Git 仓库。",
-      copyLabel: "复制启动脚本",
+      notice: t("usage.this_content_includes_your_full_api_key_save_it_only"),
+      copyLabel: t("usage.copy_launch_script"),
       sections: [
         {
-          title: "准备配置目录", file: "终端", description: "先确认 Claude Code 已安装，再创建仅当前用户可访问的配置目录。",
-          value: 'claude --version\nmkdir -p "$HOME/.config/claude-cpa"\nchmod 700 "$HOME/.config/claude-cpa"', copyLabel: "复制命令"
+          title: t("usage.prepare_configuration_directory"), file: t("usage.terminal"), description: t("usage.ensure_claude_code_is_installed_then_create_a_configuration_directory"),
+          value: 'claude --version\nmkdir -p "$HOME/.config/claude-cpa"\nchmod 700 "$HOME/.config/claude-cpa"', copyLabel: t("usage.copy_command")
         },
         {
-          title: "保存当前 API Key", file: "~/.config/claude-cpa/env", description: "新建此文件并粘贴下方内容。该文件包含完整 Key，不要提交到 Git。",
-          value: `${environment}=${shellQuote(apiKey)}\n`, hint: '保存后执行：chmod 600 "$HOME/.config/claude-cpa/env"', copyLabel: "复制文件内容"
+          title: t("usage.save_current_api_key"), file: "~/.config/claude-cpa/env", description: t("usage.create_this_file_and_paste_the_content_below_it_contains"),
+          value: `${environment}=${shellQuote(apiKey)}\n`, hint: t("usage.after_saving_run_chmod_600_home_config_claude_cpa_env"), copyLabel: t("usage.copy_file_content")
         },
         {
-          title: "创建 claude_cpa 启动脚本", file: "~/.config/claude-cpa/claude-cpa.zsh", description: `此函数仅影响 claude_cpa：通过当前网关使用 ${model}，推理强度固定为 xhigh。`,
-          value: launcher, hint: '保存后执行：chmod 600 "$HOME/.config/claude-cpa/claude-cpa.zsh"', copyLabel: "复制启动脚本"
+          title: t("usage.create_the_claude_cpa_launch_script"), file: "~/.config/claude-cpa/claude-cpa.zsh", description: t("usage.this_function_affects_only_claude_cpa_it_uses_through_the", [model]),
+          value: launcher, hint: t("usage.after_saving_run_chmod_600_home_config_claude_cpa_claude"), copyLabel: t("usage.copy_launch_script")
         },
         {
-          title: "加载终端命令", file: "~/.zshrc", description: "将这一行追加到文件末尾，让每个新终端都能使用 claude_cpa。",
-          value: 'source "$HOME/.config/claude-cpa/claude-cpa.zsh"\n', copyLabel: "复制加载配置"
+          title: t("usage.load_terminal_command"), file: "~/.zshrc", description: t("usage.append_this_line_to_the_file_so_every_new_terminal"),
+          value: 'source "$HOME/.config/claude-cpa/claude-cpa.zsh"\n', copyLabel: t("usage.copy_loading_configuration")
         },
         {
-          title: "加载并验证", file: "终端", description: "重新加载配置，检查函数存在，再发送一个最小请求验证网关。",
-          value: 'source "$HOME/.zshrc"\ntype claude_cpa\nclaude_cpa -p \'Reply only: OK\' --output-format text\nclaude_cpa', copyLabel: "复制验证命令"
+          title: t("usage.load_verify"), file: t("usage.terminal"), description: t("usage.reload_the_configuration_check_that_the_function_exists_then_send"),
+          value: 'source "$HOME/.zshrc"\ntype claude_cpa\nclaude_cpa -p \'Reply only: OK\' --output-format text\nclaude_cpa', copyLabel: t("usage.copy_verification_command")
         }
       ]
     };
@@ -299,25 +301,25 @@ export function buildClientConfig({
     apiKey: "PASTE_API_KEY_AFTER_IMPORT",
     homepage: `${origin}/usage/`,
     model,
-    notes: `${siteConfig.product_name} · ${currentGroup} · 导入链接不携带 API Key；请按使用中心提示粘贴完整 config.toml`
+    notes: t("usage.the_import_link_contains_no_api_key_paste_the_full", [siteConfig.product_name, currentGroup])
   });
   return {
-    title: "完成 CC Switch 配置",
+    title: t("usage.finish_cc_switch_setup"),
     value: codex,
-    copyLabel: "复制并导入",
+    copyLabel: t("usage.copy_import"),
     sections: [
       {
-        title: "Codex 配置内容",
+        title: t("usage.codex_configuration"),
         file: "~/.codex/config.toml",
-        description: "“复制并导入”会先复制下方完整配置，再打开 CC Switch。",
+        description: t("usage.copy_import_copies_the_full_configuration_below_before_opening_cc"),
         value: codex
       },
       {
-        title: "迁移旧会话",
+        title: t("usage.migrate_previous_sessions"),
         file: "Codex Agent",
-        description: "将下方指令交给 Codex Agent，把 OAuth 登录时期的会话迁移到当前 API Key 会话历史。",
+        description: t("usage.give_the_following_instruction_to_codex_agent_to_migrate_sessions"),
         value: historyPrompt,
-        copyLabel: "复制迁移指令"
+        copyLabel: t("usage.copy_migration_instruction")
       }
     ],
     externalLink: `ccswitch://v1/import?${params.toString()}`,
@@ -342,8 +344,8 @@ export async function copyAndImportConfig({
     return {
       status: "copy_failed" as const,
       message: permissionDenied
-        ? "复制失败：剪贴板权限被拒绝，未打开 CC Switch"
-        : "复制失败：未打开 CC Switch，请允许剪贴板访问后重试"
+        ? t("usage.copy_failed_clipboard_permission_denied_cc_switch_was_not_opened")
+        : t("usage.copy_failed_cc_switch_was_not_opened_allow_clipboard_access")
     };
   }
   // Give the browser/OS one paint boundary to commit a legacy copy event
@@ -351,9 +353,9 @@ export async function copyAndImportConfig({
   await settleClipboardWrite();
   try {
     openLink(externalLink);
-    return { status: "opened" as const, message: "完整配置已复制，正在打开 CC Switch…" };
+    return { status: "opened" as const, message: t("usage.full_configuration_copied_opening_cc_switch") };
   } catch {
-    return { status: "open_failed" as const, message: "配置已复制，但无法打开 CC Switch，请确认已安装" };
+    return { status: "open_failed" as const, message: t("usage.configuration_copied_but_cc_switch_could_not_open_check_that") };
   }
 }
 

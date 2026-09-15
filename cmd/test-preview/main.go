@@ -14,6 +14,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 )
 
 const (
@@ -110,6 +112,15 @@ func newPreviewServer(fixtureDirectory string, portalAssetDirectory string) (*pr
 			return nil, fmt.Errorf("preview fixture is not valid JSON: %s", name)
 		}
 		server.fixtures[name] = content
+		english, readError := os.ReadFile(filepath.Join(fixtureDirectory, "en", name))
+		if readError == nil {
+			if !json.Valid(english) {
+				return nil, fmt.Errorf("invalid English preview fixture %s", name)
+			}
+			server.fixtures["en/"+name] = english
+		} else if !os.IsNotExist(readError) {
+			return nil, readError
+		}
 	}
 	for _, name := range []string{
 		"codex-cpa-pool-favicon-dark.svg",
@@ -133,6 +144,8 @@ func newPreviewServer(fixtureDirectory string, portalAssetDirectory string) (*pr
 
 func (server *previewServer) ServeHTTP(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Cache-Control", "no-store")
+	response.Header().Set("Content-Language", string(i18n.Negotiate(request.Header.Get("Accept-Language"))))
+	response.Header().Add("Vary", "Accept-Language")
 	response.Header().Set("X-Content-Type-Options", "nosniff")
 	response.Header().Set("X-Frame-Options", "DENY")
 	response.Header().Set("Referrer-Policy", "no-referrer")
@@ -281,6 +294,11 @@ func fixtureForRequest(request *http.Request) string {
 }
 
 func (server *previewServer) writeFixture(response http.ResponseWriter, status int, name string) {
+	if response.Header().Get("Content-Language") == "en" {
+		if _, found := server.fixtures["en/"+name]; found {
+			name = "en/" + name
+		}
+	}
 	server.writeJSON(response, status, server.fixtures[name])
 }
 

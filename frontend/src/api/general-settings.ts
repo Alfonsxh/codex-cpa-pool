@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { apiRequest } from "./client";
 import type {
   BrandingLogoMutationResponse,
@@ -63,12 +64,12 @@ export function rotateManagementKey(newKey: string, confirmation: string, csrfTo
 function readFileBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onerror = () => reject(new Error("无法读取 Logo 文件"));
+    reader.onerror = () => reject(new Error(t("common.unable_to_read_the_logo_file")));
     reader.onload = () => {
       const value = typeof reader.result === "string" ? reader.result : "";
       const separator = value.indexOf(",");
       if (separator < 0) {
-        reject(new Error("Logo 文件编码失败"));
+        reject(new Error(t("common.unable_to_encode_the_logo_file")));
         return;
       }
       resolve(value.slice(separator + 1));

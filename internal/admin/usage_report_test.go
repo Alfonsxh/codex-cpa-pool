@@ -48,7 +48,7 @@ func TestAdminWeeklyReportAuthorizationDefaultsAndDownload(t *testing.T) {
 		t.Fatalf("headers=%v", response.Header())
 	}
 	_, params, err := mime.ParseMediaType(response.Header().Get("Content-Disposition"))
-	if err != nil || params["filename"] != "CCPA_Token周报_2026-08-31_2026-09-06.xlsx" {
+	if err != nil || params["filename"] != "CCPA_Token_Report_2026-08-31_2026-09-06.xlsx" {
 		t.Fatalf("disposition=%v %v", params, err)
 	}
 	zone, _ := time.LoadLocation("Asia/Shanghai")
@@ -60,7 +60,7 @@ func TestAdminWeeklyReportAuthorizationDefaultsAndDownload(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer f.Close()
-	if value, _ := f.GetCellValue("用量总览", "E8"); value != "400" {
+	if value, _ := f.GetCellValue("Usage overview", "E8"); value != "400" {
 		t.Fatalf("total=%q", value)
 	}
 	for _, sheet := range f.GetSheetList() {
@@ -93,7 +93,7 @@ func TestAdminWeeklyReportAuthorizationDefaultsAndDownload(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer withUnits.Close()
-	if value, err := withUnits.GetCellValue("用量总览", "E8"); err != nil || value != "400 Token" {
+	if value, err := withUnits.GetCellValue("Usage overview", "E8"); err != nil || value != "400 Token" {
 		t.Fatalf("units option was not applied: %q %v", value, err)
 	}
 	server.usageReportMu.Lock()

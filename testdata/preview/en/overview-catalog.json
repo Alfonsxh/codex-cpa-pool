@@ -1,0 +1,57 @@
+{
+  "generated_at": 1787500800,
+  "accounts": [
+    {
+      "id": "cpa-main",
+      "operational_status": {
+        "code": "available",
+        "label": "Available",
+        "tone": "success",
+        "reason": "容器、OAuth 与额度均正常",
+        "selectable": true
+      }
+    },
+    {
+      "id": "cpa-lab",
+      "operational_status": {
+        "code": "available",
+        "label": "Available",
+        "tone": "success",
+        "reason": "容器、OAuth 与额度均正常",
+        "selectable": true
+      }
+    },
+    {
+      "id": "cpa-edge",
+      "operational_status": {
+        "code": "available",
+        "label": "Available",
+        "tone": "success",
+        "reason": "容器、OAuth 与额度均正常",
+        "selectable": true
+      }
+    }
+  ],
+  "users": [
+    {
+      "email": "lin.chen@example.com",
+      "status": "active"
+    },
+    {
+      "email": "mei.zhao@example.com",
+      "status": "active"
+    },
+    {
+      "email": "kai.wang@example.com",
+      "status": "active"
+    },
+    {
+      "email": "rui.sun@example.com",
+      "status": "active"
+    },
+    {
+      "email": "yan.liu@example.com",
+      "status": "active"
+    }
+  ]
+}

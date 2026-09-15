@@ -1,6 +1,9 @@
+import { t, getLanguage } from "../i18n";
 export type ApiErrorBody = {
   error?: {
     code?: string;
+    message_key?: string;
+    message_params?: Record<string, unknown>;
     message?: string;
     type?: string;
   };
@@ -38,19 +41,23 @@ export function subscribeUnauthorized(listener: (event: UnauthorizedEvent) => vo
 
 export async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await apiResponse(path, init);
-  return (await response.json()) as T;
+  const payload: unknown = await response.json();
+  return payload as T;
 }
 
 // Binary exports share session-expiry handling with ordinary JSON requests.
 export async function apiResponse(path: string, init: RequestInit = {}): Promise<Response> {
+  const headers: Record<string, string> = init.headers instanceof Headers || Array.isArray(init.headers)
+    ? Object.fromEntries(new Headers(init.headers).entries()) : { ...init.headers };
+  const supplied = new Headers(headers);
+  if (!supplied.has("Accept")) headers.Accept = "application/json";
+  if (init.body && !supplied.has("Content-Type")) headers["Content-Type"] = "application/json";
+  for (const key of Object.keys(headers)) if (key.toLowerCase() === "accept-language") delete headers[key];
+  headers["Accept-Language"] = getLanguage();
   const response = await fetch(path, {
     ...init,
     credentials: "same-origin",
-    headers: {
-      Accept: "application/json",
-      ...(init.body ? { "Content-Type": "application/json" } : {}),
-      ...init.headers
-    }
+    headers
   });
   if (!response.ok) {
     let payload: ApiErrorBody = {};
@@ -62,7 +69,7 @@ export async function apiResponse(path: string, init: RequestInit = {}): Promise
     const error = new ApiError(
       response.status,
       payload.error?.code ?? "request_failed",
-      payload.error?.message ?? `请求失败（HTTP ${response.status}）`,
+      payload.error?.message ?? t("common.request_failed_http", [response.status]),
       parseRetryAfterSeconds(response.headers.get("Retry-After"))
     );
     if (response.status === 401) {

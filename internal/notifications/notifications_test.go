@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/Alfonsxh/codex-cpa-pool/internal/controlplane"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/quota"
 	"github.com/go-resty/resty/v2"
 )
@@ -113,7 +114,7 @@ func TestQuotaRowsAndMarkdownUseAccountSummary(t *testing.T) {
 	if strings.Join(got, ",") != strings.Join(want, ",") {
 		t.Fatalf("row ordering = %v", got)
 	}
-	content, err := BuildMarkdownV2(
+	content, err := buildChineseMarkdownV2(
 		snapshot, "CPA 账号额度报告", now.Location(), 90, now, nil, nil,
 		UsageCenterURL("http://cpa.example.com"),
 	)
@@ -205,7 +206,7 @@ func TestMarkdownEventsUseCompleteTablesAndCurrentQuotaOrdering(t *testing.T) {
 		events[key] = item.event
 		previous[key] = WindowRecord{UsedPercent: item.previous}
 		t.Run(item.event, func(t *testing.T) {
-			content, err := BuildMarkdownV2(snapshot, "额度变化", time.UTC, 90, now,
+			content, err := buildChineseMarkdownV2(snapshot, "额度变化", time.UTC, 90, now,
 				map[string]struct{}{key: {}}, events, publicURL, ReportOptions{PreviousWindows: previous})
 			if err != nil {
 				t.Fatal(err)
@@ -222,7 +223,7 @@ func TestMarkdownEventsUseCompleteTablesAndCurrentQuotaOrdering(t *testing.T) {
 			}
 		})
 	}
-	content, err := BuildMarkdownV2(snapshot, "额度变化", time.UTC, 90, now,
+	content, err := buildChineseMarkdownV2(snapshot, "额度变化", time.UTC, 90, now,
 		keys, events, publicURL, ReportOptions{PreviousWindows: previous})
 	if err != nil {
 		t.Fatal(err)
@@ -248,13 +249,13 @@ func TestMarkdownHeadersKeepConfiguredTimeAndFullApplicationURL(t *testing.T) {
 		{"UTC", "2026-07-20 02:00:00"},
 	} {
 		t.Run(item.timezone, func(t *testing.T) {
-			config, err := ParseConfig(map[string]any{
+			config, err := ParseConfig(map[string]any{"system.language": "zh-CN",
 				"system.timezone": item.timezone, "branding.public_base_url": "https://cpa.example.com/pool/",
 			})
 			if err != nil {
 				t.Fatal(err)
 			}
-			report, err := BuildMarkdownV2(Snapshot{}, "报告", config.Timezone, 90, now,
+			report, err := buildChineseMarkdownV2(Snapshot{}, "报告", config.Timezone, 90, now,
 				nil, nil, UsageCenterURL(config.PublicBaseURL))
 			if err != nil {
 				t.Fatal(err)
@@ -279,7 +280,7 @@ func TestMarkdownHeadersKeepConfiguredTimeAndFullApplicationURL(t *testing.T) {
 			}
 		})
 	}
-	content, err := BuildTestMarkdownV2(Config{ShortName: "CPA"}, now)
+	content, err := BuildTestMarkdownV2(Config{Language: i18n.Chinese, ShortName: "CPA"}, now)
 	if err != nil || !strings.Contains(content, "> 应用地址：未配置") ||
 		!strings.Contains(content, "> 统计时间：2026-07-20 02:00:00\n\n") {
 		t.Fatalf("unconfigured URL and timezone = (%q, %v)", content, err)
@@ -294,7 +295,7 @@ func TestMarkdownFiltersGPT53AndEnforcesOfficialLimit(t *testing.T) {
 		snapshot.Accounts[0].Quota.WeeklyWindows,
 		quota.WeeklyWindow{Key: "default:secondary_window", Label: "GPT-5.3-Codex-Spark", UsedPercent: 40},
 	)
-	content, err := BuildMarkdownV2(snapshot, "报告", time.UTC, 90, time.Unix(1, 0), nil, nil, "")
+	content, err := buildChineseMarkdownV2(snapshot, "报告", time.UTC, 90, time.Unix(1, 0), nil, nil, "")
 	if err != nil || strings.Contains(content, "GPT-5.3") || strings.Count(content, "alpha") != 1 {
 		t.Fatalf("filtered markdown = (%q, %v)", content, err)
 	}
@@ -304,7 +305,7 @@ func TestMarkdownFiltersGPT53AndEnforcesOfficialLimit(t *testing.T) {
 			strconv.Itoa(index)+strings.Repeat("account-long-name-", 2), 25, "常规周限额",
 		))
 	}
-	if _, err := BuildMarkdownV2(large, "报告", time.UTC, 90, time.Now(), nil, nil, ""); err == nil || !strings.Contains(err.Error(), "4096") {
+	if _, err := buildChineseMarkdownV2(large, "报告", time.UTC, 90, time.Now(), nil, nil, ""); err == nil || !strings.Contains(err.Error(), "4096") {
 		t.Fatalf("large markdown error = %v", err)
 	}
 }
@@ -322,6 +323,47 @@ func TestReadRuntimeStateRecoversInvalidNestedMaps(t *testing.T) {
 	if state.Scheduled == nil || len(state.Scheduled) != 0 || state.QuotaAlerts == nil ||
 		state.QuotaWindows == nil || state.LastError != "previous failure" {
 		t.Fatalf("recovered state = %#v", state)
+	}
+}
+
+func TestRecordedFailureFollowsTheReaderLanguage(t *testing.T) {
+	store := newFakeStore()
+	state := DefaultRuntimeState()
+	state.LastError, state.LastErrorMessage = FailureRecord(i18n.M("notifications.wecom_message_delivery_failed_invalid_response"))
+	if state.LastErrorMessage == nil || state.LastErrorMessage.ID == "" {
+		t.Fatalf("authored failure was not recorded: %#v", state.LastErrorMessage)
+	}
+	if err := store.PatchRuntimeState(context.Background(), RuntimeStateName, map[string]any{
+		"version": state.Version, "last_error": state.LastError, "last_error_message": state.LastErrorMessage,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	restored, found, err := ReadRuntimeState(context.Background(), store)
+	if err != nil || !found {
+		t.Fatalf("ReadRuntimeState = (%#v, %v, %v)", restored, found, err)
+	}
+	if got := restored.ErrorText(i18n.Chinese); got != "企业微信消息发送失败：响应无效" {
+		t.Errorf("chinese error = %q", got)
+	}
+	if got := restored.ErrorText(i18n.English); got != "WeCom message delivery failed: Invalid response" {
+		t.Errorf("english error = %q", got)
+	}
+
+	nested := DefaultRuntimeState()
+	nested.LastError, nested.LastErrorMessage = FailureRecord(
+		i18n.M("notifications.wecom_message_delivery_failed", i18n.Params{"Value": errors.New("upstream refused")}))
+	if got := nested.LastErrorMessage.Params["Value"]; got != "upstream refused" {
+		t.Fatalf("nested error parameter was not recorded as text: %#v", got)
+	}
+
+	plain := DefaultRuntimeState()
+	plain.LastError, plain.LastErrorMessage = FailureRecord(errors.New("failed " + testWebhook))
+	if plain.LastErrorMessage != nil || strings.Contains(plain.LastError, "test-placeholder") ||
+		!strings.Contains(plain.LastError, "[REDACTED]") {
+		t.Fatalf("unauthored failure = (%q, %#v)", plain.LastError, plain.LastErrorMessage)
+	}
+	if got := plain.ErrorText(i18n.Chinese); !strings.Contains(got, "[REDACTED]") {
+		t.Fatalf("diagnostic error = %q", got)
 	}
 }
 
@@ -378,6 +420,32 @@ func TestWorkerQuotaStateMachineDeduplicatesRecoversAndRearms(t *testing.T) {
 	if len(sender.contents) != 4 || !strings.Contains(sender.contents[0], "🟠 达到预警") ||
 		!strings.Contains(sender.contents[2], "🟢 额度恢复") {
 		t.Fatalf("sent contents = %#v", sender.contents)
+	}
+}
+
+func TestWorkerClearsRecordedFailureAfterRecovery(t *testing.T) {
+	store, activity, sender := workerFixtures()
+	store.settings["notification.daily_times"] = "23:59"
+	worker := &Worker{Store: store, Activity: activity, Sender: sender}
+	cycleEnd := fixedNow("Asia/Shanghai", 2026, 7, 20, 10, 1, 0)().Unix()
+	setQuota(store, "alpha", 40, "ok", cycleEnd)
+	runWorkerAt(t, worker, 10, 0, nil)
+
+	setQuota(store, "alpha", 3, "ok", cycleEnd+quota.WeeklyWindowSeconds)
+	sender.sendError = i18n.M("notifications.wecom_message_delivery_failed_invalid_response")
+	worker.Now = fixedNow("Asia/Shanghai", 2026, 7, 20, 10, 1, 0)
+	if _, err := worker.RunOnce(context.Background()); err == nil {
+		t.Fatal("delivery failure did not fail the run")
+	}
+	failed := store.notificationState(t)
+	if failed.LastErrorMessage == nil || failed.ErrorText(i18n.Chinese) != "企业微信消息发送失败：响应无效" {
+		t.Fatalf("recorded failure = (%#v, %#v)", failed.LastErrorMessage, failed.LastError)
+	}
+
+	sender.sendError = nil
+	runWorkerAt(t, worker, 10, 2, nil)
+	if recovered := store.notificationState(t); recovered.LastError != "" || recovered.LastErrorMessage != nil {
+		t.Fatalf("recovered state kept the failure = (%#v, %#v)", recovered.LastError, recovered.LastErrorMessage)
 	}
 }
 
@@ -608,7 +676,7 @@ func (sender *fakeSender) Send(_ context.Context, content string) (SendResult, e
 
 func workerFixtures() (*fakeStore, *fakeActivity, *fakeSender) {
 	store := newFakeStore()
-	store.settings = map[string]any{
+	store.settings = map[string]any{"system.language": "zh-CN",
 		"notification.enabled":                  true,
 		"notification.timezone":                 "Asia/Shanghai",
 		"notification.daily_times":              "09:00,14:00,18:00",
@@ -751,4 +819,37 @@ func (transport *recordingTransport) RoundTrip(request *http.Request) (*http.Res
 		Body:       io.NopCloser(strings.NewReader(response.body)),
 		Request:    request,
 	}, nil
+}
+
+func buildChineseMarkdownV2(snapshot Snapshot, title string, location *time.Location, thresholdPercent float64, now time.Time, onlyKeys map[string]struct{}, transitionEvents map[string]string, usageCenterURL string, options ...ReportOptions) (string, error) {
+	option := ReportOptions{Language: i18n.Chinese}
+	if len(options) > 0 {
+		option = options[0]
+		option.Language = i18n.Chinese
+	}
+	return BuildMarkdownV2(snapshot, title, location, thresholdPercent, now, onlyKeys, transitionEvents, usageCenterURL, option)
+}
+
+func TestEnglishNotificationDefaultAndExplicitChinese(t *testing.T) {
+	for _, configured := range []string{"", "en", "zh-CN"} {
+		settings := map[string]any{}
+		if configured != "" {
+			settings[i18n.SettingKey] = configured
+		}
+		config, err := ParseConfig(settings)
+		if err != nil {
+			t.Fatal(err)
+		}
+		content, err := BuildTestMarkdownV2(config, time.Date(2026, 9, 1, 1, 0, 0, 0, time.UTC))
+		if err != nil {
+			t.Fatal(err)
+		}
+		expected := "Notification test"
+		if configured == "zh-CN" {
+			expected = "通知测试"
+		}
+		if !strings.Contains(content, expected) || len([]byte(content)) > MarkdownV2MaximumSize {
+			t.Fatal(content)
+		}
+	}
 }

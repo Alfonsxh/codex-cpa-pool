@@ -1,3 +1,5 @@
+import "../i18n/admin";
+import { t } from "../i18n";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { KeyOutlined, ReloadOutlined, SaveOutlined, UndoOutlined, UploadOutlined } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -25,25 +27,25 @@ import { useTheme, type ThemeMode } from "./ThemeProvider";
 const { Paragraph, Text } = Typography;
 
 const settingsSchema = z.object({
-  product_name: z.string().trim().min(2, "至少输入 2 个字符").max(64, "最多输入 64 个字符"),
-  short_name: z.string().trim().min(2, "至少输入 2 个字符").max(32, "最多输入 32 个字符"),
-  environment_label: z.string().trim().max(64, "最多输入 64 个字符"),
-  public_base_url: z.string().trim().refine(validPublicBaseURL, "请输入不带路径、账号、查询参数或片段的 HTTP(S) 根地址"),
+  product_name: z.string().trim().min(2, t("admin.enter_at_least_2_characters")).max(64, t("admin.enter_no_more_than_64_characters")),
+  short_name: z.string().trim().min(2, t("admin.enter_at_least_2_characters")).max(32, t("admin.enter_no_more_than_32_characters")),
+  environment_label: z.string().trim().max(64, t("admin.enter_no_more_than_64_characters")),
+  public_base_url: z.string().trim().refine(validPublicBaseURL, t("admin.enter_an_http_s_root_url_without_a_path_credentials")),
   allowed_email_domains: z.string(),
-  key_prefix: z.string().regex(/^[a-z][a-z0-9_]{1,30}_$/, "请输入 3-32 位小写前缀，并以下划线结尾"),
-  provider_name: z.string().trim().min(2, "至少输入 2 个字符").max(48, "最多输入 48 个字符"),
-  api_key_env: z.string().regex(/^[A-Z][A-Z0-9_]{1,63}$/, "请输入有效的大写环境变量名"),
-  default_model: z.string().trim().min(1, "请输入默认模型").max(128, "最多输入 128 个字符")
+  key_prefix: z.string().regex(/^[a-z][a-z0-9_]{1,30}_$/, t("admin.enter_a_3_32_character_lowercase_prefix_ending_with_an")),
+  provider_name: z.string().trim().min(2, t("admin.enter_at_least_2_characters")).max(48, t("admin.enter_no_more_than_48_characters")),
+  api_key_env: z.string().regex(/^[A-Z][A-Z0-9_]{1,63}$/, t("admin.enter_a_valid_uppercase_environment_variable_name")),
+  default_model: z.string().trim().min(1, t("admin.enter_a_default_model")).max(128, t("admin.enter_no_more_than_128_characters"))
 });
 
 type SettingsFormValues = z.infer<typeof settingsSchema>;
 
 const managementKeySchema = z.object({
-  new_key: z.string().min(12, "至少输入 12 个字符").max(128, "最多输入 128 个字符").regex(/^\S+$/, "不能包含空白字符"),
-  confirmation: z.string().min(1, "请再次输入新管理密钥")
+  new_key: z.string().min(12, t("admin.enter_at_least_12_characters")).max(128, t("admin.enter_no_more_than_128_characters")).regex(/^\S+$/, t("admin.whitespace_is_not_allowed")),
+  confirmation: z.string().min(1, t("admin.enter_the_new_management_key_again"))
 }).refine((values) => values.new_key === values.confirmation, {
   path: ["confirmation"],
-  message: "两次输入的管理密钥不一致"
+  message: t("admin.the_management_keys_do_not_match")
 });
 
 type ManagementKeyFormValues = z.infer<typeof managementKeySchema>;
@@ -137,8 +139,8 @@ export function GeneralSettingsPage({
       <section className="page-content">
         <PageState
           kind="error"
-          title="通用设置加载失败"
-          detail={settings.error instanceof Error ? settings.error.message : "请稍后重试"}
+          title={t("admin.unable_to_load_general_settings")}
+          detail={settings.error instanceof Error ? settings.error.message : t("common.please_try_again_later")}
           onAction={() => void settings.refetch()}
         />
       </section>
@@ -149,44 +151,42 @@ export function GeneralSettingsPage({
     <section className="page-content settings-page">
       <ConfigurationSectionNav />
       <PageToolbar
-        description="这里只管理可实时生效的品牌、登录域名和客户端导出字段。代理、配额、部署镜像等需要专用事务或重建的配置不会混入本接口。"
+        description={t("admin.manage_brand_login_domains_and_client_export_fields_that_take")}
         actions={(
           <Button icon={<ReloadOutlined aria-hidden="true" />} loading={settings.isFetching} onClick={() => void settings.refetch()}>
-            刷新当前页
-          </Button>
+ {t("admin.refresh_page")} </Button>
         )}
       />
       {notice ? <Alert className="page-alert" type="success" showIcon closable title={notice} onClose={() => setNotice("")} /> : null}
       {mutation.isError ? (
-        <Alert className="page-alert" type="error" showIcon title="设置未保存" description={mutation.error instanceof Error ? mutation.error.message : "请求失败"} />
+        <Alert className="page-alert" type="error" showIcon title={t("admin.settings_were_not_saved")} description={mutation.error instanceof Error ? mutation.error.message : t("admin.request_failed")} />
       ) : null}
 
       <Row gutter={[16, 16]} className="settings-status-grid">
         <Col xs={24} md={8}>
-          <Card title="管理密钥">
+          <Card title={t("common.management_key")}>
             <Space orientation="vertical" size={12}>
-              <Tag color={settings.data.security.management_key_configured ? "success" : "error"}>{settings.data.security.management_key_configured ? "已配置" : "未配置"}</Tag>
+              <Tag color={settings.data.security.management_key_configured ? "success" : "error"}>{settings.data.security.management_key_configured ? t("admin.configured") : t("admin.not_configured")}</Tag>
               <Button
                 size="small"
                 icon={<KeyOutlined aria-hidden="true" />}
                 disabled={!settings.data.security.management_key_configured}
                 onClick={() => setManagementKeyOpen(true)}
               >
-                轮换密钥
-              </Button>
+ {t("admin.rotate_key_2")} </Button>
             </Space>
           </Card>
         </Col>
         <Col xs={24} md={8}>
-          <Card title="用户初始密码">
+          <Card title={t("admin.initial_user_password")}>
             <Space orientation="vertical" size={12}>
-              <Tag color={settings.data.security.initial_password_configured ? "success" : "warning"}>{settings.data.security.initial_password_configured ? "已配置" : "未配置"}</Tag>
-              <Button size="small" onClick={() => setInitialPasswordOpen(true)}>{settings.data.security.initial_password_configured ? "更新密码" : "立即设置"}</Button>
+              <Tag color={settings.data.security.initial_password_configured ? "success" : "warning"}>{settings.data.security.initial_password_configured ? t("admin.configured") : t("admin.not_configured")}</Tag>
+              <Button size="small" onClick={() => setInitialPasswordOpen(true)}>{settings.data.security.initial_password_configured ? t("admin.update_password") : t("admin.set_up_now")}</Button>
             </Space>
           </Card>
         </Col>
         <Col xs={24} md={8}>
-          <Card title="品牌 Logo">
+          <Card title={t("admin.brand_logo")}>
             <Space size={12} align="center">
               <Avatar
                 className="settings-logo-preview"
@@ -197,20 +197,20 @@ export function GeneralSettingsPage({
                 C
               </Avatar>
               <Space orientation="vertical" size={8}>
-                <Tag color={settings.data.branding.custom_logo ? "blue" : "default"}>{settings.data.branding.custom_logo ? "自定义" : "默认"}</Tag>
+                <Tag color={settings.data.branding.custom_logo ? "blue" : "default"}>{settings.data.branding.custom_logo ? t("admin.custom") : t("admin.default")}</Tag>
                 <Space size={6} wrap>
                   <Button size="small" icon={<UploadOutlined aria-hidden="true" />} onClick={() => setLogoOpen(true)}>
-                    {settings.data.branding.custom_logo ? "替换" : "上传"}
+                    {settings.data.branding.custom_logo ? t("admin.replace") : t("admin.upload")}
                   </Button>
                   {settings.data.branding.custom_logo ? (
                     <Popconfirm
-                      title="恢复默认 Logo？"
-                      description="自定义 Logo 会从控制面中删除。"
-                      okText="确认恢复"
-                      cancelText="取消"
+                      title={t("admin.restore_the_default_logo")}
+                      description={t("admin.the_custom_logo_will_be_removed_from_the_control_plane")}
+                      okText={t("admin.confirm_restore")}
+                      cancelText={t("common.cancel")}
                       onConfirm={() => logoResetMutation.mutate()}
                     >
-                      <Button size="small" icon={<UndoOutlined aria-hidden="true" />} loading={logoResetMutation.isPending}>恢复默认</Button>
+                      <Button size="small" icon={<UndoOutlined aria-hidden="true" />} loading={logoResetMutation.isPending}>{t("admin.restore_default")}</Button>
                     </Popconfirm>
                   ) : null}
                 </Space>
@@ -222,34 +222,34 @@ export function GeneralSettingsPage({
 
       <form onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
         <Card
-          title="品牌与身份"
+          title={t("admin.brand_identity")}
           className="settings-form-card"
-          extra={<Text type="secondary">保存方式：细粒度 SQLite 更新 · 实时生效</Text>}
+          extra={<Text type="secondary">{t("admin.saved_as_individual_sqlite_updates_takes_effect_immediately")}</Text>}
         >
           <Row gutter={[18, 0]}>
-            <Col xs={24} lg={12}><FormField control={form.control} name="product_name" label="产品名称" /></Col>
-            <Col xs={24} lg={12}><FormField control={form.control} name="short_name" label="产品简称" /></Col>
-            <Col xs={24} lg={12}><FormField control={form.control} name="environment_label" label="环境说明" /></Col>
-            <Col xs={24} lg={12}><FormField control={form.control} name="public_base_url" label="公开访问地址" placeholder="https://cpa.example.com" /></Col>
+            <Col xs={24} lg={12}><FormField control={form.control} name="product_name" label={t("admin.product_name")} /></Col>
+            <Col xs={24} lg={12}><FormField control={form.control} name="short_name" label={t("admin.short_name")} /></Col>
+            <Col xs={24} lg={12}><FormField control={form.control} name="environment_label" label={t("admin.environment_label")} /></Col>
+            <Col xs={24} lg={12}><FormField control={form.control} name="public_base_url" label={t("admin.public_url")} placeholder="https://cpa.example.com" /></Col>
             <Col xs={24}>
               <Controller
                 control={form.control}
                 name="allowed_email_domains"
                 render={({ field, fieldState }) => (
-                  <Form.Item label="允许的邮箱域名" validateStatus={fieldState.error ? "error" : undefined} help={fieldState.error?.message ?? "使用逗号、空格或换行分隔；留空会禁止新的用户登录。"}>
-                    <Input.TextArea {...field} aria-label="允许的邮箱域名" autoSize={{ minRows: 2, maxRows: 4 }} placeholder="example.com, example.org" />
+                  <Form.Item label={t("admin.allowed_email_domains")} validateStatus={fieldState.error ? "error" : undefined} help={fieldState.error?.message ?? t("admin.separate_with_commas_spaces_or_newlines_leaving_this_blank_prevents")}>
+                    <Input.TextArea {...field} aria-label={t("admin.allowed_email_domains")} autoSize={{ minRows: 2, maxRows: 4 }} placeholder="example.com, example.org" />
                   </Form.Item>
                 )}
               />
             </Col>
-            <Col xs={24} lg={12}><FormField control={form.control} name="key_prefix" label="新 Key 前缀" /></Col>
-            <Col xs={24} lg={12}><FormField control={form.control} name="provider_name" label="客户端 Provider 名称" /></Col>
-            <Col xs={24} lg={12}><FormField control={form.control} name="api_key_env" label="客户端 Key 环境变量" /></Col>
-            <Col xs={24} lg={12}><FormField control={form.control} name="default_model" label="客户端默认模型" /></Col>
+            <Col xs={24} lg={12}><FormField control={form.control} name="key_prefix" label={t("admin.new_key_prefix")} /></Col>
+            <Col xs={24} lg={12}><FormField control={form.control} name="provider_name" label={t("admin.client_provider_name")} /></Col>
+            <Col xs={24} lg={12}><FormField control={form.control} name="api_key_env" label={t("admin.client_key_environment_variable")} /></Col>
+            <Col xs={24} lg={12}><FormField control={form.control} name="default_model" label={t("admin.default_client_model")} /></Col>
           </Row>
           <Space>
-            <Button type="primary" htmlType="submit" icon={<SaveOutlined aria-hidden="true" />} loading={mutation.isPending}>保存通用设置</Button>
-            <Button type="default" icon={<UndoOutlined aria-hidden="true" />} disabled={mutation.isPending || !form.formState.isDirty} onClick={() => form.reset(toFormValues(settings.data.values))}>撤销修改</Button>
+            <Button type="primary" htmlType="submit" icon={<SaveOutlined aria-hidden="true" />} loading={mutation.isPending}>{t("admin.save_general_settings")}</Button>
+            <Button type="default" icon={<UndoOutlined aria-hidden="true" />} disabled={mutation.isPending || !form.formState.isDirty} onClick={() => form.reset(toFormValues(settings.data.values))}>{t("admin.discard_changes")}</Button>
           </Space>
         </Card>
       </form>
@@ -267,10 +267,10 @@ export function GeneralSettingsPage({
         }}
       />
       <Modal
-        title={settings.data.branding.custom_logo ? "替换品牌 Logo" : "上传品牌 Logo"}
+        title={settings.data.branding.custom_logo ? t("admin.replace_brand_logo") : t("admin.upload_brand_logo")}
         open={logoOpen}
-        okText="保存 Logo"
-        cancelText="取消"
+        okText={t("admin.save_logo")}
+        cancelText={t("common.cancel")}
         confirmLoading={logoMutation.isPending}
         okButtonProps={{ disabled: !logoFile || Boolean(logoValidationError) }}
         onCancel={() => {
@@ -283,17 +283,17 @@ export function GeneralSettingsPage({
         onOk={() => logoFile && logoMutation.mutate(logoFile)}
         destroyOnHidden
       >
-        <Paragraph type="secondary">支持 PNG、JPEG、GIF、WebP 或安全 SVG，文件不超过 2 MiB。保存后入口页会立即使用新版本。</Paragraph>
+        <Paragraph type="secondary">{t("admin.png_jpeg_gif_webp_or_safe_svg_up_to_2")}</Paragraph>
         <label className="logo-file-picker">
           <UploadOutlined aria-hidden="true" />
-          <span>{logoFile ? logoFile.name : "选择 Logo 文件"}</span>
+          <span>{logoFile ? logoFile.name : t("admin.choose_logo_file")}</span>
           <input
-            aria-label="Logo 文件"
+            aria-label={t("admin.logo_file")}
             type="file"
             accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml"
             onChange={(event) => {
               const selected = event.target.files?.[0] ?? null;
-              const validationError = selected ? validateLogoFile(selected) : "请选择 Logo 文件";
+              const validationError = selected ? validateLogoFile(selected) : t("admin.choose_a_logo_file");
               setLogoFile(validationError ? null : selected);
               setLogoValidationError(validationError);
               logoMutation.reset();
@@ -301,13 +301,13 @@ export function GeneralSettingsPage({
           />
         </label>
         {logoValidationError ? <Alert className="page-alert" type="error" showIcon message={logoValidationError} /> : null}
-        {logoMutation.isError ? <Alert className="page-alert" type="error" showIcon message="Logo 未保存" description={logoMutation.error instanceof Error ? logoMutation.error.message : "请稍后重试"} /> : null}
+        {logoMutation.isError ? <Alert className="page-alert" type="error" showIcon message={t("admin.logo_was_not_saved")} description={logoMutation.error instanceof Error ? logoMutation.error.message : t("common.please_try_again_later")} /> : null}
       </Modal>
       <Modal
-        title="轮换管理密钥"
+        title={t("admin.rotate_management_key")}
         open={managementKeyOpen}
-        okText="确认轮换并重新登录"
-        cancelText="取消"
+        okText={t("admin.rotate_sign_in_again")}
+        cancelText={t("common.cancel")}
         confirmLoading={managementKeyMutation.isPending}
         cancelButtonProps={{ tabIndex: -1 }}
         okButtonProps={{ htmlType: "submit", form: "general-settings-management-key-form" }}
@@ -323,18 +323,18 @@ export function GeneralSettingsPage({
           className="page-alert"
           type="warning"
           showIcon
-          message="提交后所有管理会话立即失效"
-          description="API Key、用户会话和数据面流量不会改变；你需要使用新管理密钥重新进入。"
+          message={t("admin.all_management_sessions_end_immediately_after_submission")}
+          description={t("admin.api_keys_user_sessions_and_data_plane_traffic_are_unchanged")}
         />
-        {managementKeyMutation.isError ? <Alert className="page-alert" type="error" showIcon message="管理密钥未更新" description={managementKeyMutation.error instanceof Error ? managementKeyMutation.error.message : "请稍后重试"} /> : null}
+        {managementKeyMutation.isError ? <Alert className="page-alert" type="error" showIcon message={t("admin.management_key_was_not_updated")} description={managementKeyMutation.error instanceof Error ? managementKeyMutation.error.message : t("common.please_try_again_later")} /> : null}
         <form id="general-settings-management-key-form" onSubmit={managementKeyForm.handleSubmit(() => managementKeyMutation.mutate())}>
         <Form component={false} layout="vertical" requiredMark={false}>
           <Controller
             control={managementKeyForm.control}
             name="new_key"
             render={({ field, fieldState }) => (
-              <Form.Item label="新管理密钥" validateStatus={fieldState.error ? "error" : undefined} help={fieldState.error?.message}>
-                <Input.Password {...field} aria-label="新管理密钥" autoComplete="new-password" visibilityToggle={{ tabIndex: -1 }} />
+              <Form.Item label={t("admin.new_management_key")} validateStatus={fieldState.error ? "error" : undefined} help={fieldState.error?.message}>
+                <Input.Password {...field} aria-label={t("admin.new_management_key")} autoComplete="new-password" visibilityToggle={{ tabIndex: -1 }} />
               </Form.Item>
             )}
           />
@@ -342,8 +342,8 @@ export function GeneralSettingsPage({
             control={managementKeyForm.control}
             name="confirmation"
             render={({ field, fieldState }) => (
-              <Form.Item label="确认新管理密钥" validateStatus={fieldState.error ? "error" : undefined} help={fieldState.error?.message}>
-                <Input.Password {...field} aria-label="确认新管理密钥" autoComplete="new-password" visibilityToggle={{ tabIndex: -1 }} />
+              <Form.Item label={t("admin.confirm_new_management_key")} validateStatus={fieldState.error ? "error" : undefined} help={fieldState.error?.message}>
+                <Input.Password {...field} aria-label={t("admin.confirm_new_management_key")} autoComplete="new-password" visibilityToggle={{ tabIndex: -1 }} />
               </Form.Item>
             )}
           />
@@ -408,10 +408,10 @@ function validPublicBaseURL(value: string) {
 }
 
 function validateLogoFile(file: File) {
-  if (!supportedLogoTypes.has(file.type)) return "仅支持 PNG、JPEG、GIF、WebP 或 SVG 文件";
-  if (file.size < 1) return "Logo 文件不能为空";
-  if (file.size > maxLogoBytes) return "Logo 文件不能超过 2 MiB";
-  if (Array.from(file.name).length > 128) return "Logo 文件名不能超过 128 个字符";
+  if (!supportedLogoTypes.has(file.type)) return t("admin.only_png_jpeg_gif_webp_or_svg_files_are_supported");
+  if (file.size < 1) return t("admin.the_logo_file_cannot_be_empty");
+  if (file.size > maxLogoBytes) return t("admin.the_logo_file_must_not_exceed_2_mib");
+  if (Array.from(file.name).length > 128) return t("admin.the_logo_filename_must_not_exceed_128_characters");
   return "";
 }
 

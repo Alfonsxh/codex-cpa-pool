@@ -1,6 +1,12 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
-import { afterEach, vi } from "vitest";
+import { afterEach, beforeEach, vi } from "vitest";
+
+import { rememberLanguage } from "../i18n";
+
+rememberLanguage("zh-CN");
+window.localStorage.clear();
+beforeEach(() => { rememberLanguage("zh-CN"); window.localStorage.clear(); });
 
 afterEach(() => {
   cleanup();

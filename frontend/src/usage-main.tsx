@@ -1,3 +1,4 @@
+import { initializeLanguage } from "./i18n";
 import { SiteTimezoneSync } from "./ui/SiteTimezoneSync";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -7,6 +8,8 @@ import { ThemeProvider } from "./ui/ThemeProvider";
 import "./ui/theme.css";
 import "./ui/styles.css";
 import "./ui/usage-styles.css";
+
+initializeLanguage();
 
 const queryClient = new QueryClient({
   defaultOptions: {

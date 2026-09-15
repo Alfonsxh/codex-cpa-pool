@@ -7,17 +7,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/xuri/excelize/v2"
 )
 
 const ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
 const (
-	summarySheet   = "用量总览"
-	teamSheet      = "团队统计"
-	accountSheet   = "账号明细"
-	userSheet      = "用户使用明细"
-	dailySheet     = "每日趋势"
+	summarySheet   = "Usage overview"
+	teamSheet      = "Team statistics"
+	accountSheet   = "Account details"
+	userSheet      = "User usage details"
+	dailySheet     = "Daily trends"
 	tableHeaderRow = 7
 	tableDataRow   = 8
 	inkColor       = "18283F"
@@ -30,7 +31,10 @@ const (
 	tealColor      = "278577"
 )
 
-type XLSXOptions struct{ WithUnits bool }
+type XLSXOptions struct {
+	WithUnits bool
+	Language  i18n.Language
+}
 
 type column struct {
 	label    string
@@ -50,12 +54,14 @@ type tokenStyleKey struct {
 }
 
 type workbook struct {
-	file        *excelize.File
-	ctx         context.Context
-	err         error
-	withUnits   bool
-	styles      map[cellStyleKey]int
-	tokenStyles map[tokenStyleKey]int
+	language                                                     i18n.Language
+	summarySheet, teamSheet, accountSheet, userSheet, dailySheet string
+	file                                                         *excelize.File
+	ctx                                                          context.Context
+	err                                                          error
+	withUnits                                                    bool
+	styles                                                       map[cellStyleKey]int
+	tokenStyles                                                  map[tokenStyleKey]int
 }
 
 // XLSX materializes a complete snapshot before HTTP headers are written. Labels
@@ -64,10 +70,16 @@ func XLSX(ctx context.Context, r Report, options ...XLSXOptions) ([]byte, error)
 	x := &workbook{file: excelize.NewFile(), ctx: ctx, styles: map[cellStyleKey]int{}, tokenStyles: map[tokenStyleKey]int{}}
 	if len(options) > 0 {
 		x.withUnits = options[0].WithUnits
+		x.language = i18n.Normalize(string(options[0].Language))
 	}
+	x.summarySheet = i18n.Text(x.language, "usagereport.usage_overview")
+	x.teamSheet = i18n.Text(x.language, "usagereport.team_statistics")
+	x.accountSheet = i18n.Text(x.language, "usagereport.account_details")
+	x.userSheet = i18n.Text(x.language, "usagereport.user_usage_details")
+	x.dailySheet = i18n.Text(x.language, "usagereport.daily_trends")
 	defer x.file.Close()
-	x.check(x.file.SetSheetName("Sheet1", summarySheet))
-	for _, name := range []string{teamSheet, accountSheet, userSheet, dailySheet} {
+	x.check(x.file.SetSheetName("Sheet1", x.summarySheet))
+	for _, name := range []string{x.teamSheet, x.accountSheet, x.userSheet, x.dailySheet} {
 		_, err := x.file.NewSheet(name)
 		x.check(err)
 	}
@@ -123,6 +135,7 @@ func (x *workbook) cellStyle(kind, fill, align string, bold bool) int {
 	case "text":
 		s.Alignment.WrapText = true
 	case "header":
+		s.Alignment.WrapText = true
 		s.Font.Color = "FFFFFF"
 		s.Font.Bold = true
 	case "title":
@@ -132,6 +145,7 @@ func (x *workbook) cellStyle(kind, fill, align string, bold bool) int {
 		s.Font.Size = 14
 		s.Font.Bold = true
 	case "note":
+		s.Alignment.WrapText = true
 		s.Font.Size = 10
 		s.Font.Color = mutedColor
 	case "denominator":
@@ -230,14 +244,14 @@ func (x *workbook) setup(sheet string, r Report, lastCol int, note string) {
 	x.check(x.file.SetRowHeight(sheet, 1, 18))
 	x.check(x.file.SetRowHeight(sheet, 2, 30))
 	title := sheet
-	if sheet == summarySheet {
-		title = "Token 用量周报"
+	if sheet == x.summarySheet {
+		title = i18n.Text(x.language, "usagereport.weekly_token_usage_report")
 	}
 	x.merged(sheet, "B2", cell(lastCol-2, 2), title, x.cellStyle("title", "FFFFFF", "left", true))
 	x.merged(sheet, cell(lastCol-1, 2), cell(lastCol, 2), "CCPA", x.cellStyle("note", "FFFFFF", "right", false))
-	meta := fmt.Sprintf("%s — %s（结束不含）  %s", r.Period.Start.Format(time.DateTime), r.Period.End.Format(time.DateTime), r.Period.Start.Location())
+	meta := i18n.M("usagereport.end_exclusive", i18n.Params{"Start": r.Period.Start.Format(time.DateTime), "End": r.Period.End.Format(time.DateTime), "Timezone": r.Period.Start.Location()}).Render(x.language)
 	if r.Period.Partial() {
-		meta += "  本周未结束"
+		meta += i18n.Text(x.language, "usagereport.current_week_is_incomplete")
 	}
 	x.merged(sheet, "B3", cell(lastCol, 3), meta, x.cellStyle("note", "FFFFFF", "left", false))
 	x.check(x.file.SetRowHeight(sheet, 3, 24))
@@ -265,17 +279,17 @@ func change(current, previous int64) any {
 	}
 	return float64(current)/float64(previous) - 1
 }
-func comparisonStatus(previous Metrics) string {
+func (x *workbook) comparisonStatus(previous Metrics) string {
 	if previous.RequestCount == 0 {
-		return "无请求记录"
+		return i18n.Text(x.language, "usagereport.no_request_records")
 	}
-	return "有记录"
+	return i18n.Text(x.language, "usagereport.recorded")
 }
-func activity(m Metrics) string {
+func (x *workbook) activity(m Metrics) string {
 	if m.RequestCount == 0 {
-		return "无请求"
+		return i18n.Text(x.language, "usagereport.no_requests")
 	}
-	return "活跃"
+	return i18n.Text(x.language, "usagereport.active")
 }
 
 // Excel dates have no timezone. Encode the configured business wall clock, not UTC.
@@ -296,8 +310,16 @@ func col(label string, width float64, kind string) column {
 	}
 	return column{label: label, width: width, kind: kind, align: align}
 }
-func rawColumn() column  { c := col("原始 Token", 19, "token"); c.emphasis = true; return c }
-func rankColumn() column { c := col("序号", 8, "number"); c.align = "center"; return c }
+func (x *workbook) rawColumn() column {
+	c := col(i18n.Text(x.language, "usagereport.raw_tokens"), 19, "token")
+	c.emphasis = true
+	return c
+}
+func (x *workbook) rankColumn() column {
+	c := col(i18n.Text(x.language, "usagereport.no"), 8, "number")
+	c.align = "center"
+	return c
+}
 
 func textRowHeight(value string, width float64) float64 {
 	lines := 0.0
@@ -346,7 +368,11 @@ func (x *workbook) table(sheet string, r Report, note string, columns []column, 
 		x.check(x.file.SetColWidth(sheet, letter, letter, c.width))
 		x.put(sheet, cell(i+2, tableHeaderRow), c.label, x.cellStyle("header", inkColor, c.align, true))
 	}
-	x.check(x.file.SetRowHeight(sheet, tableHeaderRow, 30))
+	headerHeight := 30.0
+	for _, c := range columns {
+		headerHeight = max(headerHeight, textRowHeight(c.label, c.width))
+	}
+	x.check(x.file.SetRowHeight(sheet, tableHeaderRow, headerHeight))
 	for i, values := range rows {
 		x.tableRow(sheet, i+tableDataRow, columns, values, false)
 	}
@@ -374,48 +400,48 @@ func (x *workbook) table(sheet string, r Report, note string, columns []column, 
 
 func (x *workbook) details(r Report) {
 	m, p := r.Current, r.Previous
-	columns := []column{rankColumn(), col("团队", 26, "text"), col("活跃用户", 13, "number"), col("请求数", 15, "number"), rawColumn(), col("加权 Token", 19, "token"), col("用量占比", 14, "percent"), col("上期 Token", 19, "token"), col("环比", 14, "delta"), col("人均 Token", 19, "token")}
+	columns := []column{x.rankColumn(), col(i18n.Text(x.language, "usagereport.team"), 26, "text"), col(i18n.Text(x.language, "usagereport.active_users"), 13, "number"), col(i18n.Text(x.language, "usagereport.requests"), 15, "number"), x.rawColumn(), col(i18n.Text(x.language, "usagereport.weighted_tokens"), 19, "token"), col(i18n.Text(x.language, "usagereport.usage_share"), 14, "percent"), col(i18n.Text(x.language, "usagereport.previous_tokens"), 19, "token"), col(i18n.Text(x.language, "usagereport.change"), 14, "delta"), col(i18n.Text(x.language, "usagereport.tokens_per_user"), 19, "token")}
 	rows := make([][]any, 0, len(r.Teams))
 	for i, e := range r.Teams {
 		rows = append(rows, []any{i + 1, e.Name, e.Current.Users, e.Current.RequestCount, e.Current.TotalTokens, e.Current.WeightedTokens, ratio(e.Current.TotalTokens, m.TotalTokens), e.Previous.TotalTokens, change(e.Current.TotalTokens, e.Previous.TotalTokens), ratio(e.Current.TotalTokens, int64(e.Current.Users))})
 	}
-	x.table(teamSheet, r, "按原始 Token 降序；占比、环比和人均以原始 Token 计算。团队按当前归属汇总。", columns, rows, []any{"", "合计", m.Users, m.RequestCount, m.TotalTokens, m.WeightedTokens, ratio(m.TotalTokens, m.TotalTokens), p.TotalTokens, change(m.TotalTokens, p.TotalTokens), ratio(m.TotalTokens, int64(m.Users))}, 3)
-	columns = []column{col("账号编号", 20, "text"), col("账号", 32, "text"), col("本周状态", 12, "text"), col("当前绑定", 13, "number"), col("活跃用户", 13, "number"), col("请求数", 15, "number"), col("输入 Token", 19, "token"), col("其中缓存", 19, "token"), col("输出 Token", 19, "token"), rawColumn(), col("加权 Token", 19, "token"), col("用量占比", 14, "percent"), col("上期 Token", 19, "token"), col("环比", 14, "delta"), col("成功率", 13, "percent"), col("最后请求时间", 25, "date")}
+	x.table(x.teamSheet, r, i18n.Text(x.language, "usagereport.sorted_by_raw_tokens_share_change_and_per_user_usage"), columns, rows, []any{"", i18n.Text(x.language, "usagereport.total"), m.Users, m.RequestCount, m.TotalTokens, m.WeightedTokens, ratio(m.TotalTokens, m.TotalTokens), p.TotalTokens, change(m.TotalTokens, p.TotalTokens), ratio(m.TotalTokens, int64(m.Users))}, 3)
+	columns = []column{col(i18n.Text(x.language, "usagereport.account_id"), 20, "text"), col(i18n.Text(x.language, "usagereport.account"), 32, "text"), col(i18n.Text(x.language, "usagereport.this_week"), 12, "text"), col(i18n.Text(x.language, "usagereport.current_bindings"), 13, "number"), col(i18n.Text(x.language, "usagereport.active_users"), 13, "number"), col(i18n.Text(x.language, "usagereport.requests"), 15, "number"), col(i18n.Text(x.language, "usagereport.input_tokens"), 19, "token"), col(i18n.Text(x.language, "usagereport.cached_input"), 19, "token"), col(i18n.Text(x.language, "usagereport.output_tokens"), 19, "token"), x.rawColumn(), col(i18n.Text(x.language, "usagereport.weighted_tokens"), 19, "token"), col(i18n.Text(x.language, "usagereport.usage_share"), 14, "percent"), col(i18n.Text(x.language, "usagereport.previous_tokens"), 19, "token"), col(i18n.Text(x.language, "usagereport.change"), 14, "delta"), col(i18n.Text(x.language, "usagereport.success_rate"), 13, "percent"), col(i18n.Text(x.language, "usagereport.last_request"), 25, "date")}
 	columns[2].align = "center"
 	rows = make([][]any, 0, len(r.Accounts))
 	bound := 0
 	for _, e := range r.Accounts {
 		id := e.ID
 		if id == "" {
-			id = "未识别账号"
+			id = i18n.Text(x.language, "usagereport.unidentified_account")
 		}
 		bound += e.BoundUsers
 		c := e.Current
-		rows = append(rows, []any{id, e.Name, activity(c), e.BoundUsers, c.Users, c.RequestCount, c.InputTokens, c.CachedTokens, c.OutputTokens, c.TotalTokens, c.WeightedTokens, ratio(c.TotalTokens, m.TotalTokens), e.Previous.TotalTokens, change(c.TotalTokens, e.Previous.TotalTokens), ratio(c.SuccessCount, c.RequestCount), lastUsed(c, r.Period.Start.Location())})
+		rows = append(rows, []any{id, e.Name, x.activity(c), e.BoundUsers, c.Users, c.RequestCount, c.InputTokens, c.CachedTokens, c.OutputTokens, c.TotalTokens, c.WeightedTokens, ratio(c.TotalTokens, m.TotalTokens), e.Previous.TotalTokens, change(c.TotalTokens, e.Previous.TotalTokens), ratio(c.SuccessCount, c.RequestCount), lastUsed(c, r.Period.Start.Location())})
 	}
-	x.table(accountSheet, r, "按原始 Token 降序。当前绑定为导出时路由；用量按请求实际账号统计。缓存包含在输入中，活跃用户合计去重。", columns, rows, []any{"", "合计", "", bound, m.Users, m.RequestCount, m.InputTokens, m.CachedTokens, m.OutputTokens, m.TotalTokens, m.WeightedTokens, ratio(m.TotalTokens, m.TotalTokens), p.TotalTokens, change(m.TotalTokens, p.TotalTokens), ratio(m.SuccessCount, m.RequestCount), lastUsed(m, r.Period.Start.Location())}, 3)
-	columns = []column{col("用户", 34, "text"), col("当前团队", 22, "text"), col("当前绑定账号", 20, "text"), col("使用账号数", 14, "number"), col("请求数", 15, "number"), col("输入 Token", 19, "token"), col("其中缓存", 19, "token"), col("输出 Token", 19, "token"), rawColumn(), col("加权 Token", 19, "token"), col("用量占比", 14, "percent"), col("上期 Token", 19, "token"), col("环比", 14, "delta"), col("活跃天数", 13, "number"), col("最后请求时间", 25, "date")}
+	x.table(x.accountSheet, r, i18n.Text(x.language, "usagereport.sorted_by_raw_tokens_current_bindings_are_routes_at_export"), columns, rows, []any{"", i18n.Text(x.language, "usagereport.total"), "", bound, m.Users, m.RequestCount, m.InputTokens, m.CachedTokens, m.OutputTokens, m.TotalTokens, m.WeightedTokens, ratio(m.TotalTokens, m.TotalTokens), p.TotalTokens, change(m.TotalTokens, p.TotalTokens), ratio(m.SuccessCount, m.RequestCount), lastUsed(m, r.Period.Start.Location())}, 3)
+	columns = []column{col(i18n.Text(x.language, "usagereport.user"), 34, "text"), col(i18n.Text(x.language, "usagereport.current_team"), 22, "text"), col(i18n.Text(x.language, "usagereport.current_account"), 20, "text"), col(i18n.Text(x.language, "usagereport.accounts_used"), 14, "number"), col(i18n.Text(x.language, "usagereport.requests"), 15, "number"), col(i18n.Text(x.language, "usagereport.input_tokens"), 19, "token"), col(i18n.Text(x.language, "usagereport.cached_input"), 19, "token"), col(i18n.Text(x.language, "usagereport.output_tokens"), 19, "token"), x.rawColumn(), col(i18n.Text(x.language, "usagereport.weighted_tokens"), 19, "token"), col(i18n.Text(x.language, "usagereport.usage_share"), 14, "percent"), col(i18n.Text(x.language, "usagereport.previous_tokens"), 19, "token"), col(i18n.Text(x.language, "usagereport.change"), 14, "delta"), col(i18n.Text(x.language, "usagereport.active_days"), 13, "number"), col(i18n.Text(x.language, "usagereport.last_request"), 25, "date")}
 	rows = make([][]any, 0, len(r.Users))
 	for _, e := range r.Users {
 		c := e.Current
 		rows = append(rows, []any{e.Name, e.Team, e.CurrentAccount, c.Accounts, c.RequestCount, c.InputTokens, c.CachedTokens, c.OutputTokens, c.TotalTokens, c.WeightedTokens, ratio(c.TotalTokens, m.TotalTokens), e.Previous.TotalTokens, change(c.TotalTokens, e.Previous.TotalTokens), c.Days, lastUsed(c, r.Period.Start.Location())})
 	}
-	x.table(userSheet, r, "按原始 Token 降序。缓存包含在输入中；原始和加权值均保留历史记录。使用账号数、活跃天数合计去重。", columns, rows, []any{"合计", "", "", m.Accounts, m.RequestCount, m.InputTokens, m.CachedTokens, m.OutputTokens, m.TotalTokens, m.WeightedTokens, ratio(m.TotalTokens, m.TotalTokens), p.TotalTokens, change(m.TotalTokens, p.TotalTokens), m.Days, lastUsed(m, r.Period.Start.Location())}, 3)
+	x.table(x.userSheet, r, i18n.Text(x.language, "usagereport.sorted_by_raw_tokens_cached_tokens_are_included_in_input"), columns, rows, []any{i18n.Text(x.language, "usagereport.total"), "", "", m.Accounts, m.RequestCount, m.InputTokens, m.CachedTokens, m.OutputTokens, m.TotalTokens, m.WeightedTokens, ratio(m.TotalTokens, m.TotalTokens), p.TotalTokens, change(m.TotalTokens, p.TotalTokens), m.Days, lastUsed(m, r.Period.Start.Location())}, 3)
 }
 
 func (x *workbook) daily(r Report) {
-	columns := []column{col("日期", 17, "day"), col("星期", 10, "text"), rawColumn(), col("加权 Token", 19, "token"), col("上期日期", 17, "day"), col("上期 Token", 19, "token"), col("上期加权 Token", 21, "token"), col("环比", 14, "delta"), col("请求数", 15, "number"), col("活跃账号", 13, "number"), col("活跃团队", 13, "number"), col("活跃用户", 13, "number"), col("上期记录", 17, "text")}
-	weekdays := []string{"周一", "周二", "周三", "周四", "周五", "周六", "周日"}
+	columns := []column{col(i18n.Text(x.language, "usagereport.date"), 17, "day"), col(i18n.Text(x.language, "usagereport.weekday"), 10, "text"), x.rawColumn(), col(i18n.Text(x.language, "usagereport.weighted_tokens"), 19, "token"), col(i18n.Text(x.language, "usagereport.previous_date"), 17, "day"), col(i18n.Text(x.language, "usagereport.previous_tokens"), 19, "token"), col(i18n.Text(x.language, "usagereport.previous_weighted_tokens"), 21, "token"), col(i18n.Text(x.language, "usagereport.change"), 14, "delta"), col(i18n.Text(x.language, "usagereport.requests"), 15, "number"), col(i18n.Text(x.language, "usagereport.active_accounts"), 13, "number"), col(i18n.Text(x.language, "usagereport.active_teams"), 13, "number"), col(i18n.Text(x.language, "usagereport.active_users"), 13, "number"), col(i18n.Text(x.language, "usagereport.previous_records"), 17, "text")}
+	weekdays := []string{i18n.Text(x.language, "usagereport.monday"), i18n.Text(x.language, "usagereport.tuesday"), i18n.Text(x.language, "usagereport.wednesday"), i18n.Text(x.language, "usagereport.thursday"), i18n.Text(x.language, "usagereport.friday"), i18n.Text(x.language, "usagereport.saturday"), i18n.Text(x.language, "usagereport.sunday")}
 	rows := make([][]any, 0, len(r.Daily))
 	for i, d := range r.Daily {
-		values := []any{localExcelTime(d.Date), weekdays[i], nil, nil, localExcelTime(d.PreviousDate), nil, nil, nil, nil, nil, nil, nil, "未到统计时间"}
+		values := []any{localExcelTime(d.Date), weekdays[i], nil, nil, localExcelTime(d.PreviousDate), nil, nil, nil, nil, nil, nil, nil, i18n.Text(x.language, "usagereport.outside_the_reporting_period")}
 		if d.Included {
 			c := d.Current
 			p := d.Previous
-			values = []any{localExcelTime(d.Date), weekdays[i], c.TotalTokens, c.WeightedTokens, localExcelTime(d.PreviousDate), p.TotalTokens, p.WeightedTokens, change(c.TotalTokens, p.TotalTokens), c.RequestCount, c.Accounts, c.Teams, c.Users, comparisonStatus(p)}
+			values = []any{localExcelTime(d.Date), weekdays[i], c.TotalTokens, c.WeightedTokens, localExcelTime(d.PreviousDate), p.TotalTokens, p.WeightedTokens, change(c.TotalTokens, p.TotalTokens), c.RequestCount, c.Accounts, c.Teams, c.Users, x.comparisonStatus(p)}
 		}
 		rows = append(rows, values)
 	}
 	m, p := r.Current, r.Previous
-	x.table(dailySheet, r, "日期按系统时区划分，上期按星期对齐。未发生的日期留空；活跃人数与账号数合计去重。", columns, rows, []any{"合计（去重）", "", m.TotalTokens, m.WeightedTokens, "", p.TotalTokens, p.WeightedTokens, change(m.TotalTokens, p.TotalTokens), m.RequestCount, m.Accounts, m.Teams, m.Users, comparisonStatus(p)}, 3)
+	x.table(x.dailySheet, r, i18n.Text(x.language, "usagereport.dates_use_the_system_timezone_previous_dates_align_by_weekday"), columns, rows, []any{i18n.Text(x.language, "usagereport.total_deduplicated"), "", m.TotalTokens, m.WeightedTokens, "", p.TotalTokens, p.WeightedTokens, change(m.TotalTokens, p.TotalTokens), m.RequestCount, m.Accounts, m.Teams, m.Users, x.comparisonStatus(p)}, 3)
 }

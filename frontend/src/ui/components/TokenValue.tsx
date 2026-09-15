@@ -1,3 +1,4 @@
+import { getIntlLocale } from "../../i18n";
 import { formatTokenAmount } from "../formatters";
 
 export type TokenValueProps = {
@@ -16,7 +17,7 @@ export function TokenValue({ value, suffix = "Token", className = "", emptyText 
   return (
     <span
       className={["token-value", className].filter(Boolean).join(" ")}
-      title={[new Intl.NumberFormat("zh-CN").format(normalized), suffix].filter(Boolean).join(" ")}
+      title={[new Intl.NumberFormat(getIntlLocale()).format(normalized), suffix].filter(Boolean).join(" ")}
     >
       {display}
     </span>

@@ -1,8 +1,6 @@
 package admin
 
 import (
-	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -11,6 +9,8 @@ import (
 	"unicode/utf8"
 
 	"github.com/Alfonsxh/codex-cpa-pool/internal/controlplane"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/identity"
 	"github.com/gin-gonic/gin"
 )
@@ -66,7 +66,7 @@ func (server *Server) readGeneralSettings(c *gin.Context) {
 		server.internalError(c, "read general settings", err)
 		return
 	}
-	c.JSON(http.StatusOK, payload)
+	httpi18n.JSON(c, http.StatusOK, payload)
 }
 
 func (server *Server) updateGeneralSettings(c *gin.Context) {
@@ -75,12 +75,12 @@ func (server *Server) updateGeneralSettings(c *gin.Context) {
 		Values  generalSettingsValues `json:"values" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil || body.Confirm != "save" {
-		writeError(c, http.StatusBadRequest, "请确认保存通用设置", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.confirm_saving_general_settings"), "invalid_request")
 		return
 	}
 	values, err := normalizeGeneralSettings(body.Values)
 	if err != nil {
-		writeError(c, http.StatusBadRequest, err.Error(), "invalid_settings")
+		writeError(c, http.StatusBadRequest, err, "invalid_settings")
 		return
 	}
 	if err := server.store.UpdateSettings(c.Request.Context(), values.settingsMap()); err != nil {
@@ -92,8 +92,8 @@ func (server *Server) updateGeneralSettings(c *gin.Context) {
 		server.internalError(c, "read updated general settings", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"message":  "通用设置已保存并实时生效",
+	httpi18n.JSON(c, http.StatusOK, gin.H{
+		"message":  i18n.M("admin.general_settings_saved_and_effective_immediately"),
 		"settings": payload,
 	})
 }
@@ -176,14 +176,14 @@ func defaultGeneralSettings() generalSettingsValues {
 
 func normalizeGeneralSettings(values generalSettingsValues) (generalSettingsValues, error) {
 	var err error
-	if values.ProductName, err = normalizeText(values.ProductName, "产品名称", 2, 64, true); err != nil {
+	if values.ProductName, err = normalizeText(values.ProductName, i18n.Ref("admin.product_name"), 2, 64, true); err != nil {
 		return values, err
 	}
 	values.ProductName = normalizeProductName(values.ProductName)
-	if values.ShortName, err = normalizeText(values.ShortName, "产品简称", 2, 32, true); err != nil {
+	if values.ShortName, err = normalizeText(values.ShortName, i18n.Ref("admin.short_name"), 2, 32, true); err != nil {
 		return values, err
 	}
-	if values.EnvironmentLabel, err = normalizeText(values.EnvironmentLabel, "环境说明", 0, 64, false); err != nil {
+	if values.EnvironmentLabel, err = normalizeText(values.EnvironmentLabel, i18n.Ref("admin.environment_label"), 0, 64, false); err != nil {
 		return values, err
 	}
 	if values.PublicBaseURL, err = normalizeBaseURL(values.PublicBaseURL); err != nil {
@@ -195,16 +195,16 @@ func normalizeGeneralSettings(values generalSettingsValues) (generalSettingsValu
 	}
 	values.KeyPrefix = strings.ToLower(strings.TrimSpace(values.KeyPrefix))
 	if !keyPrefixPattern.MatchString(values.KeyPrefix) {
-		return values, errors.New("新 Key 前缀必须为 3-32 位小写字母、数字或下划线，并以下划线结尾")
+		return values, i18n.M("admin.the_new_key_prefix_must_contain_3_32_lowercase_letters")
 	}
-	if values.ProviderName, err = normalizeText(values.ProviderName, "客户端 Provider 名称", 2, 48, true); err != nil {
+	if values.ProviderName, err = normalizeText(values.ProviderName, i18n.Ref("admin.client_provider_name"), 2, 48, true); err != nil {
 		return values, err
 	}
 	values.APIKeyEnv = strings.TrimSpace(values.APIKeyEnv)
 	if !envNamePattern.MatchString(values.APIKeyEnv) {
-		return values, errors.New("客户端 Key 环境变量必须为有效的大写环境变量名")
+		return values, i18n.M("admin.the_client_key_environment_variable_must_be_a_valid_uppercase")
 	}
-	if values.DefaultModel, err = normalizeText(values.DefaultModel, "客户端默认模型", 1, 128, true); err != nil {
+	if values.DefaultModel, err = normalizeText(values.DefaultModel, i18n.Ref("admin.default_client_model"), 1, 128, true); err != nil {
 		return values, err
 	}
 	return values, nil
@@ -219,21 +219,21 @@ func normalizeProductName(value string) string {
 	return value
 }
 
-func normalizeText(value string, label string, minimum int, maximum int, required bool) (string, error) {
+func normalizeText(value string, label any, minimum int, maximum int, required bool) (string, error) {
 	value = strings.TrimSpace(value)
 	if required && value == "" {
-		return "", fmt.Errorf("%s不能为空", label)
+		return "", i18n.M("admin.is_required", i18n.Params{"Field": label})
 	}
 	length := utf8.RuneCountInString(value)
 	if length < minimum {
-		return "", fmt.Errorf("%s至少需要 %d 个字符", label, minimum)
+		return "", i18n.M("admin.must_contain_at_least_characters", i18n.Params{"Field": label, "Minimum": minimum})
 	}
 	if length > maximum {
-		return "", fmt.Errorf("%s不能超过 %d 个字符", label, maximum)
+		return "", i18n.M("admin.must_not_exceed_characters", i18n.Params{"Field": label, "Maximum": maximum})
 	}
 	for _, character := range value {
 		if character < 32 {
-			return "", fmt.Errorf("%s不能包含控制字符", label)
+			return "", i18n.M("admin.must_not_contain_control_characters", i18n.Params{"Field": label})
 		}
 	}
 	return value, nil
@@ -246,28 +246,28 @@ func normalizeBaseURL(value string) (string, error) {
 	}
 	for _, character := range value {
 		if character < 32 || character == ' ' || character == '\t' || character == '\n' || character == '\r' {
-			return "", errors.New("公开访问地址不得包含空白或控制字符")
+			return "", i18n.M("admin.the_public_url_must_not_contain_whitespace_or_control_characters")
 		}
 	}
 	parsed, err := url.Parse(value)
 	if err != nil || parsed == nil {
-		return "", errors.New("公开访问地址必须为有效的 HTTP(S) URL")
+		return "", i18n.M("admin.the_public_url_must_be_a_valid_http_s_url")
 	}
 	scheme := strings.ToLower(parsed.Scheme)
 	if (scheme != "http" && scheme != "https") || parsed.Hostname() == "" {
-		return "", errors.New("公开访问地址必须为有效的 HTTP(S) URL")
+		return "", i18n.M("admin.the_public_url_must_be_a_valid_http_s_url")
 	}
 	if port := parsed.Port(); port != "" {
 		value, portError := strconv.Atoi(port)
 		if portError != nil || value < 1 || value > 65535 {
-			return "", errors.New("公开访问地址包含无效端口")
+			return "", i18n.M("admin.the_public_url_contains_an_invalid_port")
 		}
 	}
 	if parsed.User != nil {
-		return "", errors.New("公开访问地址不得包含账号或密码")
+		return "", i18n.M("admin.the_public_url_must_not_contain_a_username_or_password")
 	}
 	if parsed.Path != "" && parsed.Path != "/" || parsed.RawQuery != "" || parsed.Fragment != "" {
-		return "", errors.New("公开访问地址只能使用根路径，且不得包含查询参数或片段")
+		return "", i18n.M("admin.the_public_url_must_use_the_root_path_without_a")
 	}
 	return strings.TrimRight(value, "/"), nil
 }
@@ -281,7 +281,7 @@ func normalizeDomains(values []string) ([]string, error) {
 			continue
 		}
 		if len(domain) > 253 || strings.Contains(domain, "..") || !domainPattern.MatchString(domain) {
-			return nil, fmt.Errorf("允许的邮箱域名包含无效域名：%s", domain)
+			return nil, i18n.M("admin.invalid_allowed_email_domain", i18n.Params{"Value": domain})
 		}
 		if _, found := seen[domain]; found {
 			continue
@@ -299,7 +299,7 @@ func stringSettingValue(settings map[string]any, key string, fallback string) (s
 	}
 	text, ok := value.(string)
 	if !ok {
-		return "", fmt.Errorf("设置 %s 的数据类型无效", key)
+		return "", i18n.M("admin.invalid_data_type_for_setting", i18n.Params{"Value": key})
 	}
 	return text, nil
 }
@@ -317,13 +317,13 @@ func stringListSettingValue(settings map[string]any, key string, fallback []stri
 		for _, item := range values {
 			text, ok := item.(string)
 			if !ok {
-				return nil, fmt.Errorf("设置 %s 的数据类型无效", key)
+				return nil, i18n.M("admin.invalid_data_type_for_setting", i18n.Params{"Value": key})
 			}
 			result = append(result, text)
 		}
 		return result, nil
 	default:
-		return nil, fmt.Errorf("设置 %s 的数据类型无效", key)
+		return nil, i18n.M("admin.invalid_data_type_for_setting", i18n.Params{"Value": key})
 	}
 }
 

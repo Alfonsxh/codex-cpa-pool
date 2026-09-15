@@ -9,6 +9,8 @@ import (
 	"github.com/Alfonsxh/codex-cpa-pool/internal/accountstatus"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/controlplane"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/failover"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/quota"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/runtimeops"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/usage"
@@ -65,7 +67,7 @@ func (server *Server) readOverviewSummary(c *gin.Context) {
 		server.internalError(c, "read bounded overview summary", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
+	httpi18n.JSON(c, http.StatusOK, gin.H{
 		"generated_at": server.now().Unix(),
 		"source":       "control-plane",
 		"summary":      summary,
@@ -75,7 +77,7 @@ func (server *Server) readOverviewSummary(c *gin.Context) {
 // readOverviewCatalog reuses the canonical account presentation for trend selectors.
 func (server *Server) readOverviewCatalog(c *gin.Context) {
 	if server.accountStates == nil {
-		writeError(c, http.StatusServiceUnavailable, "总览筛选目录服务尚未就绪", "overview_catalog_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.overview_filter_directory_service_is_not_ready"), "overview_catalog_not_ready")
 		return
 	}
 	var (
@@ -108,13 +110,13 @@ func (server *Server) readOverviewCatalog(c *gin.Context) {
 	for _, account := range accounts {
 		state, found := states[account.ID]
 		accountItems = append(accountItems, overviewCatalogAccount{ID: account.ID,
-			OperationalStatus: accountstatus.Present(account.GroupEnabled, state, found)})
+			OperationalStatus: accountstatus.Present(account.GroupEnabled, state, found, httpi18n.Locale(c))})
 	}
 	userItems := make([]overviewCatalogUser, 0, len(users))
 	for _, user := range users {
 		userItems = append(userItems, overviewCatalogUser{Email: user.Email, Status: user.Status})
 	}
-	c.JSON(http.StatusOK, overviewCatalogResponse{
+	httpi18n.JSON(c, http.StatusOK, overviewCatalogResponse{
 		GeneratedAt: server.now().Unix(), Accounts: accountItems, Users: userItems,
 	})
 }
@@ -124,7 +126,7 @@ func (server *Server) readOverviewCatalog(c *gin.Context) {
 // acquires the control-plane write fence or caches data in the Admin process.
 func (server *Server) readOverviewStatus(c *gin.Context) {
 	if server.runtime == nil || server.oauth == nil {
-		writeError(c, http.StatusServiceUnavailable, "总览运行状态服务尚未就绪", "overview_status_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.overview_runtime_status_service_is_not_ready"), "overview_status_not_ready")
 		return
 	}
 	var (
@@ -161,7 +163,7 @@ func (server *Server) readOverviewStatus(c *gin.Context) {
 	}
 	if quotaStateError != nil {
 		server.logger.Warn("overview account quota is unavailable", zap.Error(quotaStateError))
-		response.Warnings = append(response.Warnings, "账号周额度读取失败")
+		response.Warnings = append(response.Warnings, httpi18n.Text(c, "admin.unable_to_read_account_weekly_quotas"))
 	}
 	response.AccountQuota = buildOverviewAccountQuotaSummary(
 		accounts,
@@ -189,16 +191,16 @@ func (server *Server) readOverviewStatus(c *gin.Context) {
 		)
 		if err != nil {
 			server.logger.Warn("five-minute overview usage is unavailable", zap.Error(err))
-			response.Warnings = append(response.Warnings, "近 5 分钟统计读取失败")
+			response.Warnings = append(response.Warnings, httpi18n.Text(c, "admin.unable_to_read_statistics_for_the_last_5_minutes"))
 		} else {
 			for _, account := range accountIDs {
 				response.Requests5M += usageByAccount[account].RequestCount
 			}
 		}
 	} else {
-		response.Warnings = append(response.Warnings, "近 5 分钟统计暂不可用")
+		response.Warnings = append(response.Warnings, httpi18n.Text(c, "admin.statistics_for_the_last_5_minutes_are_unavailable"))
 	}
-	c.JSON(http.StatusOK, response)
+	httpi18n.JSON(c, http.StatusOK, response)
 }
 
 func buildOverviewAccountQuotaSummary(

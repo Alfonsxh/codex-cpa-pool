@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "generated_at": 1787895720,
+  "required_complete": true,
+  "required": {
+    "complete": 2,
+    "total": 2
+  },
+  "recommended": {
+    "complete": 6,
+    "skipped": 0,
+    "total": 6
+  },
+  "skipped_recommended": [],
+  "steps": [
+    {
+      "id": "email_domains",
+      "kind": "required",
+      "status": "complete",
+      "title": "Organization & access",
+      "description": "Configure email domains allowed for user creation and sign-in.",
+      "action_path": "/configuration?group=品牌与身份&key=identity.allowed_email_domains",
+      "blockers": []
+    },
+    {
+      "id": "initial_password",
+      "kind": "required",
+      "status": "complete",
+      "title": "Initial user password",
+      "description": "Used for new users' first sign-in; must be changed immediately afterward.",
+      "action_path": "/configuration?section=access",
+      "blockers": []
+    },
+    {
+      "id": "public_base_url",
+      "kind": "recommended",
+      "status": "complete",
+      "title": "Public URL",
+      "description": "用于通知和客户端配置导出。",
+      "action_path": "/configuration?group=品牌与身份&key=branding.public_base_url",
+      "blockers": []
+    },
+    {
+      "id": "quota_timezone",
+      "kind": "recommended",
+      "status": "complete",
+      "title": "System timezone",
+      "description": "Shared timezone for page times, usage, calendar-week quotas and notification scheduling.",
+      "action_path": "/configuration?group=系统设置&key=system.timezone",
+      "blockers": []
+    },
+    {
+      "id": "weekly_quota",
+      "kind": "recommended",
+      "status": "complete",
+      "title": "Default weekly quota",
+      "description": "为新用户设置组织级默认 Token 上限。",
+      "action_path": "/configuration?group=用户额度&key=user_quota.default_weekly_tokens",
+      "blockers": []
+    },
+    {
+      "id": "notifications",
+      "kind": "recommended",
+      "status": "complete",
+      "title": "WeCom notifications",
+      "description": "Configure a webhook for quota reports and error alerts.",
+      "action_path": "/configuration?group=企业微信通知",
+      "blockers": []
+    },
+    {
+      "id": "branding",
+      "kind": "recommended",
+      "status": "complete",
+      "title": "Branding",
+      "description": "Customize the product name, environment label and logo as needed.",
+      "action_path": "/configuration?group=品牌与身份",
+      "blockers": []
+    },
+    {
+      "id": "proxy",
+      "kind": "recommended",
+      "status": "complete",
+      "title": "Default upstream proxy",
+      "description": "Configure only when a proxy is required to reach the upstream.",
+      "action_path": "/configuration?group=CPA%20请求&key=cpa.proxy_url",
+      "blockers": []
+    }
+  ]
+}

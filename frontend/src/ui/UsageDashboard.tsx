@@ -1,3 +1,5 @@
+import "../i18n/usage";
+import { t, getIntlLocale } from "../i18n";
 import { useSiteTimezone, formatSiteTimestamp } from "./site-time";
 import { Alert, App as AntApp, Button, Form, Input, Modal, Skeleton, Space, Tabs, Tooltip } from "antd";
 import { CopyOutlined, QuestionCircleOutlined } from "@ant-design/icons";
@@ -42,9 +44,9 @@ type PrimarySection = "trend" | "accounts";
 
 const defaultSort: SortState = { field: "quota", direction: "asc", pinCurrent: true };
 const portalTrendWindowOptions: Array<{ value: PortalUsageTrendWindow; label: string }> = [
-  { value: "7d", label: "7天" },
-  { value: "30d", label: "30天" },
-  { value: "90d", label: "90天" }
+  { value: "7d", label: t("usage.7d") },
+  { value: "30d", label: t("usage.30d") },
+  { value: "90d", label: t("usage.90d") }
 ];
 
 export function UsageDashboard({ user, onSessionExpired }: { user: string; onSessionExpired: () => void }) {
@@ -130,7 +132,7 @@ export function UsageDashboard({ user, onSessionExpired }: { user: string; onSes
         queryClient.invalidateQueries({ queryKey: quotaQueryKey, exact: true }),
         queryClient.invalidateQueries({ queryKey: portalAccountsQueryRoot })
       ]);
-      void message.success(result.changed ? "账号已切换并完成 Gateway 激活确认" : "当前已使用该账号");
+      void message.success(result.changed ? t("usage.account_switched_and_gateway_activation_confirmed") : t("usage.this_account_is_already_selected"));
     }
   });
   const autoAssignment = useMutation({
@@ -145,7 +147,7 @@ export function UsageDashboard({ user, onSessionExpired }: { user: string; onSes
         queryClient.invalidateQueries({ queryKey: quotaQueryKey, exact: true }),
         queryClient.invalidateQueries({ queryKey: portalAccountsQueryRoot })
       ]);
-      void message.success(result.changed ? `已自动分配 ${accountLabelByID(accounts.data?.accounts ?? [], result.current_group)}` : "已恢复当前 CPA 账号");
+      void message.success(result.changed ? t("usage.automatically_assigned", [accountLabelByID(accounts.data?.accounts ?? [], result.current_group)]) : t("usage.current_cpa_account_restored"));
     }
   });
   const rotation = useMutation({
@@ -158,7 +160,7 @@ export function UsageDashboard({ user, onSessionExpired }: { user: string; onSes
       setKeyOpen(true);
       setRotationOpen(false);
       rotation.reset();
-      void message.success("API Key 已刷新；旧 Key 已立即失效");
+      void message.success(t("usage.api_key_refreshed_the_old_key_expired_immediately"));
     }
   });
 
@@ -172,9 +174,9 @@ export function UsageDashboard({ user, onSessionExpired }: { user: string; onSes
     if (!keyValue) return;
     try {
       await navigator.clipboard.writeText(keyValue);
-      void message.success("API Key 已复制");
+      void message.success(t("usage.api_key_copied"));
     } catch {
-      void message.error("浏览器未允许复制，请展开后手动复制");
+      void message.error(t("usage.the_browser_blocked_copying_reveal_the_key_and_copy_it"));
     }
   };
   const revealKey = async () => {
@@ -239,17 +241,17 @@ export function UsageDashboard({ user, onSessionExpired }: { user: string; onSes
 
   return (
     <section className="usage-dashboard">
-      <section className="usage-key-card" aria-label="个人凭据与用量摘要">
+      <section className="usage-key-card" aria-label={t("usage.personal_credentials_usage_summary")}>
         <div className="usage-key-panel">
           <div className="usage-key-value">
-            <span>我的 API Key</span>
-            <code aria-label="API Key 安全状态">出于安全，仅在需要时读取</code>
+            <span>{t("common.my_api_key")}</span>
+            <code aria-label={t("usage.api_key_security_status")}>{t("common.loaded_only_when_needed")}</code>
           </div>
           <div className="usage-key-actions">
-            <button className="usage-secondary-button usage-credential-entry" type="button" onClick={() => void revealKey()}>管理 API Key</button>
-            <button className="usage-secondary-button" type="button" onClick={() => setClientConfigMode("codex")}>配置 Codex</button>
-            <button className="usage-secondary-button" type="button" onClick={() => setClientConfigMode("claude")}>配置 Claude Code</button>
-            <button className="usage-primary-button" type="button" onClick={() => setClientConfigMode("ccswitch")}>导入 CC Switch</button>
+            <button className="usage-secondary-button usage-credential-entry" type="button" onClick={() => void revealKey()}>{t("common.manage_api_key")}</button>
+            <button className="usage-secondary-button" type="button" onClick={() => setClientConfigMode("codex")}>{t("common.configure_codex")}</button>
+            <button className="usage-secondary-button" type="button" onClick={() => setClientConfigMode("claude")}>{t("common.configure_claude_code")}</button>
+            <button className="usage-primary-button" type="button" onClick={() => setClientConfigMode("ccswitch")}>{t("common.import_to_cc_switch")}</button>
           </div>
         </div>
 
@@ -261,7 +263,7 @@ export function UsageDashboard({ user, onSessionExpired }: { user: string; onSes
       </section>
 
       {accounts.data?.warnings.map((warning) => (
-        <section className="usage-route-notice" role="status" key={warning}><strong>账号提示</strong><span>{warning}</span></section>
+        <section className="usage-route-notice" role="status" key={warning}><strong>{t("usage.account_notice")}</strong><span>{warning}</span></section>
       ))}
       {!currentGroup && !accounts.isPending ? (
         <Alert
@@ -269,15 +271,15 @@ export function UsageDashboard({ user, onSessionExpired }: { user: string; onSes
           type={autoAssignment.isError ? "error" : "info"}
           showIcon
           role={autoAssignment.isError ? "alert" : "status"}
-          title={autoAssignment.isPending ? "正在自动分配 CPA" : autoAssignment.isError ? "自动分配 CPA 失败" : "暂时无法自动分配 CPA"}
+          title={autoAssignment.isPending ? t("usage.assigning_a_cpa_automatically") : autoAssignment.isError ? t("usage.automatic_cpa_assignment_failed") : t("usage.automatic_cpa_assignment_unavailable")}
           description={autoAssignment.isPending
-            ? "正在选择周额度使用最少的可用账号并完成 Gateway 激活确认。"
+            ? t("usage.selecting_the_available_account_with_the_lowest_weekly_quota_usage")
             : autoAssignment.isError
-              ? `${errorMessage(autoAssignment.error)}；可以重试自动分配，也可以在账号明细中手动选择。`
+              ? t("usage.retry_automatic_assignment_or_select_an_account_manually_below", [errorMessage(autoAssignment.error)])
               : accounts.data?.accounts.length
-                ? "自动分配尚未完成，可以重试或在账号明细中手动选择。"
-                : "当前没有可用账号；账号就绪后刷新页面会自动重试。"}
-          action={autoAssignment.isError ? <Button size="small" onClick={() => { autoAssignment.reset(); autoAssignment.mutate(); }}>重试自动分配</Button> : undefined}
+                ? t("usage.automatic_assignment_is_incomplete_retry_or_select_an_account_manually")
+                : t("usage.no_accounts_are_available_refresh_after_an_account_is_ready")}
+          action={autoAssignment.isError ? <Button size="small" onClick={() => { autoAssignment.reset(); autoAssignment.mutate(); }}>{t("usage.retry_automatic_assignment")}</Button> : undefined}
         />
       ) : null}
 
@@ -306,12 +308,12 @@ export function UsageDashboard({ user, onSessionExpired }: { user: string; onSes
               label: (
                 <span className="usage-primary-tab-label">
                   <span className="usage-primary-tab-dot" aria-hidden="true" />
-                  <span className="usage-primary-tab-text">账号明细</span>
+                  <span className="usage-primary-tab-text">{t("common.account_details")}</span>
                   <span className="usage-primary-tab-count" aria-hidden="true"><span>{accounts.isPending ? "…" : sortedAccounts.length}</span></span>
                 </span>
               ),
               children: (
-                <section className="usage-account-section" aria-label="账号明细">
+                <section className="usage-account-section" aria-label={t("common.account_details")}>
                   {compactTabs ? <AccountWindowControl
                     className="usage-mobile-panel-actions"
                     window={window}
@@ -324,24 +326,24 @@ export function UsageDashboard({ user, onSessionExpired }: { user: string; onSes
                   /> : null}
                   {primarySection === "accounts" && accounts.isError ? (
                     <div className="usage-error" role="alert">
-                      <span><strong>账号与用量加载失败</strong> · {errorMessage(accounts.error)}</span>
-                      <button className="usage-secondary-button" type="button" onClick={() => void accounts.refetch()}>重新加载</button>
+                      <span><strong>{t("usage.unable_to_load_accounts_and_usage")}</strong> · {errorMessage(accounts.error)}</span>
+                      <button className="usage-secondary-button" type="button" onClick={() => void accounts.refetch()}>{t("common.reload")}</button>
                     </div>
                   ) : primarySection === "accounts" ? (
-                    <NativeTableViewport className="usage-table-wrap" aria-label="账号明细表格">
+                    <NativeTableViewport className="usage-table-wrap" aria-label={t("usage.account_details_table")}>
                       <table className="usage-account-table">
                         <thead>
                           <tr>
-                            <th className="table-index-column" scope="col">序号</th>
-                            <SortableHeader field="current" label="当前账号" sort={sort} onSort={changeSort} />
-                            <SortableHeader field="account" label="CPA 账号" sort={sort} onSort={changeSort} />
-                            <SortableHeader field="quota" label="账号周额度" detail="所有用户共享 · 已用较少优先" sort={sort} onSort={changeSort} />
-                            <SortableHeader field="active_users" label="活跃用户" detail={formatActiveUserWindow(accounts.data?.active_user_window_seconds ?? 900)} sort={sort} onSort={changeSort} />
-                            <SortableHeader field="status" label="账号状态" sort={sort} onSort={changeSort} />
-                            <SortableHeader field="requests" label="我的请求" detail={windowLabel(window)} sort={sort} onSort={changeSort} />
-                            <SortableHeader className="usage-token-header" field="tokens" label="我的 Token" detail={windowLabel(window)} sort={sort} onSort={changeSort} />
-                            <SortableHeader field="last_used" label="最后使用" detail="我的记录" sort={sort} onSort={changeSort} />
-                            <th scope="col"><span className="sr-only">使用明细</span></th>
+                            <th className="table-index-column" scope="col">{t("common.no")}</th>
+                            <SortableHeader field="current" label={t("common.current_account")} sort={sort} onSort={changeSort} />
+                            <SortableHeader field="account" label={t("common.cpa_account")} sort={sort} onSort={changeSort} />
+                            <SortableHeader field="quota" label={t("common.account_weekly_quota")} detail={t("usage.shared_by_all_users_lowest_usage_first")} sort={sort} onSort={changeSort} />
+                            <SortableHeader field="active_users" label={t("common.active_users")} detail={formatActiveUserWindow(accounts.data?.active_user_window_seconds ?? 900)} sort={sort} onSort={changeSort} />
+                            <SortableHeader field="status" label={t("common.account_status")} sort={sort} onSort={changeSort} />
+                            <SortableHeader field="requests" label={t("common.my_requests")} detail={windowLabel(window)} sort={sort} onSort={changeSort} />
+                            <SortableHeader className="usage-token-header" field="tokens" label={t("common.my_tokens")} detail={windowLabel(window)} sort={sort} onSort={changeSort} />
+                            <SortableHeader field="last_used" label={t("common.last_used")} detail={t("usage.my_history")} sort={sort} onSort={changeSort} />
+                            <th scope="col"><span className="sr-only">{t("common.usage_details")}</span></th>
                           </tr>
                         </thead>
                         <tbody>
@@ -362,7 +364,7 @@ export function UsageDashboard({ user, onSessionExpired }: { user: string; onSes
                           ))}
                         </tbody>
                       </table>
-                      {!accounts.isPending && sortedAccounts.length === 0 ? <div className="usage-empty">暂无可用账号</div> : null}
+                      {!accounts.isPending && sortedAccounts.length === 0 ? <div className="usage-empty">{t("usage.no_available_accounts")}</div> : null}
                     </NativeTableViewport>
                   ) : null}
                 </section>
@@ -370,7 +372,7 @@ export function UsageDashboard({ user, onSessionExpired }: { user: string; onSes
             },
             {
               key: "trend",
-              label: <span className="usage-primary-tab-label"><span className="usage-primary-tab-dot" aria-hidden="true" /><span className="usage-primary-tab-text">每日用量</span></span>,
+              label: <span className="usage-primary-tab-label"><span className="usage-primary-tab-dot" aria-hidden="true" /><span className="usage-primary-tab-text">{t("usage.daily_usage")}</span></span>,
               children: (
                 <>
                   {compactTabs ? <TrendWindowControl className="usage-mobile-panel-actions" window={trendWindow} onChange={setTrendWindow} updateStatus={trendUpdateStatus} /> : null}
@@ -388,33 +390,33 @@ export function UsageDashboard({ user, onSessionExpired }: { user: string; onSes
         />
       </div>
 
-      <Modal title={`切换到 ${switchTarget ? accountLabel(switchTarget) : "目标账号"}`} open={Boolean(switchTarget)} okText="确认切换" cancelText="取消" confirmLoading={accountSwitch.isPending} onCancel={() => !accountSwitch.isPending && setSwitchTarget(null)} onOk={() => switchTarget && accountSwitch.mutate(switchTarget)} destroyOnHidden>
-        {accountSwitch.isError ? <Alert type="error" showIcon title="账号切换失败" description={errorMessage(accountSwitch.error)} /> : null}
+      <Modal title={t("usage.switch_to", [switchTarget ? accountLabel(switchTarget) : t("usage.target_account")])} open={Boolean(switchTarget)} okText={t("usage.confirm_switch")} cancelText={t("common.cancel")} confirmLoading={accountSwitch.isPending} onCancel={() => !accountSwitch.isPending && setSwitchTarget(null)} onOk={() => switchTarget && accountSwitch.mutate(switchTarget)} destroyOnHidden>
+        {accountSwitch.isError ? <Alert type="error" showIcon title={t("usage.unable_to_switch_account")} description={errorMessage(accountSwitch.error)} /> : null}
       </Modal>
 
-      <Modal title="管理 API Key" open={keyOpen} footer={<Button onClick={closeKey}>关闭</Button>} onCancel={closeKey} destroyOnHidden>
+      <Modal title={t("common.manage_api_key")} open={keyOpen} footer={<Button onClick={closeKey}>{t("common.close")}</Button>} onCancel={closeKey} destroyOnHidden>
         <Space orientation="vertical" size={16} className="portal-form-stack">
           {keyLoading ? <Skeleton.Input active block /> : null}
-          {keyError ? <Alert type="error" showIcon title="API Key 读取失败" description={keyError} /> : null}
+          {keyError ? <Alert type="error" showIcon title={t("usage.unable_to_read_api_key")} description={keyError} /> : null}
           {keyValue ? (
             <Form.Item label="API Key">
               <Space.Compact block>
                 <Input.Password value={keyValue} readOnly visibilityToggle={{ visible: showKey, onVisibleChange: setShowKey }} aria-label="API Key" autoComplete="off" />
-                <Button type="primary" icon={<CopyOutlined aria-hidden="true" />} onClick={() => void copyKey()}>复制</Button>
+                <Button type="primary" icon={<CopyOutlined aria-hidden="true" />} onClick={() => void copyKey()}>{t("common.copy")}</Button>
               </Space.Compact>
             </Form.Item>
           ) : null}
-          <section className="usage-key-danger-zone" aria-label="API Key 危险操作">
-            <div><strong>刷新 API Key</strong><p>旧 Key 会在 Gateway 激活新鉴权快照后立即失效，需要同步更新所有客户端。</p></div>
-            <Button danger onClick={() => { rotation.reset(); setRotationOpen(true); }}>刷新 API Key</Button>
+          <section className="usage-key-danger-zone" aria-label={t("usage.api_key_danger_zone")}>
+            <div><strong>{t("usage.refresh_api_key")}</strong><p>{t("usage.the_old_key_expires_as_soon_as_the_gateway_activates")}</p></div>
+            <Button danger onClick={() => { rotation.reset(); setRotationOpen(true); }}>{t("usage.refresh_api_key")}</Button>
           </section>
         </Space>
       </Modal>
 
-      <Modal title="刷新个人 API Key" open={rotationOpen} okText="确认刷新并使旧 Key 失效" cancelText="取消" okButtonProps={{ danger: true }} confirmLoading={rotation.isPending} onCancel={() => !rotation.isPending && setRotationOpen(false)} onOk={() => rotation.mutate()} destroyOnHidden>
+      <Modal title={t("usage.refresh_personal_api_key")} open={rotationOpen} okText={t("usage.refresh_invalidate_old_key")} cancelText={t("common.cancel")} okButtonProps={{ danger: true }} confirmLoading={rotation.isPending} onCancel={() => !rotation.isPending && setRotationOpen(false)} onOk={() => rotation.mutate()} destroyOnHidden>
         <Space orientation="vertical" size={16} className="portal-form-stack">
-          <Alert type="warning" showIcon title="旧 API Key 会立即失效" description="刷新成功后，请立刻把新 Key 更新到 Codex 客户端。系统仅在 Gateway 已激活新鉴权快照后返回成功。" />
-          {rotation.isError ? <Alert type="error" showIcon title="API Key 刷新失败" description={errorMessage(rotation.error)} /> : null}
+          <Alert type="warning" showIcon title={t("usage.the_old_api_key_will_expire_immediately")} description={t("usage.after_refreshing_update_your_codex_clients_immediately_success_is_returned")} />
+          {rotation.isError ? <Alert type="error" showIcon title={t("usage.unable_to_refresh_api_key")} description={errorMessage(rotation.error)} /> : null}
         </Space>
       </Modal>
 
@@ -436,8 +438,8 @@ function TrendWindowControl({
 }) {
   return (
     <div className={`usage-trend-toolbar-actions ${className}`.trim()}>
-      <UsageUpdateBadge scope="每日用量" {...updateStatus} />
-      <div className="usage-trend-windows" role="group" aria-label="每日趋势时间范围">
+      <UsageUpdateBadge scope={t("usage.daily_usage")} {...updateStatus} />
+      <div className="usage-trend-windows" role="group" aria-label={t("usage.daily_trend_time_range")}>
         {portalTrendWindowOptions.map((option) => (
           <button type="button" key={option.value} aria-pressed={window === option.value} onClick={() => onChange(option.value)}>{option.label}</button>
         ))}
@@ -467,14 +469,14 @@ function AccountWindowControl({
 }) {
   return (
     <div className={`usage-toolbar-actions usage-tab-toolbar-actions ${className}`.trim()}>
-      <UsageUpdateBadge scope="账号明细" updatedAt={updatedAt} refreshing={loading} failed={failed} />
-      <div className="usage-window-switcher" role="group" aria-label="统计时间范围">
+      <UsageUpdateBadge scope={t("common.account_details")} updatedAt={updatedAt} refreshing={loading} failed={failed} />
+      <div className="usage-window-switcher" role="group" aria-label={t("usage.reporting_time_range")}>
         {portalWindowOptions.map((option) => (
           <button type="button" key={option.value} aria-pressed={window === option.value} onClick={() => onChange(option.value)}>{option.label}</button>
         ))}
       </div>
       <button className="usage-refresh-button" type="button" disabled={refreshing} onClick={onRefresh}>
-        {loading ? "刷新中…" : "刷新"}
+        {loading ? t("usage.refreshing") : t("common.refresh")}
       </button>
     </div>
   );
@@ -483,11 +485,11 @@ function AccountWindowControl({
 function UsageUpdateBadge({ scope, updatedAt, refreshing, failed }: PortalTrendUpdateStatus & { scope: string }) {
   const hasTimestamp = Number.isFinite(updatedAt) && updatedAt > 0;
   const state = refreshing ? "loading" : failed ? "error" : hasTimestamp ? "ready" : "empty";
-  return <div className="usage-updated" role="status" aria-label={`${scope}数据更新时间`} data-state={state}>
+  return <div className="usage-updated" role="status" aria-label={t("usage.data_update_time", [scope])} data-state={state}>
     <span className="usage-update-dot" aria-hidden="true" />
-    <span className="usage-update-label">{refreshing ? "更新中" : failed ? "更新失败" : "数据更新"}</span>
+    <span className="usage-update-label">{refreshing ? t("common.updating") : failed ? t("common.update_failed") : t("usage.data_update")}</span>
     <time key={updatedAt} className="usage-update-time" dateTime={hasTimestamp ? new Date(updatedAt * 1000).toISOString() : undefined}>
-      {hasTimestamp ? formatServerTimestamp(updatedAt) : refreshing ? "正在读取…" : "暂无数据"}
+      {hasTimestamp ? formatServerTimestamp(updatedAt) : refreshing ? t("common.loading_2") : t("common.no_data")}
     </time>
   </div>;
 }
@@ -511,13 +513,13 @@ function CurrentAccountSummary({ account, loading }: { account?: PortalAccount; 
   return (
     <div className="usage-current-account" aria-labelledby="current-account-label">
       <div className="usage-current-account-head">
-        <span className="usage-current-account-label" id="current-account-label">当前账号</span>
-        {loading && !account ? <span className="usage-status usage-summary-tag degraded">读取中</span> : account ? <StatusTag account={account} summary /> : <span className="usage-status usage-summary-tag degraded">待选择</span>}
+        <span className="usage-current-account-label" id="current-account-label">{t("common.current_account")}</span>
+        {loading && !account ? <span className="usage-status usage-summary-tag degraded">{t("common.loading_3")}</span> : account ? <StatusTag account={account} summary /> : <span className="usage-status usage-summary-tag degraded">{t("usage.not_selected")}</span>}
       </div>
-      <strong className="usage-current-account-name" title={account ? accountLabel(account) : undefined}>{account ? accountLabel(account) : loading ? "正在读取" : "尚未选择"}</strong>
+      <strong className="usage-current-account-name" title={account ? accountLabel(account) : undefined}>{account ? accountLabel(account) : loading ? t("common.loading") : t("common.not_selected")}</strong>
       <div className={`usage-current-quota ${used >= 100 ? "exhausted" : used >= 80 ? "warning" : ""}`.trim()}>
-        <div><span>{account ? `周额度 ${formatPercent(used)}` : "选择可用账号后显示"}</span><strong>{account ? `剩余 ${formatPercent(remaining)}` : "—"}</strong></div>
-        <progress className="usage-quota-track" max="100" value={used} aria-label={account ? `当前账号周额度已使用 ${formatPercent(used)}` : "尚未选择当前账号"} />
+        <div><span>{account ? t("usage.weekly_quota", [formatPercent(used)]) : t("common.shown_after_selecting_an_available_account")}</span><strong>{account ? t("usage.remaining", [formatPercent(remaining)]) : "—"}</strong></div>
+        <progress className="usage-quota-track" max="100" value={used} aria-label={account ? t("usage.current_account_weekly_quota_used", [formatPercent(used)]) : t("usage.no_account_selected")} />
       </div>
     </div>
   );
@@ -529,31 +531,31 @@ function PersonalQuotaSummary({ quota, loading, error, onRetry }: { quota?: Port
   const remaining = weekly?.unlimited ? null : Math.max(0, 100 - percent);
   const quotaTooltip = weekly ? (
     <div className="usage-quota-tooltip">
-      <strong>个人本周额度</strong>
-      <span><b>加权已用</b><em>{formatNumber(weekly.weighted_used_tokens)}</em></span>
-      <span><b>未加权已用</b><em>{formatNumber(weekly.raw_used_tokens)}</em></span>
-      <span><b>总额度</b><em>{weekly.unlimited ? "不限额" : formatNumber(weekly.limit_tokens ?? 0)}</em></span>
-      <span><b>剩余额度</b><em>{weekly.unlimited ? "不限额" : formatNumber(weekly.remaining_tokens ?? 0)}</em></span>
+      <strong>{t("usage.my_weekly_quota")}</strong>
+      <span><b>{t("usage.weighted_usage")}</b><em>{formatNumber(weekly.weighted_used_tokens)}</em></span>
+      <span><b>{t("usage.raw_usage")}</b><em>{formatNumber(weekly.raw_used_tokens)}</em></span>
+      <span><b>{t("usage.total_quota")}</b><em>{weekly.unlimited ? t("common.unlimited") : formatNumber(weekly.limit_tokens ?? 0)}</em></span>
+      <span><b>{t("usage.remaining_quota")}</b><em>{weekly.unlimited ? t("common.unlimited") : formatNumber(weekly.remaining_tokens ?? 0)}</em></span>
     </div>
   ) : null;
   return (
     <div className="usage-personal-overview" aria-labelledby="personal-usage-label">
-      <div className="usage-personal-overview-head"><span id="personal-usage-label">个人本周用量</span><small className="usage-summary-tag">{weekly ? quotaSourceLabel(weekly.source) : "组织默认"}</small></div>
+      <div className="usage-personal-overview-head"><span id="personal-usage-label">{t("common.my_weekly_usage")}</span><small className="usage-summary-tag">{weekly ? quotaSourceLabel(weekly.source) : t("common.organization_default")}</small></div>
       {error ? (
         <div className="usage-current-quota degraded">
-          <div><span>个人本周额度读取失败</span><button className="usage-inline-retry" type="button" onClick={onRetry}>重试</button></div>
-          <progress className="usage-quota-track" max="100" value="0" aria-label="个人本周额度暂不可用" />
+          <div><span>{t("usage.unable_to_load_personal_weekly_quota")}</span><button className="usage-inline-retry" type="button" onClick={onRetry}>{t("common.retry")}</button></div>
+          <progress className="usage-quota-track" max="100" value="0" aria-label={t("usage.personal_weekly_quota_unavailable")} />
         </div>
       ) : (
         <div className={`usage-current-quota ${weekly?.limit_reached ? "exhausted" : percent >= 90 ? "warning" : ""}`.trim()}>
-          <div><span>{loading ? "本周额度正在读取…" : weekly?.unlimited ? "本周额度不限额" : `本周额度 ${formatPercent(percent)}`}</span><strong>{loading ? "—" : weekly?.unlimited ? "剩余不限额" : `剩余 ${formatPercent(remaining ?? 0)}`}</strong></div>
-          <progress className="usage-quota-track" max="100" value={percent} aria-label={weekly?.unlimited ? "个人本周额度不限额" : `个人本周额度已使用 ${formatPercent(percent)}`} />
+          <div><span>{loading ? t("common.loading_weekly_quota") : weekly?.unlimited ? t("usage.unlimited_weekly_quota") : t("usage.weekly_quota_2", [formatPercent(percent)])}</span><strong>{loading ? "—" : weekly?.unlimited ? t("usage.unlimited_remaining") : t("usage.remaining", [formatPercent(remaining ?? 0)])}</strong></div>
+          <progress className="usage-quota-track" max="100" value={percent} aria-label={weekly?.unlimited ? t("usage.personal_weekly_quota_is_unlimited") : t("usage.personal_weekly_quota_used", [formatPercent(percent)])} />
           <div className="usage-personal-quota-detail">
-            <span>{weekly ? weekly.unlimited ? `加权已用 ${formatTokens(weekly.weighted_used_tokens)}` : `加权已用 ${formatTokens(weekly.weighted_used_tokens)} / ${formatTokens(weekly.limit_tokens ?? 0)}` : "用量正在读取…"}{weekly ? <UsageHelp
-              label="查看个人本周额度 Token 说明"
+            <span>{weekly ? weekly.unlimited ? t("usage.weighted_usage_2", [formatTokens(weekly.weighted_used_tokens)]) : t("usage.weighted_usage_3", [formatTokens(weekly.weighted_used_tokens), formatTokens(weekly.limit_tokens ?? 0)]) : t("usage.loading_usage")}{weekly ? <UsageHelp
+              label={t("usage.view_personal_weekly_quota_token_details")}
               title={quotaTooltip}
             /> : null}</span>
-            <time>{weekly ? `重置：${formatServerTimestamp(weekly.week_end_at)}` : "—"}</time>
+            <time>{weekly ? t("usage.reset", [formatServerTimestamp(weekly.week_end_at)]) : "—"}</time>
           </div>
         </div>
       )}
@@ -564,7 +566,7 @@ function PersonalQuotaSummary({ quota, loading, error, onRetry }: { quota?: Port
 function RangeSummary({ window, metrics, loading }: { window: PortalUsageWindow; metrics?: UsageMetrics; loading: boolean }) {
   return (
     <div className="usage-range-overview" aria-labelledby="usage-summary-label">
-      <div className="usage-range-overview-head"><span id="usage-summary-label">{windowLabel(window)} Token</span><small>全部 CPA</small></div>
+      <div className="usage-range-overview-head"><span id="usage-summary-label">{windowLabel(window)} Token</span><small>{t("common.all_cpas")}</small></div>
       <TokenPair metrics={metrics} loading={loading} />
     </div>
   );
@@ -574,7 +576,7 @@ function SortableHeader({ field, label, detail, className = "", sort, onSort }: 
   const active = sort.field === field;
   return (
     <th className={className} scope="col" aria-sort={active ? (sort.direction === "asc" ? "ascending" : "descending") : "none"}>
-      <button className={`usage-sort-button ${active ? "active" : ""}`.trim()} data-direction={active ? sort.direction : undefined} type="button" aria-label={`${label}${active ? `，当前${sort.direction === "asc" ? "升序" : "降序"}` : "，点击排序"}`} onClick={() => onSort(field)}>
+      <button className={`usage-sort-button ${active ? "active" : ""}`.trim()} data-direction={active ? sort.direction : undefined} type="button" aria-label={`${label}${active ? t("usage.currently", [sort.direction === "asc" ? t("common.ascending") : t("common.descending")]) : t("common.click_to_sort")}`} onClick={() => onSort(field)}>
         <span className="usage-sort-copy"><span>{label}</span>{detail ? <small>{detail}</small> : null}</span>
       </button>
     </th>
@@ -593,24 +595,24 @@ function AccountRows({ user, account, index, currentGroup, window, activeUserWin
   return (
     <>
       <tr className={`usage-summary-row ${current ? "current" : ""}`.trim()} aria-expanded={expanded} tabIndex={0} onKeyDown={rowKeyDown} onClick={(event) => { if (!(event.target as HTMLElement).closest("button, a")) onToggle(); }}>
-        <td className="table-index-cell" data-label="序号">{index + 1}</td>
-        <td data-label="当前账号">
-          {current ? <span className="usage-current-mark" title="当前账号"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7" /></svg><span className="sr-only">当前账号</span></span> : <button className="usage-select-button" type="button" disabled={!account.selectable || !account.status.selectable} title={account.status.reason} onClick={onSwitch}>{currentGroup ? "切换" : "选择"}</button>}
+        <td className="table-index-cell" data-label={t("common.no")}>{index + 1}</td>
+        <td data-label={t("common.current_account")}>
+          {current ? <span className="usage-current-mark" title={t("common.current_account")}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7" /></svg><span className="sr-only">{t("common.current_account")}</span></span> : <button className="usage-select-button" type="button" disabled={!account.selectable || !account.status.selectable} title={(account.status.reason)} onClick={onSwitch}>{currentGroup ? t("usage.switch") : t("usage.select")}</button>}
         </td>
-        <td data-label="CPA 账号"><strong className="usage-account-id" title={accountLabel(account)}>{accountLabel(account)}</strong></td>
-        <td data-label="账号周额度">
+        <td data-label={t("common.cpa_account")}><strong className="usage-account-id" title={accountLabel(account)}>{accountLabel(account)}</strong></td>
+        <td data-label={t("common.account_weekly_quota")}>
           <div className={`usage-quota ${used >= 100 ? "exhausted" : used >= 80 ? "warning" : ""}`.trim()}>
-            <div><strong>{formatPercent(used)}</strong><span>剩余 {formatPercent(remaining)}</span></div>
-            <progress className="usage-quota-track" max="100" value={used} aria-label={`已使用 ${formatPercent(used)}`} />
-            <small>{account.status.reset_at ? `${formatServerTimestamp(account.status.reset_at)} 重置` : "重置时间未知"}</small>
+            <div><strong>{formatPercent(used)}</strong><span>{t("common.remaining")} {formatPercent(remaining)}</span></div>
+            <progress className="usage-quota-track" max="100" value={used} aria-label={t("common.used", [formatPercent(used)])} />
+            <small>{account.status.reset_at ? t("usage.resets", [formatServerTimestamp(account.status.reset_at)]) : t("common.unknown_reset_time")}</small>
           </div>
         </td>
-        <td data-label={`活跃用户（${formatActiveUserWindow(activeUserWindowSeconds)}）`}><strong className="usage-cell-number">{formatNumber(account.active_users_1h)}</strong></td>
-        <td data-label="账号状态"><StatusTag account={account} /></td>
-        <td data-label={`我的请求（${windowLabel(window)}）`}><strong className="usage-cell-number" title={formatNumber(account.usage.request_count)}>{formatCompact(account.usage.request_count)}</strong></td>
-        <td className="usage-token-cell" data-label={`我的 Token（${windowLabel(window)}）`}><div className="usage-token-content"><TokenPair metrics={account.usage} /></div></td>
-        <td data-label="我的最后使用"><time className="usage-last-used">{formatServerTimestamp(account.usage.last_used_at)}</time></td>
-        <td><button className="usage-expand-button" type="button" aria-label={expanded ? "收起使用明细" : "使用明细"} aria-expanded={expanded} onClick={onToggle}>{expanded ? "−" : "+"}</button></td>
+        <td data-label={t("usage.active_users", [formatActiveUserWindow(activeUserWindowSeconds)])}><strong className="usage-cell-number">{formatNumber(account.active_users_1h)}</strong></td>
+        <td data-label={t("common.account_status")}><StatusTag account={account} /></td>
+        <td data-label={t("usage.my_requests", [windowLabel(window)])}><strong className="usage-cell-number" title={formatNumber(account.usage.request_count)}>{formatCompact(account.usage.request_count)}</strong></td>
+        <td className="usage-token-cell" data-label={t("usage.my_tokens", [windowLabel(window)])}><div className="usage-token-content"><TokenPair metrics={account.usage} /></div></td>
+        <td data-label={t("usage.my_last_use")}><time className="usage-last-used">{formatServerTimestamp(account.usage.last_used_at)}</time></td>
+        <td><button className="usage-expand-button" type="button" aria-label={expanded ? t("usage.collapse_usage_details") : t("common.usage_details")} aria-expanded={expanded} onClick={onToggle}>{expanded ? "−" : "+"}</button></td>
       </tr>
       {expanded ? <UsageBreakdownRow user={user} account={account} window={window} /> : null}
     </>
@@ -631,12 +633,12 @@ function UsageBreakdownRow({ user, account, window }: { user: string; account: P
       <td colSpan={10}>
         <div className="usage-account-detail">
           <div className="usage-detail-panel">
-            <div className="usage-detail-heading"><strong>我的使用明细</strong><span>{windowLabel(window)}</span></div>
-            {query.data ? <UsageTokenGrid metrics={query.data.totals} /> : <div className="usage-token-grid usage-token-grid-placeholder" aria-label="正在加载我的模型 Token 明细">{Array.from({ length: 8 }, (_, index) => <Skeleton.Input active key={index} />)}</div>}
+            <div className="usage-detail-heading"><strong>{t("usage.my_usage_details")}</strong><span>{windowLabel(window)}</span></div>
+            {query.data ? <UsageTokenGrid metrics={query.data.totals} /> : <div className="usage-token-grid usage-token-grid-placeholder" aria-label={t("usage.loading_my_model_token_details")}>{Array.from({ length: 8 }, (_, index) => <Skeleton.Input active key={index} />)}</div>}
           </div>
-          <section className="account-model-usage" aria-label="我的模型与推理强度 Token 明细">
-            <div className="account-model-usage-title"><span>我的模型 × 推理强度 Token 明细</span><small>{windowLabel(window)}</small></div>
-            {query.isError ? <div className="account-model-usage-message error" role="alert"><span>{errorMessage(query.error)}</span><button className="usage-breakdown-retry" type="button" onClick={() => void query.refetch()}>重试</button></div> : query.data ? <ModelBreakdown data={query.data} window={window} /> : <div className="account-model-usage-skeleton" aria-label="正在加载我的模型 Token 明细"><span /><span /></div>}
+          <section className="account-model-usage" aria-label={t("usage.my_tokens_by_model_and_reasoning_effort")}>
+            <div className="account-model-usage-title"><span>{t("usage.my_model_reasoning_effort_tokens")}</span><small>{windowLabel(window)}</small></div>
+            {query.isError ? <div className="account-model-usage-message error" role="alert"><span>{errorMessage(query.error)}</span><button className="usage-breakdown-retry" type="button" onClick={() => void query.refetch()}>{t("common.retry")}</button></div> : query.data ? <ModelBreakdown data={query.data} window={window} /> : <div className="account-model-usage-skeleton" aria-label={t("usage.loading_my_model_token_details")}><span /><span /></div>}
           </section>
         </div>
       </td>
@@ -648,17 +650,17 @@ function UsageTokenGrid({ metrics }: { metrics: UsageMetrics }) {
   const cacheRate = metrics.input_tokens > 0 ? formatPercent((metrics.cached_tokens / metrics.input_tokens) * 100) : "0%";
   return (
     <div className="usage-token-grid">
-      <Metric label="成功请求" value={formatNumber(metrics.success_count)} />
-      <Metric label="失败请求" value={formatNumber(metrics.failed_count)} />
-      <TokenMetric label="输入 Token" value={metrics.input_tokens} />
-      <TokenMetric label="输出 Token" value={metrics.output_tokens} />
-      <TokenMetric label="推理 Token" value={metrics.reasoning_tokens} />
+      <Metric label={t("common.successful_requests")} value={formatNumber(metrics.success_count)} />
+      <Metric label={t("common.failed_requests")} value={formatNumber(metrics.failed_count)} />
+      <TokenMetric label={t("common.input_tokens")} value={metrics.input_tokens} />
+      <TokenMetric label={t("common.output_tokens")} value={metrics.output_tokens} />
+      <TokenMetric label={t("common.reasoning_tokens")} value={metrics.reasoning_tokens} />
       <div className="usage-cache-metric">
-        <span>缓存率</span>
-        <div className="usage-metric-value"><strong className="usage-cache-rate" title="缓存 Token ÷ 输入 Token">{cacheRate}</strong></div>
+        <span>{t("common.cache_rate")}</span>
+        <div className="usage-metric-value"><strong className="usage-cache-rate" title={t("common.cached_tokens_input_tokens")}>{cacheRate}</strong></div>
       </div>
-      <TokenMetric label="未加权 Token" value={metrics.total_tokens} />
-      <TokenMetric label="加权 Token" value={metrics.weighted_tokens ?? metrics.total_tokens} />
+      <TokenMetric label={t("common.raw_tokens")} value={metrics.total_tokens} />
+      <TokenMetric label={t("common.weighted_tokens_2")} value={metrics.weighted_tokens ?? metrics.total_tokens} />
     </div>
   );
 }
@@ -692,7 +694,7 @@ function UsageHelp({ label, title }: { label: string; title: ReactNode }) {
 
 function ModelBreakdown({ data, window }: { data: UsageBreakdown; window: PortalUsageWindow }) {
   const models = groupModelCombinations(data.combinations);
-  if (models.length === 0) return <div className="account-model-usage-message">当前范围暂无我的模型与推理强度 Token 数据。</div>;
+  if (models.length === 0) return <div className="account-model-usage-message">{t("usage.no_personal_model_and_reasoning_effort_token_data_in_this")}</div>;
   return (
     <div className="account-model-usage-list">
       {models.map((model) => {
@@ -703,7 +705,7 @@ function ModelBreakdown({ data, window }: { data: UsageBreakdown; window: Portal
               <strong className="account-model-name" title={modelLabel}>{modelLabel}</strong>
               <span className="account-model-token">{formatTokens(model.total)}</span>
             </div>
-            <div className="account-model-progress" role="group" aria-label={`${modelLabel} 各推理强度 Token 占比`}>
+            <div className="account-model-progress" role="group" aria-label={t("common.token_share_by_reasoning_effort", [modelLabel])}>
               {model.efforts.map((effort) => (
                 <Tooltip
                   key={effort.reasoning_effort}
@@ -712,7 +714,7 @@ function ModelBreakdown({ data, window }: { data: UsageBreakdown; window: Portal
                   placement="top"
                   rootClassName="usage-model-effort-popup"
                 >
-                  <button className={`account-model-progress-segment account-model-effort-${effortColorKey(effort.reasoning_effort)} ${effort.share < 18 ? "compact" : ""}`.trim()} style={{ flexGrow: Math.max(1, Math.round(effort.share)) }} type="button" aria-label={`查看 ${modelLabel} ${formatUsageReasoningLabel(effort.reasoning_effort, data.current_multipliers)} 推理强度 Token 明细`}>
+                  <button className={`account-model-progress-segment account-model-effort-${effortColorKey(effort.reasoning_effort)} ${effort.share < 18 ? "compact" : ""}`.trim()} style={{ flexGrow: Math.max(1, Math.round(effort.share)) }} type="button" aria-label={t("usage.view_reasoning_effort_token_details", [modelLabel, formatUsageReasoningLabel(effort.reasoning_effort, data.current_multipliers)])}>
                     <span>{formatUsageReasoningLabel(effort.reasoning_effort, data.current_multipliers)}</span><em>{formatPercent(effort.share)}</em>
                   </button>
                 </Tooltip>
@@ -738,15 +740,15 @@ function ModelEffortTooltip({ model, effort, window, multipliers }: { model: str
   return (
     <div className="usage-model-effort-tooltip">
       <strong>{formatUsageCombinationLabel(model, effort.reasoning_effort, multipliers)}</strong>
-      <span><b>统计范围</b><em>{windowLabel(window)}</em></span>
-      <span><b>该模型加权占比</b><em>{formatPercent(effort.share)}</em></span>
-      <span><b>调用</b><em>{formatNumber(effort.request_count)}</em></span>
-      <span><b>输入 Token</b><em>{formatNumber(effort.input_tokens)}</em></span>
-      <span><b>输出 Token</b><em>{formatNumber(effort.output_tokens)}</em></span>
-      <span><b>推理 Token</b><em>{formatNumber(effort.reasoning_tokens)}</em></span>
-      <span><b>缓存 Token</b><em>{formatNumber(effort.cached_tokens)}</em></span>
-      <span><b>未加权 Token</b><em>{formatNumber(effort.total_tokens)}</em></span>
-      <span><b>加权 Token</b><em>{formatNumber(effort.weighted_tokens ?? effort.total_tokens)}</em></span>
+      <span><b>{t("common.reporting_range")}</b><em>{windowLabel(window)}</em></span>
+      <span><b>{t("usage.weighted_share_within_this_model")}</b><em>{formatPercent(effort.share)}</em></span>
+      <span><b>{t("common.calls")}</b><em>{formatNumber(effort.request_count)}</em></span>
+      <span><b>{t("common.input_tokens")}</b><em>{formatNumber(effort.input_tokens)}</em></span>
+      <span><b>{t("common.output_tokens")}</b><em>{formatNumber(effort.output_tokens)}</em></span>
+      <span><b>{t("common.reasoning_tokens")}</b><em>{formatNumber(effort.reasoning_tokens)}</em></span>
+      <span><b>{t("common.cached_tokens")}</b><em>{formatNumber(effort.cached_tokens)}</em></span>
+      <span><b>{t("common.raw_tokens")}</b><em>{formatNumber(effort.total_tokens)}</em></span>
+      <span><b>{t("common.weighted_tokens_2")}</b><em>{formatNumber(effort.weighted_tokens ?? effort.total_tokens)}</em></span>
     </div>
   );
 }
@@ -754,8 +756,8 @@ function ModelEffortTooltip({ model, effort, window, multipliers }: { model: str
 function TokenPair({ metrics, loading = false }: { metrics?: UsageMetrics; loading?: boolean }) {
   return (
     <div className="usage-user-token-pair">
-      <div><small>加权</small>{loading ? <strong>—</strong> : <TokenValue value={metrics?.weighted_tokens ?? metrics?.total_tokens ?? 0} />}</div>
-      <div><small>未加权</small>{loading ? <strong>—</strong> : <TokenValue value={metrics?.total_tokens ?? 0} />}</div>
+      <div><small>{t("common.weighted_2")}</small>{loading ? <strong>—</strong> : <TokenValue value={metrics?.weighted_tokens ?? metrics?.total_tokens ?? 0} />}</div>
+      <div><small>{t("common.unweighted_2")}</small>{loading ? <strong>—</strong> : <TokenValue value={metrics?.total_tokens ?? 0} />}</div>
     </div>
   );
 }
@@ -776,11 +778,11 @@ function TokenValue({ value }: { value: number }) {
 
 function StatusTag({ account, summary = false }: { account: PortalAccount; summary?: boolean }) {
   const className = account.status.tone === "success" ? "available" : account.status.tone === "warning" ? "warning" : account.status.tone === "danger" ? "unavailable" : "degraded";
-  return <span className={`usage-status ${summary ? "usage-summary-tag " : ""}${className}`} title={account.status.reason}>{account.status.label}</span>;
+  return <span className={`usage-status ${summary ? "usage-summary-tag " : ""}${className}`} title={(account.status.reason)}>{(account.status.label)}</span>;
 }
 
 function UsageTableSkeleton() {
-  return <>{Array.from({ length: 3 }, (_, row) => <tr className="usage-summary-row usage-skeleton-row" key={row} aria-label="正在加载账号与用量">{Array.from({ length: 10 }, (_item, column) => <td key={column}><span /></td>)}</tr>)}</>;
+  return <>{Array.from({ length: 3 }, (_, row) => <tr className="usage-summary-row usage-skeleton-row" key={row} aria-label={t("usage.loading_accounts_and_usage")}>{Array.from({ length: 10 }, (_item, column) => <td key={column}><span /></td>)}</tr>)}</>;
 }
 
 function accountLabel(account: PortalAccount) {
@@ -789,7 +791,7 @@ function accountLabel(account: PortalAccount) {
 
 function accountLabelByID(accounts: PortalAccount[], accountID: string) {
   const account = accounts.find((item) => item.id === accountID);
-  return account ? accountLabel(account) : "可用 CPA 账号";
+  return account ? accountLabel(account) : t("usage.available_cpa_accounts");
 }
 
 function sortAccounts(accounts: PortalAccount[], currentGroup: string, sort: SortState) {
@@ -797,7 +799,7 @@ function sortAccounts(accounts: PortalAccount[], currentGroup: string, sort: Sor
   return [...accounts].sort((left, right) => {
     if (sort.pinCurrent && (left.id === currentGroup) !== (right.id === currentGroup)) return left.id === currentGroup ? -1 : 1;
     const compared = compareSortValue(sortValue(left, currentGroup, sort.field), sortValue(right, currentGroup, sort.field));
-    return compared * direction || accountLabel(left).localeCompare(accountLabel(right), "zh-CN", { numeric: true });
+    return compared * direction || accountLabel(left).localeCompare(accountLabel(right), getIntlLocale(), { numeric: true });
   });
 }
 
@@ -816,7 +818,7 @@ function compareSortValue(left: number | string | null, right: number | string |
   if (left === null && right === null) return 0;
   if (left === null) return 1;
   if (right === null) return -1;
-  if (typeof left === "string" || typeof right === "string") return String(left).localeCompare(String(right), "zh-CN", { numeric: true });
+  if (typeof left === "string" || typeof right === "string") return String(left).localeCompare(String(right), getIntlLocale(), { numeric: true });
   return left - right;
 }
 
@@ -831,7 +833,7 @@ function statusRank(account: PortalAccount) {
 }
 
 function quotaSourceLabel(source: string) {
-  return ({ default: "组织默认", user_unlimited: "单独不限额", user_custom: "用户自定义" } as Record<string, string>)[source] ?? "状态未知";
+  return ({ default: t("common.organization_default"), user_unlimited: t("common.personal_unlimited_quota"), user_custom: t("common.user_override") } as Record<string, string>)[source] ?? t("common.unknown_status");
 }
 
 function effortColorKey(value: string) {
@@ -843,11 +845,11 @@ function isUnauthorized(error: unknown) {
 }
 
 function errorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "请稍后重试";
+  return error instanceof Error ? error.message : t("common.please_try_again_later");
 }
 
 function windowLabel(window: PortalUsageWindow) {
-  return portalWindowOptions.find((item) => item.value === window)?.label ?? "当前范围";
+  return portalWindowOptions.find((item) => item.value === window)?.label ?? t("common.current_range");
 }
 
 function clampPercent(value: number) {
@@ -855,20 +857,20 @@ function clampPercent(value: number) {
 }
 
 function formatPercent(value: number) {
-  return `${new Intl.NumberFormat("zh-CN", { maximumFractionDigits: 1 }).format(value)}%`;
+  return `${new Intl.NumberFormat(getIntlLocale(), { maximumFractionDigits: 1 }).format(value)}%`;
 }
 
 function formatNumber(value: number) {
-  return new Intl.NumberFormat("zh-CN").format(Number(value) || 0);
+  return new Intl.NumberFormat(getIntlLocale()).format(Number(value) || 0);
 }
 
 function formatActiveUserWindow(seconds: number): string {
   const minutes = Math.max(1, Math.round(seconds / 60));
-  return minutes % 60 === 0 ? `近 ${minutes / 60} 小时` : `近 ${minutes} 分钟`;
+  return minutes % 60 === 0 ? t("common.last_hours", [minutes / 60]) : t("common.last_minutes", [minutes]);
 }
 
 function formatCompact(value: number) {
-  return new Intl.NumberFormat("zh-CN", { notation: "compact", maximumFractionDigits: 1 }).format(Number(value) || 0);
+  return new Intl.NumberFormat(getIntlLocale(), { notation: "compact", maximumFractionDigits: 1 }).format(Number(value) || 0);
 }
 
 export function formatServerTimestamp(timestamp: number) {
@@ -876,9 +878,9 @@ export function formatServerTimestamp(timestamp: number) {
 }
 
 const portalWindowOptions: Array<{ value: PortalUsageWindow; label: string }> = [
-  { value: "3600", label: "1 小时" },
-  { value: "today", label: "今日" },
-  { value: "86400", label: "24 小时" },
-  { value: "604800", label: "7 天" },
-  { value: "current_week", label: "本周" }
+  { value: "3600", label: t("common.1h") },
+  { value: "today", label: t("common.today") },
+  { value: "86400", label: t("common.24h") },
+  { value: "604800", label: t("common.7d") },
+  { value: "current_week", label: t("common.this_week") }
 ];

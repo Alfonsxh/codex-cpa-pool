@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -18,8 +19,8 @@ func identityCount(entries []Entry) int {
 }
 
 func (x *workbook) summary(r Report) {
-	const sheet = summarySheet
-	x.setup(sheet, r, 12, "统计截至 "+r.Period.GeneratedAt.Format(time.DateTime)+"；包含当前及历史身份，明细保留无请求记录。")
+	sheet := x.summarySheet
+	x.setup(sheet, r, 12, i18n.Text(x.language, "usagereport.usage_through")+r.Period.GeneratedAt.Format(time.DateTime)+i18n.Text(x.language, "usagereport.includes_current_and_historical_identities_including_those_without_request_records"))
 	for _, c := range []string{"B", "E", "H", "K"} {
 		x.check(x.file.SetColWidth(sheet, c, c, 28))
 	}
@@ -39,8 +40,8 @@ func (x *workbook) summary(r Report) {
 		value  any
 		tokens bool
 	}{
-		{2, "原始 Token", m.TotalTokens, true}, {5, "加权 Token", m.WeightedTokens, true},
-		{8, "活跃账号", m.Accounts, false}, {11, "活跃用户", m.Users, false},
+		{2, i18n.Text(x.language, "usagereport.raw_tokens"), m.TotalTokens, true}, {5, i18n.Text(x.language, "usagereport.weighted_tokens"), m.WeightedTokens, true},
+		{8, i18n.Text(x.language, "usagereport.active_accounts"), m.Accounts, false}, {11, i18n.Text(x.language, "usagereport.active_users"), m.Users, false},
 	} {
 		x.check(x.file.SetCellStyle(sheet, cell(card.col, 7), cell(card.col+1, 10), note))
 		x.put(sheet, cell(card.col, 7), card.label, note)
@@ -61,7 +62,7 @@ func (x *workbook) summary(r Report) {
 	x.check(x.file.SetRowHeight(sheet, 10, 24))
 	x.put(sheet, "I8", identityCount(r.Accounts), x.cellStyle("denominator", fill, "right", false))
 	x.put(sheet, "L8", identityCount(r.Users), x.cellStyle("denominator", fill, "right", false))
-	for _, pair := range []struct{ address, label string }{{"B10", "较上期"}, {"E10", "平均加权系数"}, {"H10", "账号活跃率"}, {"K10", "用户活跃率"}} {
+	for _, pair := range []struct{ address, label string }{{"B10", i18n.Text(x.language, "usagereport.change_from_previous")}, {"E10", i18n.Text(x.language, "usagereport.average_weight")}, {"H10", i18n.Text(x.language, "usagereport.account_activity_rate")}, {"K10", i18n.Text(x.language, "usagereport.user_activity_rate")}} {
 		x.put(sheet, pair.address, pair.label, note)
 	}
 	x.put(sheet, "C10", change(m.TotalTokens, p.TotalTokens), x.cellStyle("delta", fill, "right", false))
@@ -74,16 +75,16 @@ func (x *workbook) summary(r Report) {
 	}
 	x.summaryCharts(r)
 	x.check(x.file.SetCellStyle(sheet, "B28", "L28", x.style(&excelize.Style{Border: []excelize.Border{{Type: "bottom", Color: lineColor, Style: 1}}})))
-	x.put(sheet, "B30", "本周观察", x.cellStyle("section", "FFFFFF", "left", true))
+	x.put(sheet, "B30", i18n.Text(x.language, "usagereport.weekly_observations"), x.cellStyle("section", "FFFFFF", "left", true))
 	x.check(x.file.SetRowHeight(sheet, 30, 28))
-	for _, pair := range []struct{ address, label string }{{"B32", "用量最高"}, {"E32", "增长最快"}, {"H32", "下降最多"}, {"K32", "请求统计"}} {
+	for _, pair := range []struct{ address, label string }{{"B32", i18n.Text(x.language, "usagereport.highest_usage")}, {"E32", i18n.Text(x.language, "usagereport.largest_increase")}, {"H32", i18n.Text(x.language, "usagereport.largest_decrease")}, {"K32", i18n.Text(x.language, "usagereport.request_statistics")}} {
 		x.put(sheet, pair.address, pair.label, x.cellStyle("note", "FFFFFF", "left", false))
 	}
 	nameStyle := x.cellStyle("text", "FFFFFF", "left", true)
 	pctStyle := x.cellStyle("percent", "FFFFFF", "right", false)
 	deltaStyle := x.cellStyle("delta", "FFFFFF", "right", false)
 	for _, address := range []string{"B33", "E33", "H33"} {
-		x.put(sheet, address, "暂无数据", nameStyle)
+		x.put(sheet, address, i18n.Text(x.language, "usagereport.no_data"), nameStyle)
 	}
 	if len(r.Teams) > 0 && r.Teams[0].Current.TotalTokens > 0 {
 		e := r.Teams[0]
@@ -127,20 +128,20 @@ func (x *workbook) summary(r Report) {
 	x.check(x.file.SetRowHeight(sheet, 33, height))
 	x.changeColor(sheet, "F33")
 	x.changeColor(sheet, "I33")
-	x.put(sheet, "K33", "请求数", x.cellStyle("text", "FFFFFF", "left", false))
+	x.put(sheet, "K33", i18n.Text(x.language, "usagereport.requests"), x.cellStyle("text", "FFFFFF", "left", false))
 	x.put(sheet, "L33", m.RequestCount, x.cellStyle("number", "FFFFFF", "right", true))
-	x.put(sheet, "K34", "成功率", x.cellStyle("note", "FFFFFF", "left", false))
+	x.put(sheet, "K34", i18n.Text(x.language, "usagereport.success_rate"), x.cellStyle("note", "FFFFFF", "left", false))
 	x.put(sheet, "L34", ratio(m.SuccessCount, m.RequestCount), pctStyle)
-	x.put(sheet, "B37", "统计口径", x.cellStyle("section", "FFFFFF", "left", true))
+	x.put(sheet, "B37", i18n.Text(x.language, "usagereport.reporting_rules"), x.cellStyle("section", "FFFFFF", "left", true))
 	for i, note := range []string{
-		"占比、默认排序、人均与环比以原始 Token 为准。原始值使用采集记录的 total_tokens，缓存输入不重复相加。",
-		"加权 Token 沿用请求采集时保存的结果；历史记录不按当前倍率重算，旧版无加权值的记录沿用原始值。",
-		"两期均按当前团队归属汇总；账号用量按请求实际所属账号统计。当前绑定关系不改变历史用量归属。",
-		"活跃指统计期内有请求。人数、账号数合计去重；活跃率按报表纳入的有标识身份计算，空身份用量仍计入合计。",
-		fmt.Sprintf("上期：%s — %s（结束不含）；无记录或上期为零时环比为 —，未采集到记录不保证没有实际用量。", r.Period.PreviousStart.Format(time.DateTime), r.Period.PreviousEnd.Format(time.DateTime)),
+		i18n.Text(x.language, "usagereport.share_default_ranking_per_user_usage_and_changes_use_raw"),
+		i18n.Text(x.language, "usagereport.weighted_tokens_use_values_saved_when_requests_were_collected_historical"),
+		i18n.Text(x.language, "usagereport.both_periods_use_current_team_membership_account_usage_is_attributed"),
+		i18n.Text(x.language, "usagereport.active_means_at_least_one_request_in_the_reporting_period"),
+		i18n.M("usagereport.previous_period_end_exclusive_change_is_when_previous_usage_is", i18n.Params{"Start": r.Period.PreviousStart.Format(time.DateTime), "End": r.Period.PreviousEnd.Format(time.DateTime)}).Render(x.language),
 	} {
 		x.merged(sheet, cell(2, 38+i), cell(12, 38+i), note, x.cellStyle("note", "FFFFFF", "left", false))
-		x.check(x.file.SetRowHeight(sheet, 38+i, 23))
+		x.check(x.file.SetRowHeight(sheet, 38+i, textRowHeight(note, 155)))
 	}
 }
 
@@ -176,18 +177,18 @@ func (x *workbook) summaryCharts(r Report) {
 	}
 	line := base
 	line.Type = excelize.Line
-	line.Title = []excelize.RichTextRun{{Text: "每日 Token 消耗", Font: &excelize.Font{Family: "Arial", Size: 14, Color: inkColor}}}
+	line.Title = []excelize.RichTextRun{{Text: i18n.Text(x.language, "usagereport.daily_token_usage"), Font: &excelize.Font{Family: "Arial", Size: 14, Color: inkColor}}}
 	for _, series := range []struct {
 		column, color string
 		dash          excelize.ChartDashType
 	}{{"D", blueColor, excelize.ChartDashSolid}, {"G", "A6B4C9", excelize.ChartDashDash}} {
 		fill := excelize.Fill{Type: "pattern", Pattern: 1, Color: []string{series.color}}
 		line.Series = append(line.Series, excelize.ChartSeries{
-			Name: fmt.Sprintf("'%s'!$%s$7", dailySheet, series.column), Categories: "'每日趋势'!$C$8:$C$14", Values: fmt.Sprintf("'%s'!$%s$8:$%s$14", dailySheet, series.column, series.column),
+			Name: fmt.Sprintf("'%s'!$%s$7", x.dailySheet, series.column), Categories: fmt.Sprintf("'%s'!$C$8:$C$14", x.dailySheet), Values: fmt.Sprintf("'%s'!$%s$8:$%s$14", x.dailySheet, series.column, series.column),
 			Fill: fill, Line: excelize.ChartLine{Type: excelize.ChartLineSolid, Dash: series.dash, Fill: fill, Width: 2},
 		})
 	}
-	x.check(x.file.AddChart(summarySheet, "B12", &line))
+	x.check(x.file.AddChart(x.summarySheet, "B12", &line))
 	count := 0
 	for _, e := range r.Teams {
 		if count == 8 || e.Current.TotalTokens <= 0 {
@@ -196,18 +197,18 @@ func (x *workbook) summaryCharts(r Report) {
 		count++
 	}
 	if count == 0 {
-		x.merged(summarySheet, "H17", "L20", "本期无团队用量", x.cellStyle("note", "FFFFFF", "center", false))
+		x.merged(x.summarySheet, "H17", "L20", i18n.Text(x.language, "usagereport.no_team_usage_in_this_period"), x.cellStyle("note", "FFFFFF", "center", false))
 		return
 	}
 	bars := base
 	bars.Type = excelize.Col
 	bars.Legend.Position = "none"
-	title := "团队 Token 消耗"
+	title := i18n.Text(x.language, "usagereport.team_token_usage")
 	if len(r.Teams) > 8 {
 		title += " Top8"
 	}
 	bars.Title = []excelize.RichTextRun{{Text: title, Font: &excelize.Font{Family: "Arial", Size: 14, Color: inkColor}}}
 	bars.YAxis.NumFmt.CustomNumFmt = x.chartFormat(r.Teams[0].Current.TotalTokens)
-	bars.Series = []excelize.ChartSeries{{Name: "'团队统计'!$F$7", Categories: fmt.Sprintf("'团队统计'!$C$8:$C$%d", 7+count), Values: fmt.Sprintf("'团队统计'!$F$8:$F$%d", 7+count), Fill: excelize.Fill{Type: "pattern", Pattern: 1, Color: []string{blueColor}}}}
-	x.check(x.file.AddChart(summarySheet, "H12", &bars))
+	bars.Series = []excelize.ChartSeries{{Name: fmt.Sprintf("'%s'!$F$7", x.teamSheet), Categories: fmt.Sprintf("'%s'!$C$8:$C$%d", x.teamSheet, 7+count), Values: fmt.Sprintf("'%s'!$F$8:$F$%d", x.teamSheet, 7+count), Fill: excelize.Fill{Type: "pattern", Pattern: 1, Color: []string{blueColor}}}}
+	x.check(x.file.AddChart(x.summarySheet, "H12", &bars))
 }

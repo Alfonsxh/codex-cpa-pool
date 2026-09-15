@@ -48,7 +48,7 @@ func TestAccountRuntimePullImageWritesCandidateOnly(t *testing.T) {
 		!mapsEqual(beforeApplied, mapValue(store.state["applied"])) {
 		t.Fatalf("image state after pull = %#v", store.state)
 	}
-	if projector.calls != 0 || len(client.creates) != 0 || !strings.Contains(output.String(), "镜像已就绪") {
+	if projector.calls != 0 || len(client.creates) != 0 || !strings.Contains(output.String(), "Image ready") {
 		t.Fatalf("pull side effects: projector=%d creates=%d output=%q", projector.calls, len(client.creates), output.String())
 	}
 }
@@ -142,7 +142,7 @@ func TestAccountRuntimePullImageKeepsInvalidBannerNonFatalAndBoundsOutput(t *tes
 		t.Fatalf("PullImage invalid banner: %v", err)
 	}
 	if stringValue(mapValue(store.state["candidate"])["version"]) != "" ||
-		!strings.Contains(output.String(), "镜像未提供可识别版本") {
+		!strings.Contains(output.String(), "Image has no recognizable version") {
 		t.Fatalf("invalid banner state=%#v output=%q", store.state, output.String())
 	}
 	if created := client.creates[0].Config; strings.Join(created.Entrypoint, " ") != "/app/CLIProxyAPI" ||
@@ -181,7 +181,7 @@ func TestAccountRuntimePullImageRefusesWrappedOrUnexpectedBannerEntrypoints(t *t
 			}
 			if len(client.creates) != 0 || projector.calls != 0 ||
 				stringValue(mapValue(store.state["candidate"])["version"]) != "" ||
-				!strings.Contains(output.String(), "镜像未提供可识别版本") {
+				!strings.Contains(output.String(), "Image has no recognizable version") {
 				t.Fatalf("unsafe probe side effects: creates=%d projector=%d state=%#v output=%q", len(client.creates), projector.calls, store.state, output.String())
 			}
 		})
@@ -226,7 +226,7 @@ func TestAccountRuntimeUpdatesImageWithoutKeysAfterManagementProbe(t *testing.T)
 		t.Fatalf("UpdateImage without Keys: %v", err)
 	}
 	if projector.calls != 1 ||
-		!strings.Contains(output.String(), "运行探针") {
+		!strings.Contains(output.String(), "Runtime probe") {
 		t.Fatalf("zero-Key image verification: projector=%d output=%q", projector.calls, output.String())
 	}
 	assertRunningImage(t, client, "alpha", fixtureNewImageID)
@@ -266,7 +266,7 @@ func TestAccountRuntimeUpdateAllSkipsDisabledAndStoppedAccounts(t *testing.T) {
 	if len(result.Services) != 1 || result.Services[0].Service != "cliproxy-alpha" || len(client.createImages) != 1 {
 		t.Fatalf("updated services=%#v creates=%#v", result.Services, client.createImages)
 	}
-	if !strings.Contains(output.String(), "跳过 beta：CPA 未运行") || !strings.Contains(output.String(), "跳过 gamma：CPA 已停用") {
+	if !strings.Contains(output.String(), "Skipping beta: CPA is stopped") || !strings.Contains(output.String(), "Skipping gamma: CPA is disabled") {
 		t.Fatalf("skip output = %q", output.String())
 	}
 	if projector.calls != 1 {
@@ -300,7 +300,7 @@ func TestAccountRuntimeUpdateFailureRollsBackAllAttemptedAccountsInReverse(t *te
 	}
 	assertRunningImage(t, client, "alpha", oldImageID("alpha"))
 	assertRunningImage(t, client, "beta", oldImageID("beta"))
-	if !strings.Contains(output.String(), "已恢复 beta") || !strings.Contains(output.String(), "已恢复 alpha") {
+	if !strings.Contains(output.String(), "Restored beta") || !strings.Contains(output.String(), "Restored alpha") {
 		t.Fatalf("rollback output = %q", output.String())
 	}
 }

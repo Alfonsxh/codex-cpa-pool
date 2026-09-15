@@ -2,12 +2,13 @@ package admin
 
 import (
 	"crypto/subtle"
-	"errors"
 	"net/http"
 	"strings"
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,28 +25,28 @@ func (server *Server) updateInitialPassword(c *gin.Context) {
 		Confirmation    string `json:"confirmation" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
-		writeError(c, http.StatusBadRequest, "密码格式无效", "invalid_password")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_password_format"), "invalid_password")
 		return
 	}
 	if !constantTimeEqual(body.InitialPassword, body.Confirmation) {
-		writeError(c, http.StatusBadRequest, "两次输入的初始密码不一致", "password_mismatch")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.the_initial_passwords_do_not_match"), "password_mismatch")
 		return
 	}
 	length := utf8.RuneCountInString(body.InitialPassword)
 	if length < minimumPortalPasswordLength || length > maximumPortalPasswordLength {
-		writeError(c, http.StatusBadRequest, "初始密码长度必须为 8 到 128 位", "invalid_password")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.the_initial_password_must_contain_8_128_characters"), "invalid_password")
 		return
 	}
 	if constantTimeEqual(body.InitialPassword, legacyPortalPassword) {
-		writeError(c, http.StatusBadRequest, "不能使用已停用的历史默认密码", "weak_password")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.this_retired_default_password_cannot_be_used"), "weak_password")
 		return
 	}
 	if err := server.store.WriteSecret(c.Request.Context(), portalInitialPasswordSecret, body.InitialPassword); err != nil {
 		server.internalError(c, "update initial portal password", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"message":    "用户初始密码已安全保存；已有用户密码不会自动变化",
+	httpi18n.JSON(c, http.StatusOK, gin.H{
+		"message":    i18n.M("admin.initial_user_password_saved_securely_existing_passwords_are_unchanged"),
 		"configured": true,
 	})
 }
@@ -56,15 +57,15 @@ func (server *Server) rotateManagementKey(c *gin.Context) {
 		Confirmation string `json:"confirmation" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
-		writeError(c, http.StatusBadRequest, "管理密钥格式无效", "invalid_management_key")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_management_key_format"), "invalid_management_key")
 		return
 	}
 	if !constantTimeEqual(body.NewKey, body.Confirmation) {
-		writeError(c, http.StatusBadRequest, "两次输入的管理密钥不一致", "management_key_mismatch")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.the_management_keys_do_not_match"), "management_key_mismatch")
 		return
 	}
 	if err := validateManagementKey(body.NewKey); err != nil {
-		writeError(c, http.StatusBadRequest, err.Error(), "invalid_management_key")
+		writeError(c, http.StatusBadRequest, err, "invalid_management_key")
 		return
 	}
 	current, found, err := server.store.ReadSecret(c.Request.Context(), "cpa_management_key")
@@ -73,11 +74,11 @@ func (server *Server) rotateManagementKey(c *gin.Context) {
 		return
 	}
 	if !found {
-		writeError(c, http.StatusConflict, "当前管理密钥尚未配置", "management_key_not_configured")
+		writeError(c, http.StatusConflict, i18n.M("admin.no_management_key_configured"), "management_key_not_configured")
 		return
 	}
 	if constantTimeEqual(current, body.NewKey) {
-		writeError(c, http.StatusBadRequest, "新管理密钥不能与当前密钥相同", "management_key_unchanged")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.the_new_management_key_must_differ_from_the_current_key"), "management_key_unchanged")
 		return
 	}
 	if err := server.store.WriteSecret(c.Request.Context(), "cpa_management_key", body.NewKey); err != nil {
@@ -85,8 +86,8 @@ func (server *Server) rotateManagementKey(c *gin.Context) {
 		return
 	}
 	server.sessionGeneration.Add(1)
-	c.JSON(http.StatusOK, gin.H{
-		"message": "管理密钥已更新，请使用新密钥重新进入",
+	httpi18n.JSON(c, http.StatusOK, gin.H{
+		"message": i18n.M("admin.management_key_updated_sign_in_using_the_new_key"),
 		"result":  gin.H{"rotated": true, "services": 0},
 	})
 }
@@ -94,14 +95,14 @@ func (server *Server) rotateManagementKey(c *gin.Context) {
 func validateManagementKey(value string) error {
 	length := utf8.RuneCountInString(value)
 	if length < 12 || length > 128 {
-		return errors.New("管理密钥长度必须为 12-128 个字符")
+		return i18n.M("admin.the_management_key_must_contain_12_128_characters")
 	}
 	if strings.TrimSpace(value) != value {
-		return errors.New("管理密钥不能包含空白或控制字符")
+		return i18n.M("admin.the_management_key_must_not_contain_whitespace_or_control_characters")
 	}
 	for _, character := range value {
 		if unicode.IsSpace(character) || unicode.IsControl(character) {
-			return errors.New("管理密钥不能包含空白或控制字符")
+			return i18n.M("admin.the_management_key_must_not_contain_whitespace_or_control_characters")
 		}
 	}
 	return nil

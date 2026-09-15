@@ -2,11 +2,12 @@ package admin
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/notifications"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/sitetime"
 	"github.com/gin-gonic/gin"
@@ -39,15 +40,15 @@ type notificationSettingsResponse struct {
 }
 
 func (server *Server) readNotificationSettings(c *gin.Context) {
-	payload, err := server.notificationSettings(c.Request.Context())
+	payload, err := server.notificationSettings(c.Request.Context(), httpi18n.Locale(c))
 	if err != nil {
 		server.internalError(c, "read notification settings", err)
 		return
 	}
-	c.JSON(http.StatusOK, payload)
+	httpi18n.JSON(c, http.StatusOK, payload)
 }
 
-func (server *Server) notificationSettings(ctx context.Context) (notificationSettingsResponse, error) {
+func (server *Server) notificationSettings(ctx context.Context, lang i18n.Language) (notificationSettingsResponse, error) {
 	settings, err := server.store.ReadSettings(ctx)
 	if err != nil {
 		return notificationSettingsResponse{}, err
@@ -56,7 +57,7 @@ func (server *Server) notificationSettings(ctx context.Context) (notificationSet
 	if err != nil {
 		return notificationSettingsResponse{}, err
 	}
-	status, err := server.notificationStatusWithConfig(ctx, config)
+	status, err := server.notificationStatusWithConfig(ctx, config, lang)
 	if err != nil {
 		return notificationSettingsResponse{}, err
 	}
@@ -76,7 +77,7 @@ func (server *Server) notificationSettings(ctx context.Context) (notificationSet
 	}, nil
 }
 
-func (server *Server) notificationStatus(ctx context.Context) (notificationStatus, error) {
+func (server *Server) notificationStatus(ctx context.Context, lang i18n.Language) (notificationStatus, error) {
 	settings, err := server.store.ReadSettings(ctx)
 	if err != nil {
 		return notificationStatus{}, err
@@ -85,10 +86,10 @@ func (server *Server) notificationStatus(ctx context.Context) (notificationStatu
 	if err != nil {
 		return notificationStatus{}, err
 	}
-	return server.notificationStatusWithConfig(ctx, config)
+	return server.notificationStatusWithConfig(ctx, config, lang)
 }
 
-func (server *Server) notificationStatusWithConfig(ctx context.Context, config notifications.Config) (notificationStatus, error) {
+func (server *Server) notificationStatusWithConfig(ctx context.Context, config notifications.Config, lang i18n.Language) (notificationStatus, error) {
 	state, _, err := notifications.ReadRuntimeState(ctx, server.store)
 	if err != nil {
 		return notificationStatus{}, err
@@ -96,7 +97,7 @@ func (server *Server) notificationStatusWithConfig(ctx context.Context, config n
 	now := server.now()
 	status := notificationStatus{
 		HeartbeatAt: state.HeartbeatAt, LastSuccessAt: state.LastSuccessAt,
-		LastError:    notifications.RedactWebhook(state.LastError),
+		LastError:    state.ErrorText(lang),
 		WorkerStatus: notifications.WorkerStatus(state, now, notifications.DefaultMaxHeartbeatAge),
 	}
 	webhook, found, err := server.store.ReadSecret(ctx, "wecom_webhook")
@@ -128,31 +129,31 @@ type notificationSettingsPayload struct {
 func (server *Server) updateNotificationSettings(c *gin.Context) {
 	var body notificationSettingsPayload
 	if err := c.ShouldBindJSON(&body); err != nil || body.Confirm != "save" {
-		writeError(c, http.StatusBadRequest, "请确认保存通知配置", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.confirm_saving_notification_settings"), "invalid_request")
 		return
 	}
 	server.configurationLock.Lock()
 	defer server.configurationLock.Unlock()
 	changes, err := server.validatedNotificationChanges(c.Request.Context(), body)
 	if err != nil {
-		writeError(c, http.StatusBadRequest, err.Error(), "invalid_request")
+		writeError(c, http.StatusBadRequest, err, "invalid_request")
 		return
 	}
 	if len(changes) == 0 {
-		writeError(c, http.StatusBadRequest, "至少需要提供一项通知配置", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.provide_at_least_one_notification_setting"), "invalid_request")
 		return
 	}
 	if err := server.store.UpdateSettings(c.Request.Context(), changes); err != nil {
 		server.internalError(c, "update notification settings", err)
 		return
 	}
-	payload, err := server.notificationSettings(c.Request.Context())
+	payload, err := server.notificationSettings(c.Request.Context(), httpi18n.Locale(c))
 	if err != nil {
 		server.internalError(c, "read updated notification settings", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"message": "企业微信通知配置已保存", "notifications": payload.Notifications,
+	httpi18n.JSON(c, http.StatusOK, gin.H{
+		"message": i18n.M("admin.wecom_notification_settings_saved"), "notifications": payload.Notifications,
 		"values": payload.Values,
 	})
 }
@@ -166,10 +167,10 @@ func (server *Server) validatedNotificationChanges(
 		if *body.Values.Enabled {
 			configured, err := server.notificationSender.Configured(ctx)
 			if err != nil {
-				return nil, errors.New("无法确认企业微信 Webhook 配置")
+				return nil, i18n.M("admin.unable_to_verify_the_wecom_webhook_configuration")
 			}
 			if !configured {
-				return nil, errors.New("启用企业微信通知前必须先配置 Webhook")
+				return nil, i18n.M("admin.configure_a_webhook_before_enabling_wecom_notifications")
 			}
 		}
 		changes["notification.enabled"] = *body.Values.Enabled
@@ -177,10 +178,10 @@ func (server *Server) validatedNotificationChanges(
 	if body.Values.Timezone != nil {
 		value := strings.TrimSpace(*body.Values.Timezone)
 		if value == "" {
-			return nil, errors.New("通知时区不能为空")
+			return nil, i18n.M("admin.notification_timezone_is_required")
 		}
 		if _, err := time.LoadLocation(value); err != nil {
-			return nil, errors.New("通知时区无效")
+			return nil, i18n.M("admin.invalid_notification_timezone")
 		}
 		settings, err := server.store.ReadSettings(ctx)
 		if err != nil {
@@ -191,7 +192,7 @@ func (server *Server) validatedNotificationChanges(
 			return nil, err
 		}
 		if value != configured {
-			return nil, errors.New("通知使用系统时区，请在配置中心修改系统时区")
+			return nil, i18n.M("admin.notifications_use_the_system_timezone_change_it_in_configuration_center")
 		}
 	}
 	if body.Values.DailyTimes != nil {
@@ -207,7 +208,7 @@ func (server *Server) validatedNotificationChanges(
 	}
 	if body.Values.ScheduleGrace != nil {
 		if *body.Values.ScheduleGrace < 0 || *body.Values.ScheduleGrace > 120 {
-			return nil, errors.New("定时补发窗口必须在 0 到 120 分钟之间")
+			return nil, i18n.M("admin.the_missed_delivery_window_must_be_between_0_and_120")
 		}
 		changes["notification.schedule_grace_minutes"] = *body.Values.ScheduleGrace
 	}
@@ -216,7 +217,7 @@ func (server *Server) validatedNotificationChanges(
 	}
 	if body.Values.ThresholdPercent != nil {
 		if *body.Values.ThresholdPercent < 1 || *body.Values.ThresholdPercent > 100 {
-			return nil, errors.New("周额度预警阈值必须在 1% 到 100% 之间")
+			return nil, i18n.M("admin.the_weekly_quota_alert_threshold_must_be_between_1_and")
 		}
 		changes["notification.weekly_threshold_percent"] = *body.Values.ThresholdPercent
 	}
@@ -231,25 +232,25 @@ type notificationWebhookPayload struct {
 func (server *Server) updateNotificationWebhook(c *gin.Context) {
 	var body notificationWebhookPayload
 	if err := c.ShouldBindJSON(&body); err != nil || body.Confirm != "save" {
-		writeError(c, http.StatusBadRequest, "请确认保存企业微信 Webhook", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.confirm_saving_the_wecom_webhook"), "invalid_request")
 		return
 	}
 	webhook, err := notifications.ValidateWebhookURL(body.WebhookURL)
 	if err != nil {
-		writeError(c, http.StatusBadRequest, err.Error(), "invalid_request")
+		writeError(c, http.StatusBadRequest, err, "invalid_request")
 		return
 	}
 	if err := server.store.WriteSecret(c.Request.Context(), "wecom_webhook", webhook); err != nil {
 		server.internalError(c, "save notification webhook", err)
 		return
 	}
-	status, err := server.notificationStatus(c.Request.Context())
+	status, err := server.notificationStatus(c.Request.Context(), httpi18n.Locale(c))
 	if err != nil {
 		server.internalError(c, "read saved notification webhook", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"message": "企业微信 Webhook 已保存", "notifications": status,
+	httpi18n.JSON(c, http.StatusOK, gin.H{
+		"message": i18n.M("admin.wecom_webhook_saved"), "notifications": status,
 	})
 }
 
@@ -260,7 +261,7 @@ type notificationConfirmPayload struct {
 func (server *Server) clearNotificationWebhook(c *gin.Context) {
 	var body notificationConfirmPayload
 	if err := c.ShouldBindJSON(&body); err != nil || body.Confirm != "clear" {
-		writeError(c, http.StatusBadRequest, "请确认清除企业微信 Webhook", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.confirm_clearing_the_wecom_webhook"), "invalid_request")
 		return
 	}
 	// Delete first: if the following settings update fails, sending remains
@@ -275,19 +276,19 @@ func (server *Server) clearNotificationWebhook(c *gin.Context) {
 		server.internalError(c, "disable notifications after webhook clear", err)
 		return
 	}
-	status, err := server.notificationStatus(c.Request.Context())
+	status, err := server.notificationStatus(c.Request.Context(), httpi18n.Locale(c))
 	if err != nil {
 		server.internalError(c, "read cleared notification webhook", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"message": "企业微信 Webhook 已清除，通知已关闭", "notifications": status,
+	httpi18n.JSON(c, http.StatusOK, gin.H{
+		"message": i18n.M("admin.wecom_webhook_cleared_notifications_are_disabled"), "notifications": status,
 	})
 }
 
 func (server *Server) sendNotification(c *gin.Context) {
 	if server.activity == nil {
-		writeError(c, http.StatusServiceUnavailable, "用量查询服务尚未就绪", "usage_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.usage_query_service_is_not_ready"), "usage_not_ready")
 		return
 	}
 	configured, err := server.notificationSender.Configured(c.Request.Context())
@@ -296,7 +297,7 @@ func (server *Server) sendNotification(c *gin.Context) {
 		return
 	}
 	if !configured {
-		writeError(c, http.StatusBadRequest, "尚未配置企业微信 Webhook", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.no_wecom_webhook_configured"), "invalid_request")
 		return
 	}
 	settings, err := server.store.ReadSettings(c.Request.Context())
@@ -306,7 +307,7 @@ func (server *Server) sendNotification(c *gin.Context) {
 	}
 	config, err := notifications.ParseConfig(settings)
 	if err != nil {
-		writeError(c, http.StatusBadRequest, err.Error(), "invalid_request")
+		writeError(c, http.StatusBadRequest, err, "invalid_request")
 		return
 	}
 	snapshot, err := notifications.CollectSnapshot(c.Request.Context(), server.store, server.activity)
@@ -315,15 +316,15 @@ func (server *Server) sendNotification(c *gin.Context) {
 		return
 	}
 	content, err := notifications.BuildMarkdownV2(
-		snapshot, config.ShortName+" · 账号额度报告", config.Timezone,
+		snapshot, config.ShortName+i18n.Text(config.Language, "admin.account_quota_report"), config.Timezone,
 		config.ThresholdPercent, server.now(), nil, nil,
-		notifications.UsageCenterURL(config.PublicBaseURL),
+		notifications.UsageCenterURL(config.PublicBaseURL), notifications.ReportOptions{Language: config.Language},
 	)
 	if err != nil {
-		writeError(c, http.StatusBadGateway, err.Error(), "notification_send_failed")
+		writeError(c, http.StatusBadGateway, err, "notification_send_failed")
 		return
 	}
-	server.deliverNotification(c, content, "账号报告已发送到企业微信群")
+	server.deliverNotification(c, content, httpi18n.Text(c, "admin.account_report_sent_to_the_wecom_group"))
 }
 
 func (server *Server) testNotification(c *gin.Context) {
@@ -333,7 +334,7 @@ func (server *Server) testNotification(c *gin.Context) {
 		return
 	}
 	if !configured {
-		writeError(c, http.StatusBadRequest, "尚未配置企业微信 Webhook", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.no_wecom_webhook_configured"), "invalid_request")
 		return
 	}
 	settings, err := server.store.ReadSettings(c.Request.Context())
@@ -343,15 +344,15 @@ func (server *Server) testNotification(c *gin.Context) {
 	}
 	config, err := notifications.ParseConfig(settings)
 	if err != nil {
-		writeError(c, http.StatusBadRequest, err.Error(), "invalid_request")
+		writeError(c, http.StatusBadRequest, err, "invalid_request")
 		return
 	}
 	content, err := notifications.BuildTestMarkdownV2(config, server.now())
 	if err != nil {
-		writeError(c, http.StatusBadGateway, err.Error(), "notification_send_failed")
+		writeError(c, http.StatusBadGateway, err, "notification_send_failed")
 		return
 	}
-	server.deliverNotification(c, content, "测试消息已发送到企业微信群")
+	server.deliverNotification(c, content, httpi18n.Text(c, "admin.test_message_sent_to_the_wecom_group"))
 }
 
 func (server *Server) deliverNotification(c *gin.Context, content string, successMessage string) {
@@ -359,15 +360,18 @@ func (server *Server) deliverNotification(c *gin.Context, content string, succes
 	finalizeContext, cancel := context.WithTimeout(context.WithoutCancel(c.Request.Context()), 10*time.Second)
 	defer cancel()
 	if sendError != nil {
-		message := notifications.RedactWebhook(sendError)
+		text, record := notifications.FailureRecord(sendError)
 		if stateError := server.store.PatchRuntimeState(
 			finalizeContext,
 			notifications.RuntimeStateName,
-			map[string]any{"version": notifications.RuntimeStateVersion, "last_error": message},
+			map[string]any{
+				"version":    notifications.RuntimeStateVersion,
+				"last_error": text, "last_error_message": record,
+			},
 		); stateError != nil {
 			server.logger.Error("record manual notification failure", zap.Error(stateError))
 		}
-		writeError(c, http.StatusBadGateway, message, "notification_send_failed")
+		writeError(c, http.StatusBadGateway, notifications.ResponseError(sendError), "notification_send_failed")
 		return
 	}
 	now := server.now().Unix()
@@ -375,13 +379,14 @@ func (server *Server) deliverNotification(c *gin.Context, content string, succes
 		finalizeContext,
 		notifications.RuntimeStateName,
 		map[string]any{
-			"version": notifications.RuntimeStateVersion, "last_success_at": now, "last_error": "",
+			"version": notifications.RuntimeStateVersion, "last_success_at": now,
+			"last_error": "", "last_error_message": nil,
 		},
 	); err != nil {
 		server.internalError(c, "record manual notification success", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
+	httpi18n.JSON(c, http.StatusOK, gin.H{
 		"message": successMessage, "format": "markdown_v2", "result": result,
 	})
 }

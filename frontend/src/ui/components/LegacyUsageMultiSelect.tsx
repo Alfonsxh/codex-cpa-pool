@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import {
   useEffect,
   useId,
@@ -98,12 +99,12 @@ export function LegacyUsageMultiSelect({
   };
 
   const emptyMessage = loading
-    ? "正在加载选项…"
+    ? t("common.loading_options")
     : error
-      ? "选项目录加载失败"
+      ? t("common.unable_to_load_options")
       : options.length
-        ? "未找到匹配项"
-        : `暂无${label}可选项`;
+        ? t("common.no_matching_options")
+        : t("common.no_options", [label]);
 
   return (
     <div
@@ -156,7 +157,7 @@ export function LegacyUsageMultiSelect({
             </label>
           )) : <span className="usage-variable-empty">{emptyMessage}</span>}
         </div>
-        <small className="usage-variable-hint">支持多选；选择后立即更新图表</small>
+        <small className="usage-variable-hint">{t("common.select_multiple_options_the_chart_updates_immediately")}</small>
       </div>
     </div>
   );
@@ -165,5 +166,5 @@ export function LegacyUsageMultiSelect({
 function selectionSummary(selected: string[], allLabel: string) {
   if (!selected.length) return allLabel;
   if (selected.length <= 2) return selected.join("、");
-  return `${selected.length} 个已选`;
+  return t("common.selected", [selected.length]);
 }

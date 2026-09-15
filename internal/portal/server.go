@@ -18,6 +18,8 @@ import (
 	"github.com/Alfonsxh/codex-cpa-pool/internal/accountstatus"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/controlplane"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/failover"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/identity"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/quota"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/sitetime"
@@ -183,6 +185,7 @@ func New(config Config) (*Server, error) {
 }
 
 func (server *Server) Register(router gin.IRouter) {
+	router = router.Group("", httpi18n.Middleware())
 	usageRoutes := router.Group("/usage")
 	usageRoutes.Use(server.noStore(), server.recovery())
 	usageRoutes.POST("/session", server.limitBody(), server.createSession)
@@ -212,20 +215,20 @@ type publicGatewayUsageRow struct {
 
 func (server *Server) readPublicGatewayUsage(c *gin.Context) {
 	if server.publicUsage == nil {
-		writeError(c, http.StatusServiceUnavailable, "公开用量服务尚未就绪", "public_usage_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("portal.public_usage_service_is_not_ready"), "public_usage_not_ready")
 		return
 	}
 	window := int64(300)
 	if raw := strings.TrimSpace(c.Query("window")); raw != "" {
 		parsed, err := strconv.ParseInt(raw, 10, 64)
 		if err != nil {
-			writeError(c, http.StatusBadRequest, "统计范围无效", "invalid_request")
+			writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_reporting_range"), "invalid_request")
 			return
 		}
 		window = parsed
 	}
 	if window != 300 && window != 3600 && window != 86400 {
-		writeError(c, http.StatusBadRequest, "统计范围无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_reporting_range"), "invalid_request")
 		return
 	}
 	accounts, err := server.identity.ReadAccounts(c.Request.Context())
@@ -266,7 +269,7 @@ func (server *Server) readPublicGatewayUsage(c *gin.Context) {
 		totals["active_keys"] = totals["active_keys"].(int64) + row.ActiveKeys
 		totals["requests"] = totals["requests"].(int64) + row.RequestCount
 	}
-	c.JSON(http.StatusOK, gin.H{
+	httpi18n.JSON(c, http.StatusOK, gin.H{
 		"generated_at": now, "window_seconds": window, "truncated": false,
 		"cached": false, "totals": totals, "accounts": rows,
 	})
@@ -298,7 +301,7 @@ type publicAccountQuota struct {
 
 func (server *Server) readUsageLimits(c *gin.Context) {
 	if server.quotaStore == nil {
-		writeError(c, http.StatusServiceUnavailable, "账号周额度服务尚未就绪", "usage_limits_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("portal.account_weekly_quota_service_is_not_ready"), "usage_limits_not_ready")
 		return
 	}
 	state, found, err := quota.ReadState(c.Request.Context(), server.quotaStore)
@@ -314,11 +317,11 @@ func (server *Server) readUsageLimits(c *gin.Context) {
 	for _, account := range snapshot.Accounts {
 		windows := make([]publicWeeklyWindow, 0, len(account.WeeklyWindows))
 		for _, window := range account.WeeklyWindows {
-			windows = append(windows, sanitizeWeeklyWindow(window))
+			windows = append(windows, sanitizeWeeklyWindow(window.WithLanguage(httpi18n.Locale(c))))
 		}
 		var weekly *publicWeeklyWindow
 		if account.Weekly != nil {
-			value := sanitizeWeeklyWindow(*account.Weekly)
+			value := sanitizeWeeklyWindow(account.Weekly.WithLanguage(httpi18n.Locale(c)))
 			weekly = &value
 		}
 		accounts = append(accounts, publicAccountQuota{
@@ -327,7 +330,7 @@ func (server *Server) readUsageLimits(c *gin.Context) {
 			Weekly: weekly, WeeklyWindows: windows,
 		})
 	}
-	c.JSON(http.StatusOK, gin.H{
+	httpi18n.JSON(c, http.StatusOK, gin.H{
 		"generated_at": snapshot.GeneratedAt, "cache_ttl_seconds": snapshot.CacheTTLSeconds,
 		"cached": snapshot.Cached, "refreshing": snapshot.Refreshing, "accounts": accounts,
 	})
@@ -349,7 +352,7 @@ func (server *Server) createSession(c *gin.Context) {
 		Password string `json:"password" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil || ValidateCurrentPassword(body.Password) != nil {
-		writeError(c, http.StatusBadRequest, "邮箱或密码格式无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("portal.invalid_email_or_password_format"), "invalid_request")
 		return
 	}
 	user := normalizeEmail(body.Email)
@@ -361,7 +364,7 @@ func (server *Server) createSession(c *gin.Context) {
 	if allowed, retry := server.loginLimiter.Allow(limitKeys...); !allowed {
 		seconds := max(int(math.Ceil(retry.Seconds())), 1)
 		c.Header("Retry-After", strconv.Itoa(seconds))
-		writeError(c, http.StatusTooManyRequests, "登录尝试过于频繁，请稍后重试", "rate_limited")
+		writeError(c, http.StatusTooManyRequests, i18n.M("portal.too_many_sign_in_attempts_please_try_again_later"), "rate_limited")
 		return
 	}
 	records, recordError := server.activeRecords(c.Request.Context(), user)
@@ -381,7 +384,7 @@ func (server *Server) createSession(c *gin.Context) {
 			server.internalError(c, "read portal identity", recordError)
 			return
 		}
-		writeError(c, http.StatusUnauthorized, "邮箱或密码错误", "invalid_credentials")
+		writeError(c, http.StatusUnauthorized, i18n.M("portal.incorrect_email_or_password"), "invalid_credentials")
 		return
 	}
 	_ = records
@@ -392,7 +395,7 @@ func (server *Server) createSession(c *gin.Context) {
 		return
 	}
 	server.writeSessionCookie(c, token, session.ExpiresAt)
-	c.JSON(http.StatusCreated, gin.H{
+	httpi18n.JSON(c, http.StatusCreated, gin.H{
 		"authenticated": true, "user": user, "expires_at": session.ExpiresAt,
 		"password_change_required": credential.MustChange,
 	})
@@ -403,7 +406,7 @@ func (server *Server) readSession(c *gin.Context) {
 	if !ok {
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
+	httpi18n.JSON(c, http.StatusOK, gin.H{
 		"authenticated": true, "user": auth.Session.User,
 		"expires_at":               auth.Session.ExpiresAt,
 		"password_change_required": auth.Credential.MustChange,
@@ -417,7 +420,7 @@ func (server *Server) deleteSession(c *gin.Context) {
 		return
 	}
 	server.writeSessionCookie(c, "", 0)
-	c.JSON(http.StatusOK, gin.H{"logged_out": true})
+	httpi18n.JSON(c, http.StatusOK, gin.H{"logged_out": true})
 }
 
 func (server *Server) readProfile(c *gin.Context) {
@@ -430,7 +433,7 @@ func (server *Server) readProfile(c *gin.Context) {
 		server.internalError(c, "read portal route", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
+	httpi18n.JSON(c, http.StatusOK, gin.H{
 		"user":          auth.Session.User,
 		"current_group": routes[auth.Session.User], "generated_at": server.now().Unix(),
 	})
@@ -441,7 +444,7 @@ func (server *Server) readKey(c *gin.Context) {
 	if !ok {
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
+	httpi18n.JSON(c, http.StatusOK, gin.H{
 		"api_key": auth.APIKey, "generated_at": server.now().Unix(),
 	})
 }
@@ -457,7 +460,7 @@ func (server *Server) readQuota(c *gin.Context) {
 		return
 	}
 	if server.quotas == nil {
-		writeError(c, http.StatusServiceUnavailable, "个人周额度服务尚未就绪", "quota_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("portal.personal_weekly_quota_service_is_not_ready"), "quota_not_ready")
 		return
 	}
 	settings, err := server.identity.ReadSettings(c.Request.Context())
@@ -475,7 +478,7 @@ func (server *Server) readQuota(c *gin.Context) {
 		server.internalError(c, "read portal weekly quota", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
+	httpi18n.JSON(c, http.StatusOK, gin.H{
 		"generated_at": server.now().Unix(),
 		"weekly_quota": portalWeeklyQuota{
 			WeeklyQuota: weekly, PersonalPolicyResetEnabled: resetOnNewWeek,
@@ -526,7 +529,7 @@ func (server *Server) readRoute(c *gin.Context) {
 		server.internalError(c, "read portal route", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"current_group": routes[auth.Session.User], "generated_at": server.now().Unix()})
+	httpi18n.JSON(c, http.StatusOK, gin.H{"current_group": routes[auth.Session.User], "generated_at": server.now().Unix()})
 }
 
 func (server *Server) readAccounts(c *gin.Context) {
@@ -535,18 +538,18 @@ func (server *Server) readAccounts(c *gin.Context) {
 		return
 	}
 	if server.usage == nil {
-		writeError(c, http.StatusServiceUnavailable, "用量查询服务尚未就绪", "usage_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.usage_query_service_is_not_ready"), "usage_not_ready")
 		return
 	}
 	window, err := server.parseUsageWindow(c.Request.Context(), c.Query("window"))
 	if err != nil {
-		writeError(c, http.StatusBadRequest, err.Error(), "invalid_request")
+		writeError(c, http.StatusBadRequest, err, "invalid_request")
 		return
 	}
 	if c.Query("fresh") == "1" {
 		refreshStore, ready := server.quotaStore.(quota.RefreshRequestStore)
 		if !ready {
-			writeError(c, http.StatusServiceUnavailable, "额度刷新服务尚未就绪", "quota_refresh_not_ready")
+			writeError(c, http.StatusServiceUnavailable, i18n.M("portal.quota_refresh_service_is_not_ready"), "quota_refresh_not_ready")
 			return
 		}
 		if _, _, err := quota.RequestRefresh(c.Request.Context(), refreshStore, server.now()); err != nil {
@@ -582,7 +585,7 @@ func (server *Server) readAccounts(c *gin.Context) {
 		if loaded, stateError := server.listStates.AccountStates(c.Request.Context()); stateError == nil {
 			states = loaded
 		} else {
-			warnings = append(warnings, "账号额度状态暂不可用，已按状态未知展示")
+			warnings = append(warnings, httpi18n.Text(c, "admin.account_quota_status_is_unavailable_and_is_shown_as_unknown"))
 			server.logger.Warn("portal account state unavailable", zap.Error(stateError))
 		}
 	}
@@ -590,7 +593,7 @@ func (server *Server) readAccounts(c *gin.Context) {
 	if server.quotaStore != nil {
 		request, _, err := quota.ReadRefreshRequest(c.Request.Context(), server.quotaStore)
 		if err != nil {
-			warnings = append(warnings, "额度刷新状态暂不可用")
+			warnings = append(warnings, httpi18n.Text(c, "portal.quota_refresh_status_is_unavailable"))
 		} else {
 			refreshing = request.Pending()
 		}
@@ -610,7 +613,7 @@ func (server *Server) readAccounts(c *gin.Context) {
 		if activityError == nil {
 			activity = loaded
 		} else {
-			warnings = append(warnings, formatPortalActivityWindow(server.activity)+"活跃用户数暂不可用")
+			warnings = append(warnings, httpi18n.Text(c, "admin.activity_unavailable", i18n.Params{"Window": formatPortalActivityWindow(server.activity, httpi18n.Locale(c))}))
 			server.logger.Warn("portal account activity unavailable", zap.Error(activityError))
 		}
 	}
@@ -620,7 +623,7 @@ func (server *Server) readAccounts(c *gin.Context) {
 			continue
 		}
 		state, stateFound := states[account.ID]
-		presentation := presentAccountState(account, state, stateFound)
+		presentation := presentAccountState(account, state, stateFound, httpi18n.Locale(c))
 		items = append(items, gin.H{
 			"id": account.ID, "email": account.Email, "display_name": account.Email,
 			"current": routes[auth.Session.User] == account.ID,
@@ -629,7 +632,7 @@ func (server *Server) readAccounts(c *gin.Context) {
 			"usage": usageByAccount[account.ID],
 		})
 	}
-	c.JSON(http.StatusOK, gin.H{
+	httpi18n.JSON(c, http.StatusOK, gin.H{
 		"generated_at": server.now().Unix(), "window": window,
 		"active_user_window_seconds": activeUserWindowSeconds(server.activity),
 		"current_group":              routes[auth.Session.User], "accounts": items,
@@ -644,13 +647,13 @@ func activeUserWindowSeconds(provider failover.ActivityProvider) int64 {
 	return int64(usage.DefaultActiveUserWindow / time.Second)
 }
 
-func formatPortalActivityWindow(provider failover.ActivityProvider) string {
+func formatPortalActivityWindow(provider failover.ActivityProvider, languages ...i18n.Language) string {
 	seconds := activeUserWindowSeconds(provider)
 	minutes := (seconds + 59) / 60
 	if minutes%60 == 0 {
-		return fmt.Sprintf("近 %d 小时", minutes/60)
+		return i18n.M("admin.last_hours", i18n.Params{"Count": minutes / 60}).Render(i18n.Selected(languages))
 	}
-	return fmt.Sprintf("近 %d 分钟", minutes)
+	return i18n.M("admin.last_minutes", i18n.Params{"Count": minutes}).Render(i18n.Selected(languages))
 }
 
 func (server *Server) readUsageBreakdown(c *gin.Context) {
@@ -659,17 +662,17 @@ func (server *Server) readUsageBreakdown(c *gin.Context) {
 		return
 	}
 	if server.usage == nil {
-		writeError(c, http.StatusServiceUnavailable, "用量查询服务尚未就绪", "usage_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.usage_query_service_is_not_ready"), "usage_not_ready")
 		return
 	}
 	account := strings.TrimSpace(c.Query("account"))
 	if account != "" && !recordHasAccount(auth.Records, account) {
-		writeError(c, http.StatusNotFound, "账号不存在", "account_not_found")
+		writeError(c, http.StatusNotFound, i18n.M("portal.account_does_not_exist"), "account_not_found")
 		return
 	}
 	window, err := server.parseUsageWindow(c.Request.Context(), c.Query("window"))
 	if err != nil {
-		writeError(c, http.StatusBadRequest, err.Error(), "invalid_request")
+		writeError(c, http.StatusBadRequest, err, "invalid_request")
 		return
 	}
 	breakdown, err := server.usage.UserBreakdown(
@@ -684,12 +687,12 @@ func (server *Server) readUsageBreakdown(c *gin.Context) {
 		server.internalError(c, "read current usage multipliers", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
+	httpi18n.JSON(c, http.StatusOK, gin.H{
 		"generated_at": server.now().Unix(), "window": window.Name,
 		"window_seconds": window.Seconds, "window_start_at": window.StartAt,
 		"window_end_at": window.EndAt, "window_timezone": window.Timezone,
 		"account": optionalAccount(account), "user": auth.Session.User,
-		"definition":            "仅统计 Collector 已持久化的业务请求；加权 Token 使用事件写入时冻结的倍率",
+		"definition":            httpi18n.Text(c, "portal.includes_only_business_requests_persisted_by_the_collector_weighted_tokens"),
 		"collection_started_at": breakdown.CollectionStartedAt,
 		"effective_start_at":    breakdown.EffectiveStartAt,
 		"totals":                breakdown.Totals, "models": breakdown.Models,
@@ -704,11 +707,11 @@ func (server *Server) readUsageTrend(c *gin.Context) {
 		return
 	}
 	if server.usage == nil {
-		writeError(c, http.StatusServiceUnavailable, "用量查询服务尚未就绪", "usage_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.usage_query_service_is_not_ready"), "usage_not_ready")
 		return
 	}
 	if _, supplied := c.Request.URL.Query()["user"]; supplied {
-		writeError(c, http.StatusBadRequest, "个人趋势不接受用户参数", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("portal.personal_trends_do_not_accept_a_user_parameter"), "invalid_request")
 		return
 	}
 	window := strings.ToLower(strings.TrimSpace(c.Query("window")))
@@ -717,7 +720,7 @@ func (server *Server) readUsageTrend(c *gin.Context) {
 	}
 	windowDays, found := map[string]int{"7d": 7, "30d": 30, "90d": 90}[window]
 	if !found {
-		writeError(c, http.StatusBadRequest, "趋势统计范围无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("portal.invalid_trend_reporting_range"), "invalid_request")
 		return
 	}
 	dimension := usage.UserTrendDimension(strings.ToLower(strings.TrimSpace(c.Query("dimension"))))
@@ -725,12 +728,12 @@ func (server *Server) readUsageTrend(c *gin.Context) {
 		dimension = usage.UserTrendTotal
 	}
 	if dimension != usage.UserTrendTotal && dimension != usage.UserTrendModelReasoning {
-		writeError(c, http.StatusBadRequest, "趋势统计维度无效", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("portal.invalid_trend_dimension"), "invalid_request")
 		return
 	}
 	timezone, err := server.usageTimezone(c.Request.Context())
 	if err != nil {
-		writeError(c, http.StatusBadRequest, err.Error(), "invalid_request")
+		writeError(c, http.StatusBadRequest, err, "invalid_request")
 		return
 	}
 	trend, err := server.usage.UserDailyTrend(
@@ -745,11 +748,11 @@ func (server *Server) readUsageTrend(c *gin.Context) {
 		server.internalError(c, "read current usage multipliers", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
+	httpi18n.JSON(c, http.StatusOK, gin.H{
 		"generated_at": server.now().Unix(), "window": window, "window_days": trend.WindowDays,
 		"window_start_at": trend.WindowStartAt, "window_end_at": trend.WindowEndAt,
 		"window_timezone": trend.Timezone, "dimension": trend.Dimension,
-		"definition":            "仅统计 Collector 已持久化的业务请求；按配置时区自然日聚合，加权 Token 使用事件写入时冻结的倍率",
+		"definition":            httpi18n.Text(c, "portal.includes_only_business_requests_persisted_by_the_collector_grouped_by"),
 		"collection_started_at": trend.CollectionStartedAt,
 		"effective_start_at":    trend.EffectiveStartAt,
 		"days":                  trend.Days,
@@ -767,23 +770,23 @@ func (server *Server) changePassword(c *gin.Context) {
 		NewPassword     string `json:"new_password" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
-		writeError(c, http.StatusBadRequest, "密码格式无效", "invalid_password")
+		writeError(c, http.StatusBadRequest, i18n.M("admin.invalid_password_format"), "invalid_password")
 		return
 	}
 	if err := ValidateCurrentPassword(body.CurrentPassword); err != nil {
-		writeError(c, http.StatusBadRequest, err.Error(), "invalid_password")
+		writeError(c, http.StatusBadRequest, err, "invalid_password")
 		return
 	}
 	if err := ValidateNewPassword(body.NewPassword); err != nil {
-		writeError(c, http.StatusBadRequest, err.Error(), "weak_password")
+		writeError(c, http.StatusBadRequest, err, "weak_password")
 		return
 	}
 	if !VerifyPassword(body.CurrentPassword, auth.Credential.PasswordHash) {
-		writeError(c, http.StatusUnauthorized, "当前密码错误", "invalid_current_password")
+		writeError(c, http.StatusUnauthorized, i18n.M("portal.incorrect_current_password"), "invalid_current_password")
 		return
 	}
 	if auth.Credential.MustChange && constantTimeEqual(body.NewPassword, body.CurrentPassword) {
-		writeError(c, http.StatusBadRequest, "新密码不能与初始密码相同", "weak_password")
+		writeError(c, http.StatusBadRequest, i18n.M("portal.the_new_password_must_differ_from_the_initial_password"), "weak_password")
 		return
 	}
 	initialPassword, found, err := server.identity.ReadSecret(c.Request.Context(), "portal_initial_password")
@@ -792,7 +795,7 @@ func (server *Server) changePassword(c *gin.Context) {
 		return
 	}
 	if found && constantTimeEqual(body.NewPassword, initialPassword) {
-		writeError(c, http.StatusBadRequest, "新密码不能与初始密码相同", "weak_password")
+		writeError(c, http.StatusBadRequest, i18n.M("portal.the_new_password_must_differ_from_the_initial_password"), "weak_password")
 		return
 	}
 	encoded, err := HashPassword(body.NewPassword)
@@ -806,7 +809,7 @@ func (server *Server) changePassword(c *gin.Context) {
 		server.internalError(c, "update portal password", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "密码已修改", "password_change_required": false})
+	httpi18n.JSON(c, http.StatusOK, gin.H{"message": i18n.M("portal.password_changed"), "password_change_required": false})
 }
 
 func (server *Server) changeRoute(c *gin.Context) {
@@ -818,12 +821,12 @@ func (server *Server) changeRoute(c *gin.Context) {
 		GroupID string `json:"group_id" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
-		writeError(c, http.StatusBadRequest, "目标账号不能为空", "invalid_request")
+		writeError(c, http.StatusBadRequest, i18n.M("portal.target_account_is_required"), "invalid_request")
 		return
 	}
 	target := strings.TrimSpace(body.GroupID)
 	if !recordHasAccount(auth.Records, target) {
-		writeError(c, http.StatusNotFound, "目标账号不存在", "account_not_found")
+		writeError(c, http.StatusNotFound, i18n.M("portal.target_account_does_not_exist"), "account_not_found")
 		return
 	}
 	accounts, err := server.identity.ReadAccounts(c.Request.Context())
@@ -833,7 +836,7 @@ func (server *Server) changeRoute(c *gin.Context) {
 	}
 	account, found := accountByID(accounts, target)
 	if !found || !account.GroupEnabled {
-		writeError(c, http.StatusConflict, "目标账号当前不可选择", "account_unavailable")
+		writeError(c, http.StatusConflict, i18n.M("portal.the_target_account_cannot_currently_be_selected"), "account_unavailable")
 		return
 	}
 	if server.states != nil {
@@ -844,7 +847,7 @@ func (server *Server) changeRoute(c *gin.Context) {
 		}
 		state, stateFound := states[target]
 		if !presentAccountState(account, state, stateFound).Selectable {
-			writeError(c, http.StatusConflict, "目标账号当前不可选择", "account_unavailable")
+			writeError(c, http.StatusConflict, i18n.M("portal.the_target_account_cannot_currently_be_selected"), "account_unavailable")
 			return
 		}
 	}
@@ -855,27 +858,27 @@ func (server *Server) changeRoute(c *gin.Context) {
 	}
 	current := routes[auth.Session.User]
 	if current == target {
-		c.JSON(http.StatusOK, gin.H{"message": "当前已使用该账号", "current_group": target, "changed": false})
+		httpi18n.JSON(c, http.StatusOK, gin.H{"message": i18n.M("portal.this_account_is_already_selected"), "current_group": target, "changed": false})
 		return
 	}
 	if server.routes == nil {
-		writeError(c, http.StatusServiceUnavailable, "路由切换服务尚未就绪", "route_change_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("portal.route_switching_service_is_not_ready"), "route_change_not_ready")
 		return
 	}
 	result, err := server.routes.MoveUser(c.Request.Context(), auth.Session.User, target, current)
 	if err != nil {
 		switch {
 		case errors.Is(err, controlplane.ErrRouteConflict):
-			writeError(c, http.StatusConflict, "当前账号已变化，请刷新后重试", "route_conflict")
+			writeError(c, http.StatusConflict, i18n.M("portal.your_current_account_changed_refresh_and_try_again"), "route_conflict")
 		case errors.Is(err, controlplane.ErrRouteUserUnsafe), errors.Is(err, controlplane.ErrRouteTargetNotFound):
-			writeError(c, http.StatusConflict, "当前用户或目标账号不满足安全切换条件", "route_unavailable")
+			writeError(c, http.StatusConflict, i18n.M("portal.the_user_or_target_account_does_not_meet_safe_switching"), "route_unavailable")
 		default:
 			server.internalError(c, "change portal route", err)
 		}
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"message": "当前账号已切换", "current_group": target, "changed": result.MovedUsers > 0,
+	httpi18n.JSON(c, http.StatusOK, gin.H{
+		"message": i18n.M("portal.current_account_switched"), "current_group": target, "changed": result.MovedUsers > 0,
 		"snapshot_generation": result.SnapshotGeneration,
 	})
 }
@@ -891,17 +894,17 @@ func (server *Server) autoAssignRoute(c *gin.Context) {
 		return
 	}
 	if current := strings.TrimSpace(routes[auth.Session.User]); current != "" {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "当前用户已有账号", "current_group": current, "changed": false,
+		httpi18n.JSON(c, http.StatusOK, gin.H{
+			"message": i18n.M("portal.the_user_already_has_an_account"), "current_group": current, "changed": false,
 		})
 		return
 	}
 	if server.states == nil {
-		writeError(c, http.StatusServiceUnavailable, "账号额度状态服务尚未就绪", "account_state_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("portal.account_quota_status_service_is_not_ready"), "account_state_not_ready")
 		return
 	}
 	if server.routes == nil {
-		writeError(c, http.StatusServiceUnavailable, "路由切换服务尚未就绪", "route_change_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("portal.route_switching_service_is_not_ready"), "route_change_not_ready")
 		return
 	}
 	accounts, err := server.identity.ReadAccounts(c.Request.Context())
@@ -922,7 +925,7 @@ func (server *Server) autoAssignRoute(c *gin.Context) {
 	}
 	target, found := failover.LeastUsedEligibleAccount(candidates, states)
 	if !found {
-		writeError(c, http.StatusConflict, "当前没有额度状态可靠且可用的账号", "route_unavailable")
+		writeError(c, http.StatusConflict, i18n.M("portal.no_available_account_has_reliable_quota_status"), "route_unavailable")
 		return
 	}
 	result, err := server.routes.MoveUser(c.Request.Context(), auth.Session.User, target, "")
@@ -931,24 +934,24 @@ func (server *Server) autoAssignRoute(c *gin.Context) {
 			latest, readError := server.identity.ReadRoutes(c.Request.Context())
 			if readError == nil {
 				if current := strings.TrimSpace(latest[auth.Session.User]); current != "" {
-					c.JSON(http.StatusOK, gin.H{
-						"message": "当前用户已有账号", "current_group": current, "changed": false,
+					httpi18n.JSON(c, http.StatusOK, gin.H{
+						"message": i18n.M("portal.the_user_already_has_an_account"), "current_group": current, "changed": false,
 					})
 					return
 				}
 			}
-			writeError(c, http.StatusConflict, "账号分配状态已变化，请重试", "route_conflict")
+			writeError(c, http.StatusConflict, i18n.M("portal.account_assignment_state_changed_please_try_again"), "route_conflict")
 			return
 		}
 		if errors.Is(err, controlplane.ErrRouteUserUnsafe) || errors.Is(err, controlplane.ErrRouteTargetNotFound) {
-			writeError(c, http.StatusConflict, "当前用户或目标账号不满足安全分配条件", "route_unavailable")
+			writeError(c, http.StatusConflict, i18n.M("portal.the_user_or_target_account_does_not_meet_safe_assignment"), "route_unavailable")
 			return
 		}
 		server.internalError(c, "automatically assign portal route", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"message": "已自动分配当前账号", "current_group": target, "changed": result.MovedUsers > 0,
+	httpi18n.JSON(c, http.StatusOK, gin.H{
+		"message": i18n.M("portal.current_account_assigned_automatically"), "current_group": target, "changed": result.MovedUsers > 0,
 		"snapshot_generation": result.SnapshotGeneration,
 	})
 }
@@ -962,25 +965,25 @@ func (server *Server) rotateKey(c *gin.Context) {
 		Confirm bool `json:"confirm" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil || !body.Confirm {
-		writeError(c, http.StatusBadRequest, "请确认刷新 API Key", "confirmation_required")
+		writeError(c, http.StatusBadRequest, i18n.M("portal.confirm_refreshing_the_api_key"), "confirmation_required")
 		return
 	}
 	if server.keys == nil {
-		writeError(c, http.StatusServiceUnavailable, "API Key 刷新服务尚未就绪", "key_rotation_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("portal.api_key_refresh_service_is_not_ready"), "key_rotation_not_ready")
 		return
 	}
 	result, err := server.keys.RotateUserKey(c.Request.Context(), auth.Session.User, auth.APIKey)
 	if err != nil {
 		switch {
 		case errors.Is(err, identity.ErrRotationConflict), errors.Is(err, identity.ErrRotationUnsafe):
-			writeError(c, http.StatusConflict, "API Key 状态已变化，请刷新后重试", "key_rotation_conflict")
+			writeError(c, http.StatusConflict, i18n.M("portal.api_key_state_changed_refresh_and_try_again"), "key_rotation_conflict")
 		default:
 			server.internalError(c, "rotate portal API key", err)
 		}
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"message": "API Key 已刷新，旧 Key 已失效，请更新客户端配置",
+	httpi18n.JSON(c, http.StatusOK, gin.H{
+		"message": i18n.M("portal.api_key_refreshed_the_old_key_expired_update_your_client"),
 		"api_key": result.APIKey, "snapshot_generation": result.SnapshotGeneration,
 	})
 }
@@ -995,7 +998,7 @@ func (server *Server) requireAuth(c *gin.Context, allowPasswordChange bool) (por
 	session, err := server.sessions.ResolveSession(c.Request.Context(), token)
 	if err != nil {
 		if errors.Is(err, usage.ErrPortalSessionNotFound) {
-			writeError(c, http.StatusUnauthorized, "用户会话已失效", "session_required")
+			writeError(c, http.StatusUnauthorized, i18n.M("portal.your_session_expired"), "session_required")
 		} else {
 			server.internalError(c, "resolve portal session", err)
 		}
@@ -1005,7 +1008,7 @@ func (server *Server) requireAuth(c *gin.Context, allowPasswordChange bool) (por
 	if err != nil {
 		if errors.Is(err, errPortalUserUnavailable) || errors.Is(err, errPortalKeyMigrating) {
 			_ = server.sessions.RevokeSession(c.Request.Context(), token)
-			writeError(c, http.StatusUnauthorized, "用户已停用、删除或 Key 正在迁移", "session_required")
+			writeError(c, http.StatusUnauthorized, i18n.M("portal.the_user_is_disabled_deleted_or_its_key_is_being"), "session_required")
 		} else {
 			server.internalError(c, "validate portal identity", err)
 		}
@@ -1015,14 +1018,14 @@ func (server *Server) requireAuth(c *gin.Context, allowPasswordChange bool) (por
 	if err != nil {
 		if errors.Is(err, usage.ErrPortalCredentialNotFound) {
 			_ = server.sessions.RevokeSession(c.Request.Context(), token)
-			writeError(c, http.StatusUnauthorized, "用户凭据未初始化或已失效", "session_required")
+			writeError(c, http.StatusUnauthorized, i18n.M("portal.user_credentials_are_uninitialized_or_invalid"), "session_required")
 		} else {
 			server.internalError(c, "read portal credential", err)
 		}
 		return portalAuth{}, false
 	}
 	if credential.MustChange && !allowPasswordChange {
-		writeError(c, http.StatusForbidden, "首次登录请先修改初始密码", "password_change_required")
+		writeError(c, http.StatusForbidden, i18n.M("portal.change_the_initial_password_before_continuing"), "password_change_required")
 		return portalAuth{}, false
 	}
 	return portalAuth{
@@ -1071,7 +1074,7 @@ func (server *Server) parseUsageWindow(ctx context.Context, raw string) (usageWi
 		}
 		location, err := time.LoadLocation(timezone)
 		if err != nil {
-			return usageWindow{}, errors.New("用量时区配置无效")
+			return usageWindow{}, i18n.M("portal.invalid_usage_timezone_configuration")
 		}
 		local := now.In(location)
 		start := time.Date(local.Year(), local.Month(), local.Day(), 0, 0, 0, 0, location)
@@ -1083,11 +1086,11 @@ func (server *Server) parseUsageWindow(ctx context.Context, raw string) (usageWi
 	}
 	seconds, err := strconv.ParseInt(value, 10, 64)
 	if err != nil {
-		return usageWindow{}, errors.New("统计范围无效")
+		return usageWindow{}, i18n.M("admin.invalid_reporting_range")
 	}
 	allowed := map[int64]struct{}{3600: {}, 86400: {}, 604800: {}, 2592000: {}}
 	if _, found := allowed[seconds]; !found {
-		return usageWindow{}, errors.New("统计范围无效")
+		return usageWindow{}, i18n.M("admin.invalid_reporting_range")
 	}
 	return usageWindow{Name: seconds, Seconds: &seconds, StartAt: now.Unix() - seconds, EndAt: now.Unix()}, nil
 }
@@ -1095,11 +1098,11 @@ func (server *Server) parseUsageWindow(ctx context.Context, raw string) (usageWi
 func (server *Server) usageTimezone(ctx context.Context) (string, error) {
 	settings, err := server.identity.ReadSettings(ctx)
 	if err != nil {
-		return "", fmt.Errorf("读取用量时区失败")
+		return "", i18n.M("portal.unable_to_read_the_usage_timezone")
 	}
 	timezone, err := sitetime.Name(settings)
 	if err != nil {
-		return "", errors.New("用量时区配置无效")
+		return "", i18n.M("portal.invalid_usage_timezone_configuration")
 	}
 	return timezone, nil
 }
@@ -1111,9 +1114,9 @@ type accountStatus struct {
 	ResetAt          int64    `json:"reset_at,omitempty"`
 }
 
-func presentAccountState(account controlplane.Account, state failover.AccountState, found bool) accountStatus {
+func presentAccountState(account controlplane.Account, state failover.AccountState, found bool, languages ...i18n.Language) accountStatus {
 	return accountStatus{
-		Presentation: accountstatus.Present(account.GroupEnabled, state, found),
+		Presentation: accountstatus.Present(account.GroupEnabled, state, found, languages...),
 		UsedPercent:  state.UsedPercent, RemainingPercent: state.RemainingPercent, ResetAt: state.ResetAt,
 	}
 }
@@ -1169,7 +1172,7 @@ func (server *Server) recovery() gin.HandlerFunc {
 					zap.String("path", c.Request.URL.Path), zap.String("panic_type", fmt.Sprintf("%T", recovered)),
 					zap.Stack("stack"),
 				)
-				writeError(c, http.StatusInternalServerError, "服务内部错误", "internal_error")
+				writeError(c, http.StatusInternalServerError, i18n.M("admin.internal_service_error"), "internal_error")
 				c.Abort()
 			}
 		}()
@@ -1179,11 +1182,11 @@ func (server *Server) recovery() gin.HandlerFunc {
 
 func (server *Server) internalError(c *gin.Context, operation string, err error) {
 	server.logger.Error(operation, zap.String("method", c.Request.Method), zap.String("path", c.Request.URL.Path), zap.Error(err))
-	writeError(c, http.StatusInternalServerError, "服务内部错误", "internal_error")
+	writeError(c, http.StatusInternalServerError, i18n.M("admin.internal_service_error"), "internal_error")
 }
 
-func writeError(c *gin.Context, status int, message string, code string) {
-	c.AbortWithStatusJSON(status, ErrorEnvelope{Error: APIError{Message: message, Type: code, Code: code}})
+func writeError(c *gin.Context, status int, message any, code string) {
+	httpi18n.Error(c, status, message, code)
 }
 
 func normalizeEmail(value string) string {

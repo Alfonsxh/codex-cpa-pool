@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import {
   type CSSProperties,
   Fragment,
@@ -56,7 +57,7 @@ export function LegacyEnhancedSelect<Value extends string>({
   const menuRef = useRef<HTMLSpanElement>(null);
   const menuId = `${controlId}-menu`;
   const selected = options.find((option) => option.value === value) ?? options[0];
-  const selectedLabel = selected?.label || "请选择";
+  const selectedLabel = selected?.label || t("common.select_an_option");
 
   useEffect(() => {
     if (disabled) setOpen(false);

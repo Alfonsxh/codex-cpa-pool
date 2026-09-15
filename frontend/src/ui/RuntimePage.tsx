@@ -1,3 +1,5 @@
+import "../i18n/admin";
+import { t, getIntlLocale } from "../i18n";
 import { useSiteTimezone, formatSiteTimestamp } from "./site-time";
 import { Button, Modal, Typography } from "antd";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -93,7 +95,7 @@ export function RuntimePage({ csrfToken }: { csrfToken: string }) {
 
   const sortedServices = useMemo(() => [...(services.data?.services ?? [])].sort((left, right) => (
     (serviceStateRank[left.state] ?? 5) - (serviceStateRank[right.state] ?? 5)
-      || left.service.localeCompare(right.service, "zh-CN", { numeric: true, sensitivity: "base" })
+      || left.service.localeCompare(right.service, getIntlLocale(), { numeric: true, sensitivity: "base" })
   )), [services.data?.services]);
 
   const refreshRuntime = useCallback(async (feedback = true) => {
@@ -105,10 +107,10 @@ export function RuntimePage({ csrfToken }: { csrfToken: string }) {
       ]);
       queryClient.setQueryData(runtimeServicesQueryKey, serviceCatalog);
       queryClient.setQueryData(runtimeJobsQueryKey, jobCatalog);
-      setRefreshLabel(`运行状态更新于 ${formatSiteTimestamp(Date.now() / 1_000)}`);
-      if (feedback) showToast("数据已刷新");
+      setRefreshLabel(t("admin.runtime_status_updated", [formatSiteTimestamp(Date.now() / 1_000)]));
+      if (feedback) showToast(t("admin.data_refreshed"));
     } catch (error) {
-      setRefreshLabel("刷新失败");
+      setRefreshLabel(t("admin.refresh_failed"));
       if (feedback) showToast(errorMessage(error), "error");
       throw error;
     } finally {
@@ -126,18 +128,18 @@ export function RuntimePage({ csrfToken }: { csrfToken: string }) {
   useEffect(() => {
     if (!services.data) return;
     reportedServiceError.current = null;
-    setRefreshLabel(`运行状态更新于 ${formatSiteTimestamp(services.dataUpdatedAt / 1_000)}`);
+    setRefreshLabel(t("admin.runtime_status_updated", [formatSiteTimestamp(services.dataUpdatedAt / 1_000)]));
   }, [services.data, services.dataUpdatedAt, setRefreshLabel, siteTimezone]);
   useEffect(() => {
     if (!services.isError || reportedServiceError.current === services.error) return;
     reportedServiceError.current = services.error;
-    setRefreshLabel("刷新失败");
-    showToast(errorMessage(services.error, "运行状态加载失败"), "error");
+    setRefreshLabel(t("admin.refresh_failed"));
+    showToast(errorMessage(services.error, t("admin.unable_to_load_runtime_status")), "error");
   }, [services.error, services.isError, setRefreshLabel, showToast]);
   useEffect(() => {
     if (!jobs.isError || reportedJobError.current === jobs.error) return;
     reportedJobError.current = jobs.error;
-    showToast(errorMessage(jobs.error, "任务列表加载失败"), "error");
+    showToast(errorMessage(jobs.error, t("admin.unable_to_load_task_list")), "error");
   }, [jobs.error, jobs.isError, showToast]);
   useEffect(() => () => {
     stopImpactRequest.current += 1;
@@ -243,7 +245,7 @@ export function RuntimePage({ csrfToken }: { csrfToken: string }) {
     cancelLock.current = false;
     setCompletedTaskJobID(taskJob.id);
     showToast(
-      taskJob.status === "succeeded" ? "任务执行成功" : "任务执行失败",
+      taskJob.status === "succeeded" ? t("admin.task_completed") : t("admin.task_failed"),
       taskJob.status === "succeeded" ? "success" : "error"
     );
     void Promise.all([
@@ -267,7 +269,7 @@ export function RuntimePage({ csrfToken }: { csrfToken: string }) {
     try {
       const catalog = await listLegacyRuntimeJobs();
       queryClient.setQueryData(runtimeJobsQueryKey, catalog);
-      showToast("任务列表已刷新");
+      showToast(t("admin.task_list_refreshed"));
     } catch (error) {
       showToast(errorMessage(error), "error");
     }
@@ -284,20 +286,20 @@ export function RuntimePage({ csrfToken }: { csrfToken: string }) {
   return (
     <section className="page-content legacy-runtime-page">
       <div className="bulk-actions">
-        <div><h3>批量操作</h3><p className="section-kicker">STACK CONTROL</p></div>
+        <div><h3>{t("admin.bulk_actions")}</h3><p className="section-kicker">STACK CONTROL</p></div>
         <div className="button-group">
-          <button className="button secondary" type="button" disabled={operation.isPending} onClick={() => submitOperation("up", "all")}>启动全部</button>
-          <button className="button secondary" type="button" disabled={operation.isPending} onClick={() => void prepareOperation("restart", "all")}>重启全部</button>
-          <button className="button secondary" type="button" onClick={() => { setTaskJob(null); setLogTarget("all"); }}>全部日志</button>
-          <button className="button danger-outline" type="button" disabled={operation.isPending} onClick={() => void prepareOperation("stop", "all")}>停止业务服务</button>
+          <button className="button secondary" type="button" disabled={operation.isPending} onClick={() => submitOperation("up", "all")}>{t("admin.start_all")}</button>
+          <button className="button secondary" type="button" disabled={operation.isPending} onClick={() => void prepareOperation("restart", "all")}>{t("admin.restart_all")}</button>
+          <button className="button secondary" type="button" onClick={() => { setTaskJob(null); setLogTarget("all"); }}>{t("admin.all_logs")}</button>
+          <button className="button danger-outline" type="button" disabled={operation.isPending} onClick={() => void prepareOperation("stop", "all")}>{t("admin.stop_business_services")}</button>
         </div>
       </div>
 
       <div className="panel table-panel runtime-service-panel">
-        <div className="panel-title"><div><h3>容器服务</h3><p className="section-kicker">SERVICES</p></div></div>
-        <NativeTableViewport className="table-wrap" aria-label="容器服务表格">
+        <div className="panel-title"><div><h3>{t("admin.container_services")}</h3><p className="section-kicker">SERVICES</p></div></div>
+        <NativeTableViewport className="table-wrap" aria-label={t("admin.container_services_table")}>
           <table className="service-table">
-            <thead><tr><th className="table-index-column">序号</th><th>服务</th><th>容器</th><th>状态</th><th>说明</th><th>操作</th></tr></thead>
+            <thead><tr><th className="table-index-column">{t("common.no")}</th><th>{t("admin.service")}</th><th>{t("admin.container")}</th><th>{t("admin.status_2")}</th><th>{t("admin.description")}</th><th>{t("admin.actions")}</th></tr></thead>
             <tbody>
               {services.isPending ? <RuntimeServiceSkeleton /> : null}
               {!services.isPending && sortedServices.map((service, index) => (
@@ -314,7 +316,7 @@ export function RuntimePage({ csrfToken }: { csrfToken: string }) {
                 />
               ))}
               {!services.isPending && sortedServices.length === 0 ? (
-                <tr className="runtime-empty-row"><td colSpan={6}>{services.isError ? "运行状态加载失败，请使用顶部刷新重试" : "当前没有可见容器服务"}</td></tr>
+                <tr className="runtime-empty-row"><td colSpan={6}>{services.isError ? t("admin.unable_to_load_runtime_status_use_refresh_above_to_try") : t("admin.no_visible_container_services")}</td></tr>
               ) : null}
             </tbody>
           </table>
@@ -322,27 +324,27 @@ export function RuntimePage({ csrfToken }: { csrfToken: string }) {
       </div>
 
       <div className="section-heading">
-        <div><h3>诊断工具</h3><p className="section-kicker">DIAGNOSTICS</p></div>
-        <p>对应原有终端检查命令</p>
+        <div><h3>{t("admin.diagnostics")}</h3><p className="section-kicker">DIAGNOSTICS</p></div>
+        <p>{t("admin.equivalent_terminal_checks")}</p>
       </div>
       <div className="diagnostic-grid">
-        <DiagnosticCard index="01" title="健康检查" description="检查 Key、OAuth 文件和可用模型" disabled={operation.isPending} onClick={() => submitOperation("health", "all")} />
-        <DiagnosticCard index="02" title="路由验证" description="逐个验证有效 Key 的目标 CPA" disabled={operation.isPending} onClick={() => submitOperation("verify-routing", "all")} />
-        <DiagnosticCard index="03" title="配置校验" description="重新渲染并校验 Compose 配置" disabled={operation.isPending} onClick={() => submitOperation("render", "all")} />
+        <DiagnosticCard index="01" title={t("admin.health_check")} description={t("admin.check_keys_oauth_files_and_available_models")} disabled={operation.isPending} onClick={() => submitOperation("health", "all")} />
+        <DiagnosticCard index="02" title={t("admin.verify_routes")} description={t("admin.verify_the_destination_cpa_for_each_active_key")} disabled={operation.isPending} onClick={() => submitOperation("verify-routing", "all")} />
+        <DiagnosticCard index="03" title={t("admin.validate_configuration")} description={t("admin.render_and_validate_compose_configuration")} disabled={operation.isPending} onClick={() => submitOperation("render", "all")} />
       </div>
 
       <div className="section-heading">
-        <div><h3>任务记录</h3><p className="section-kicker">JOB HISTORY</p></div>
-        <button className="text-button" type="button" disabled={jobs.isFetching} onClick={() => void refreshJobs()}>{jobs.isFetching ? "正在刷新…" : "刷新任务"}</button>
+        <div><h3>{t("admin.task_history")}</h3><p className="section-kicker">JOB HISTORY</p></div>
+        <button className="text-button" type="button" disabled={jobs.isFetching} onClick={() => void refreshJobs()}>{jobs.isFetching ? t("admin.refreshing") : t("admin.refresh_tasks")}</button>
       </div>
       <div className="panel runtime-job-panel">
         {jobs.isPending ? <RuntimeJobSkeleton /> : <RuntimeJobList jobs={jobs.data?.jobs ?? []} onOpen={(jobID) => void openExistingJob(jobID)} />}
       </div>
 
       <LegacyConfirmModal
-        title={pendingOperation?.action === "stop" ? "停止服务？" : "重启服务？"}
+        title={pendingOperation?.action === "stop" ? t("admin.stop_service_2") : t("admin.restart_service_2")}
         open={pendingOperation !== null}
-        okText={pendingOperation?.action === "stop" ? "确认停止" : "确认重启"}
+        okText={pendingOperation?.action === "stop" ? t("admin.confirm_stop") : t("admin.confirm_restart")}
         danger={pendingOperation?.action === "stop"}
         confirmLoading={operation.isPending}
         okDisabled={Boolean(pendingOperation?.impactError)}
@@ -397,11 +399,11 @@ function RuntimeServiceRow({
         <div className="table-actions">
           {!logOnly ? (
             <button className="button ghost" type="button" disabled={busy} onClick={() => onOperate(service.state === "running" ? "restart" : "up", target)}>
-              {service.state === "running" ? "重启" : "启动"}
+              {service.state === "running" ? t("admin.restart") : t("admin.start")}
             </button>
           ) : null}
-          <button className="button ghost" type="button" onClick={() => onLogs(target)}>日志</button>
-          {!logOnly ? <button className="button danger-outline" type="button" disabled={busy} onClick={() => onOperate("stop", target)}>停止</button> : null}
+          <button className="button ghost" type="button" onClick={() => onLogs(target)}>{t("admin.logs_2")}</button>
+          {!logOnly ? <button className="button danger-outline" type="button" disabled={busy} onClick={() => onOperate("stop", target)}>{t("admin.stop")}</button> : null}
         </div>
       </td>
     </tr>
@@ -432,13 +434,13 @@ function DiagnosticCard({ index, title, description, disabled, onClick }: {
 
 function RuntimeJobList({ jobs, onOpen }: { jobs: LegacyRuntimeJobView[]; onOpen: (jobID: string) => void }) {
   if (jobs.length === 0) {
-    return <div className="empty-state"><div className="empty-icon">⌘</div><h3>暂无任务</h3><p>启动、授权和诊断任务会显示在这里。</p></div>;
+    return <div className="empty-state"><div className="empty-icon">⌘</div><h3>{t("admin.no_tasks")}</h3><p>{t("admin.startup_authorization_and_diagnostic_tasks_appear_here")}</p></div>;
   }
   return (
     <div className="job-list">
       {jobs.map((job) => (
         <div className="job-row" key={job.id}>
-          <div><div className="job-name">{job.name}</div><div className="job-target">{job.id}</div></div>
+          <div><div className="job-name">{(job.name)}</div><div className="job-target">{job.id}</div></div>
           <div className="job-target">{job.target}</div>
           <div className="job-time">{formatSiteTimestamp(job.created_at)}</div>
           <button className="button ghost" type="button" onClick={() => onOpen(job.id)}>
@@ -451,7 +453,7 @@ function RuntimeJobList({ jobs, onOpen }: { jobs: LegacyRuntimeJobView[]; onOpen
 }
 
 function RuntimeJobSkeleton() {
-  return <div className="job-list runtime-job-skeleton" aria-label="正在加载任务记录">{Array.from({ length: 3 }, (_, index) => <div className="job-row" key={index}><i /><i /><i /><i /></div>)}</div>;
+  return <div className="job-list runtime-job-skeleton" aria-label={t("admin.loading_task_history")}>{Array.from({ length: 3 }, (_, index) => <div className="job-row" key={index}><i /><i /><i /><i /></div>)}</div>;
 }
 
 function LegacyConfirmModal({
@@ -488,7 +490,7 @@ function LegacyConfirmModal({
       onCancel={onCancel}
       destroyOnHidden
       footer={[
-        <Button key="cancel" disabled={confirmLoading} onClick={onCancel}>取消</Button>,
+        <Button key="cancel" disabled={confirmLoading} onClick={onCancel}>{t("common.cancel")}</Button>,
         <Button key="confirm" type={danger ? "default" : "primary"} danger={danger} loading={confirmLoading} disabled={okDisabled} onClick={onOk}>{okText}</Button>
       ]}
     >
@@ -523,21 +525,21 @@ function RuntimeOutputModal({
   if (!job && !logTarget) return null;
   const isJob = Boolean(job);
   const output = job
-    ? job.output || "任务正在排队…"
+    ? job.output || t("admin.task_is_queued")
     : logs.isPending
-      ? "正在读取…"
+      ? t("common.loading_2")
       : logs.isError
-        ? errorMessage(logs.error, "日志读取失败")
-        : logs.data?.output || "暂无日志";
+        ? errorMessage(logs.error, t("admin.unable_to_read_logs"))
+        : logs.data?.output || t("admin.no_logs");
   const active = job ? isActiveRuntimeJob(job) : false;
   const copy = async () => {
     const copied = await copyText(output);
-    onToast(copied ? "已复制到剪贴板" : "浏览器拒绝复制，请手动选择文本", copied ? "success" : "error");
+    onToast(copied ? t("admin.copied_to_clipboard") : t("admin.the_browser_blocked_copying_select_the_text_manually"), copied ? "success" : "error");
   };
   return (
     <Modal
       className="legacy-output-modal runtime-output-modal"
-      title={<LegacyDialogTitle title={job?.name || `${logTarget} 日志`} kicker={isJob ? "TASK OUTPUT" : "SERVICE LOGS"} />}
+      title={<LegacyDialogTitle title={(job?.name ?? "") || t("admin.logs", [logTarget])} kicker={isJob ? "TASK OUTPUT" : "SERVICE LOGS"} />}
       open
       width={900}
       centered
@@ -547,16 +549,16 @@ function RuntimeOutputModal({
       onCancel={onClose}
       destroyOnHidden
       footer={[
-        <Button className="legacy-output-secondary" key="copy" onClick={() => void copy()}>复制完整输出</Button>,
-        active ? <Button key="cancel-job" danger loading={cancelling} onClick={onCancelJob}>取消任务</Button> : null,
-        <Button className="legacy-output-ghost" key="close" onClick={onClose}>关闭</Button>
+        <Button className="legacy-output-secondary" key="copy" onClick={() => void copy()}>{t("admin.copy_full_output")}</Button>,
+        active ? <Button key="cancel-job" danger loading={cancelling} onClick={onCancelJob}>{t("admin.cancel_task")}</Button> : null,
+        <Button className="legacy-output-ghost" key="close" onClick={onClose}>{t("common.close")}</Button>
       ]}
     >
       <div className="job-meta">
-        {job ? <><span>{job.target}</span><span>{statusLabel(job.status)}</span><span>{formatSiteTimestamp(job.started_at || job.created_at)}</span></> : <><span>最近 200 行</span><span>{logTarget}</span></>}
+        {job ? <><span>{job.target}</span><span>{statusLabel(job.status)}</span><span>{formatSiteTimestamp(job.started_at || job.created_at)}</span></> : <><span>{t("admin.last_200_lines")}</span><span>{logTarget}</span></>}
       </div>
-      {pollError ? <div className="runtime-output-notice error">{errorMessage(pollError, "任务状态刷新失败，正在重试")}</div> : null}
-      {logs.data?.truncated && !isJob ? <div className="runtime-output-notice">输出已按 2 MiB 上限截断</div> : null}
+      {pollError ? <div className="runtime-output-notice error">{errorMessage(pollError, t("admin.unable_to_refresh_task_status_retrying"))}</div> : null}
+      {logs.data?.truncated && !isJob ? <div className="runtime-output-notice">{t("admin.output_truncated_at_2_mib")}</div> : null}
       <pre className={isJob ? "oauth-task-output" : "runtime-log-output"}>{output}</pre>
     </Modal>
   );
@@ -568,18 +570,18 @@ function LegacyDialogTitle({ title, kicker }: { title: string; kicker: string })
 
 function operationMessage(operation: PendingOperation) {
   if (operation.action === "restart") {
-    return operation.target === "all" ? "将依次重启所有业务服务，短时间内可能无法调用。" : `将重启 ${operation.target}。`;
+    return operation.target === "all" ? t("admin.all_business_services_will_restart_in_sequence_requests_may_be") : t("admin.will_be_restarted", [operation.target]);
   }
   if (operation.target === "all") {
-    return "将停止全部业务 CPA 和插件资源服务；网关与本管理界面会保留，方便恢复。";
+    return t("admin.all_cpa_accounts_and_plugin_resource_services_will_stop_the");
   }
-  if (operation.impactError) return "无法确认停止影响，操作已锁定；请取消后重试。";
-  if (operation.impact?.target_type !== "account") return `将停止 ${operation.target}。`;
+  if (operation.impactError) return t("admin.unable_to_confirm_the_impact_stopping_is_locked_cancel_and");
+  if (operation.impact?.target_type !== "account") return t("admin.will_be_stopped", [operation.target]);
   const routedUsers = operation.impact.routed_users;
-  if (!Number.isInteger(routedUsers) || Number(routedUsers) < 0) return `将停止 ${operation.target}；影响范围暂不可确认。`;
+  if (!Number.isInteger(routedUsers) || Number(routedUsers) < 0) return t("admin.will_be_stopped_the_impact_cannot_currently_be_determined", [operation.target]);
   return routedUsers
-    ? `将停止 ${operation.target}，当前有 ${routedUsers} 个用户路由到该账号。`
-    : `将停止 ${operation.target}，当前没有用户路由到该账号。`;
+    ? t("admin.will_be_stopped_users_are_currently_routed_to_this_account", [operation.target, routedUsers])
+    : t("admin.will_be_stopped_no_users_are_currently_routed_to_this", [operation.target]);
 }
 
 function statusTone(status: string) {
@@ -591,37 +593,37 @@ function statusTone(status: string) {
 
 function statusLabel(status: string) {
   return ({
-    active: "启用",
-    inactive: "已停用",
-    configured: "已授权",
-    pending: "待授权",
-    running: "运行中",
-    exited: "已停止",
-    missing: "未创建",
-    succeeded: "成功",
-    failed: "失败",
-    queued: "排队中",
-    cancelling: "取消中",
-    cancelled: "已取消"
-  } as Record<string, string>)[status] || status || "未知";
+    active: t("admin.enable"),
+    inactive: t("common.disabled"),
+    configured: t("admin.authorized"),
+    pending: t("admin.authorization_required"),
+    running: t("admin.running_2"),
+    exited: t("common.stopped"),
+    missing: t("admin.not_created_2"),
+    succeeded: t("common.succeeded"),
+    failed: t("common.failed"),
+    queued: t("admin.queued"),
+    cancelling: t("admin.cancelling"),
+    cancelled: t("common.cancelled")
+  } as Record<string, string>)[status] || status || t("common.unknown");
 }
 
 function serviceDescription(service: string) {
-  if (service === "edge") return "稳定 API 入口与无中断路由切换";
-  if (service === "web") return "Portal、使用中心与管理页面静态资源";
-  if (service === "gateway-blue" || service === "gateway-green") return "API Key 鉴权、额度与 CPA 路由数据面";
-  if (service === "management") return "插件与原生界面资源服务";
-  if (service === "usage-collector") return "用户请求与 Token 用量采集";
-  if (service === "log-maintenance") return "宿主机日志容量与备份控制";
-  if (service === "admin") return "当前综合管理界面";
-  return "独立 Codex 账号代理";
+  if (service === "edge") return t("admin.stable_api_entrypoint_and_uninterrupted_route_switching");
+  if (service === "web") return t("admin.static_assets_for_portal_usage_center_and_admin");
+  if (service === "gateway-blue" || service === "gateway-green") return t("admin.api_key_authentication_quotas_and_cpa_routing");
+  if (service === "management") return t("admin.plugin_and_native_interface_assets");
+  if (service === "usage-collector") return t("admin.user_request_and_token_usage_collection");
+  if (service === "log-maintenance") return t("admin.host_log_capacity_and_backup_management");
+  if (service === "admin") return t("admin.current_admin_console");
+  return t("admin.isolated_codex_account_proxy");
 }
 
 function serviceTarget(service: string) {
   return service.startsWith("cliproxy-") ? service.slice("cliproxy-".length) : service;
 }
 
-function errorMessage(error: unknown, fallback = "操作失败，请稍后重试") {
+function errorMessage(error: unknown, fallback = t("admin.action_failed_please_try_again_later")) {
   return error instanceof Error && error.message ? error.message : fallback;
 }
 

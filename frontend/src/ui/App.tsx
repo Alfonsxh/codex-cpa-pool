@@ -1,3 +1,5 @@
+import { LanguageSelect } from "./LanguageSelect";
+import { t } from "../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { lazy, Suspense, useCallback, useEffect, useRef } from "react";
 import { useState } from "react";
@@ -84,9 +86,9 @@ export function App() {
   if (session.isError || !session.data?.authenticated) {
     return (
       <CenteredState
-        title="管理服务暂时不可用"
-        detail={session.error instanceof Error ? session.error.message : "无法确认管理会话"}
-        actionLabel="重试"
+        title={t("common.management_service_unavailable")}
+        detail={session.error instanceof Error ? session.error.message : t("common.unable_to_verify_the_management_session")}
+        actionLabel={t("common.retry")}
         onAction={() => void session.refetch()}
       />
     );
@@ -108,10 +110,10 @@ export function App() {
 }
 
 function adminSessionNotice(code: string, fallback: string) {
-  if (code === "session_expired") return "管理会话已过期，请重新输入管理密钥";
-  if (code === "session_invalidated") return "管理密钥已更新，请重新输入管理密钥";
-  if (code === "session_missing") return "管理会话已结束，请重新输入管理密钥";
-  return fallback || "管理会话已失效，请重新输入管理密钥";
+  if (code === "session_expired") return t("common.your_management_session_expired_enter_the_management_key_again");
+  if (code === "session_invalidated") return t("common.the_management_key_changed_enter_it_again");
+  if (code === "session_missing") return t("common.your_management_session_ended_enter_the_management_key_again");
+  return fallback || t("common.your_management_session_is_invalid_enter_the_management_key_again");
 }
 
 function AuthenticatedRoutes({
@@ -164,24 +166,24 @@ type AdminPage = {
 };
 
 const adminNavigation = [
-  { to: "/overview", icon: "⌂", label: "运行总览" },
-  { to: "/accounts", icon: "▣", label: "账号管理" },
-  { to: "/users", icon: "◎", label: "用户管理" },
-  { to: "/teams", icon: "◇", label: "团队管理" },
-  { to: "/runtime", icon: "⌘", label: "运行维护" },
-  { to: "/configuration", icon: "⚙", label: "配置中心" }
+  { to: "/overview", icon: "⌂", label: t("common.overview") },
+  { to: "/accounts", icon: "▣", label: t("common.accounts") },
+  { to: "/users", icon: "◎", label: t("common.users") },
+  { to: "/teams", icon: "◇", label: t("common.teams") },
+  { to: "/runtime", icon: "⌘", label: t("common.maintenance") },
+  { to: "/configuration", icon: "⚙", label: t("common.configuration") }
 ] as const;
 
 function currentAdminPage(pathname: string): AdminPage {
-  if (pathname.startsWith("/setup")) return { eyebrow: "GETTING STARTED", title: "首次设置" };
+  if (pathname.startsWith("/setup")) return { eyebrow: "GETTING STARTED", title: t("common.initial_setup") };
   if (pathname.startsWith("/configuration") || pathname.startsWith("/settings") || pathname.startsWith("/notifications")) {
-    return { eyebrow: "CONTROL PLANE SETTINGS", title: "配置中心" };
+    return { eyebrow: "CONTROL PLANE SETTINGS", title: t("common.configuration") };
   }
-  if (pathname.startsWith("/runtime")) return { eyebrow: "STACK CONTROL", title: "运行维护" };
-  if (pathname.startsWith("/teams")) return { eyebrow: "TEAM MANAGEMENT", title: "团队管理" };
-  if (pathname.startsWith("/users")) return { eyebrow: "USER MANAGEMENT", title: "用户管理" };
-  if (pathname.startsWith("/accounts")) return { eyebrow: "ACCOUNT MANAGEMENT", title: "账号管理" };
-  return { eyebrow: "OPERATIONS OVERVIEW", title: "运行总览" };
+  if (pathname.startsWith("/runtime")) return { eyebrow: "STACK CONTROL", title: t("common.maintenance") };
+  if (pathname.startsWith("/teams")) return { eyebrow: "TEAM MANAGEMENT", title: t("common.teams") };
+  if (pathname.startsWith("/users")) return { eyebrow: "USER MANAGEMENT", title: t("common.users") };
+  if (pathname.startsWith("/accounts")) return { eyebrow: "ACCOUNT MANAGEMENT", title: t("common.accounts") };
+  return { eyebrow: "OPERATIONS OVERVIEW", title: t("common.overview") };
 }
 
 function currentNavigationPath(pathname: string) {
@@ -219,7 +221,7 @@ export function AdminShell({
   const refreshActionRef = useRef<(() => Promise<void>) | null>(null);
   const [pageRefreshing, setPageRefreshing] = useState(false);
   const [manualRefreshing, setManualRefreshing] = useState(false);
-  const [refreshLabel, setRefreshLabel] = useState("等待刷新");
+  const [refreshLabel, setRefreshLabel] = useState(t("common.waiting_for_refresh"));
   const [pageDetail, setPageDetail] = useState<AdminPageDetail | null>(null);
   const setRefreshAction = useCallback((action: (() => Promise<void>) | null) => {
     refreshActionRef.current = action;
@@ -230,7 +232,7 @@ export function AdminShell({
     if (!navigation || !selectedItem || navigation.scrollWidth <= navigation.clientWidth) return;
     selectedItem.scrollIntoView({ block: "nearest", inline: "center", behavior: "auto" });
   }, [selectedPath]);
-  useEffect(() => setRefreshLabel("等待刷新"), [selectedPath]);
+  useEffect(() => setRefreshLabel(t("common.waiting_for_refresh")), [selectedPath]);
   useEffect(() => setPageDetail(null), [selectedPath]);
   const visiblePageDetail = selectedPath === "/configuration" ? pageDetail : null;
   const refreshActivePage = async () => {
@@ -240,7 +242,7 @@ export function AdminShell({
       if (refreshActionRef.current) await refreshActionRef.current();
       else await queryClient.refetchQueries({ type: "active" });
     } catch (error) {
-      showToast(error instanceof Error ? error.message : "刷新失败，请稍后重试", "error");
+      showToast(error instanceof Error ? error.message : t("common.refresh_failed_please_try_again_later"), "error");
     } finally {
       setManualRefreshing(false);
     }
@@ -263,8 +265,8 @@ export function AdminShell({
   }
   return (
     <div className="app-shell">
-      <aside className="side-nav" aria-label="管理中心导航">
-        <Link className="brand side-nav-brand" to="/overview" aria-label={`${productName} 管理中心`}>
+      <aside className="side-nav" aria-label={t("common.admin_navigation")}>
+        <Link className="brand side-nav-brand" to="/overview" aria-label={t("common.admin", [productName])}>
           <span className="brand-mark">
             <img
               src={`/portal/assets/codex-cpa-pool-mark${theme === "dark" ? "-dark" : ""}.svg`}
@@ -276,7 +278,7 @@ export function AdminShell({
             <small>Control Plane</small>
           </span>
         </Link>
-        <nav ref={navigationRef} className="admin-nav" aria-label="主导航">
+        <nav ref={navigationRef} className="admin-nav" aria-label={t("common.main_navigation")}>
           {adminNavigation.map((item) => (
             <Link
               key={item.to}
@@ -289,17 +291,17 @@ export function AdminShell({
             </Link>
           ))}
         </nav>
-        <section className="side-nav-switcher" aria-label="界面切换">
-          <div className="side-nav-switcher-heading"><span>界面切换</span><small>SWITCH</small></div>
+        <section className="side-nav-switcher" aria-label={t("common.switch_workspace")}>
+          <div className="side-nav-switcher-heading"><span>{t("common.switch_workspace")}</span><small>SWITCH</small></div>
           <div className="side-nav-switcher-links">
             <a href={applicationHref("portal")}>
               <span className="side-nav-switcher-index">01</span>
-              <span className="side-nav-switcher-copy"><strong>服务入口</strong><small>返回界面选择</small></span>
+              <span className="side-nav-switcher-copy"><strong>{t("common.service_portal_2")}</strong><small>{t("common.choose_a_workspace")}</small></span>
               <span className="side-nav-switcher-arrow" aria-hidden="true">›</span>
             </a>
             <a href={applicationHref("usage")}>
               <span className="side-nav-switcher-index">02</span>
-              <span className="side-nav-switcher-copy"><strong>使用中心</strong><small>Key、账号与用量</small></span>
+              <span className="side-nav-switcher-copy"><strong>{t("common.usage_center")}</strong><small>{t("common.keys_accounts_usage")}</small></span>
               <span className="side-nav-switcher-arrow" aria-hidden="true">›</span>
             </a>
           </div>
@@ -307,7 +309,7 @@ export function AdminShell({
         <div className="side-nav-footer">
           <div className="side-nav-auth-status">
             <span className="status-dot" aria-hidden="true" />
-            <span>管理 API 已鉴权</span>
+            <span>{t("common.admin_api_authenticated")}</span>
           </div>
           <span className="side-nav-footer-separator" aria-hidden="true">|</span>
           <ReleaseVersionIndicator className="side-nav-release" />
@@ -327,18 +329,17 @@ export function AdminShell({
             </span>
           </div>
           <div className="top-bar-actions">
-            <span className="top-bar-refresh-state">{refreshing ? "正在刷新" : refreshLabel}</span>
-            <ThemeToggle />
+            <span className="top-bar-refresh-state">{refreshing ? t("common.refreshing") : refreshLabel}</span>
+            <LanguageSelect /><ThemeToggle />
             <button
               className="button button-quiet top-bar-refresh"
               type="button"
               disabled={manualRefreshing}
               onClick={() => void refreshActivePage()}
             >
-              刷新
-            </button>
+ {t("common.refresh")} </button>
             <button className="button button-quiet top-bar-logout" type="button" onClick={onLogout} disabled={loggingOut}>
-              {loggingOut ? "正在退出…" : "退出"}
+              {loggingOut ? t("common.signing_out") : t("common.sign_out")}
             </button>
           </div>
         </header>
@@ -353,7 +354,7 @@ export function AdminShell({
 
 function PageLoading() {
   return (
-    <section className="page-content" aria-label="正在加载当前页面">
+    <section className="page-content" aria-label={t("common.loading_page")}>
       <div className="skeleton skeleton-title" />
       <div className="skeleton skeleton-line" />
       <div className="skeleton skeleton-table" />
@@ -363,7 +364,7 @@ function PageLoading() {
 
 function AppLoading() {
   return (
-    <div className="loading-shell" aria-label="正在加载管理中心">
+    <div className="loading-shell" aria-label={t("common.loading_admin")}>
       <div className="loading-brand" />
       <div className="loading-panel">
         <div className="skeleton skeleton-title" />

@@ -13,6 +13,8 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/notifications"
 	"github.com/gin-gonic/gin"
 )
@@ -48,18 +50,18 @@ type settingsWorkspaceResponse struct {
 
 func (server *Server) readSettingsWorkspace(c *gin.Context) {
 	if server.root == "" {
-		writeError(c, http.StatusServiceUnavailable, "配置中心运行目录不可用", "settings_workspace_unavailable")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.configuration_center_runtime_directory_is_unavailable"), "settings_workspace_unavailable")
 		return
 	}
-	payload, err := inspectSettingsWorkspace(server.root)
+	payload, err := inspectSettingsWorkspace(server.root, httpi18n.Locale(c))
 	if err != nil {
 		server.internalError(c, "read settings workspace", err)
 		return
 	}
-	c.JSON(http.StatusOK, payload)
+	httpi18n.JSON(c, http.StatusOK, payload)
 }
 
-func inspectSettingsWorkspace(root string) (settingsWorkspaceResponse, error) {
+func inspectSettingsWorkspace(root string, languages ...i18n.Language) (settingsWorkspaceResponse, error) {
 	absoluteRoot, err := filepath.Abs(root)
 	if err != nil {
 		return settingsWorkspaceResponse{}, fmt.Errorf("resolve settings workspace root: %w", err)
@@ -70,10 +72,10 @@ func inspectSettingsWorkspace(root string) (settingsWorkspaceResponse, error) {
 		return settingsWorkspaceResponse{}, err
 	}
 	storageDefinitions := []struct{ label, relative string }{
-		{"控制面数据库", "state/control-plane.sqlite3"},
-		{"用户用量数据库", "state/usage.sqlite3"},
-		{"控制面加密主密钥", "secrets/control-plane.key"},
-		{"管理操作审计", "logs/admin/audit.jsonl"},
+		{i18n.Text(i18n.Selected(languages), "admin.control_plane_database"), "state/control-plane.sqlite3"},
+		{i18n.Text(i18n.Selected(languages), "admin.user_usage_database"), "state/usage.sqlite3"},
+		{i18n.Text(i18n.Selected(languages), "admin.control_plane_encryption_key"), "secrets/control-plane.key"},
+		{i18n.Text(i18n.Selected(languages), "admin.admin_audit_log"), "logs/admin/audit.jsonl"},
 	}
 	storage := make([]settingsWorkspaceStorage, 0, len(storageDefinitions))
 	for _, definition := range storageDefinitions {

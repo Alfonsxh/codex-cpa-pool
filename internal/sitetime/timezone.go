@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 )
 
 const (
@@ -37,11 +39,11 @@ func Name(settings map[string]any) (string, error) {
 
 func Validate(name string) (*time.Location, error) {
 	if name == "" || name == "Local" {
-		return nil, fmt.Errorf("必须选择有效 IANA 时区")
+		return nil, i18n.M("sitetime.select_a_valid_iana_timezone")
 	}
 	location, err := time.LoadLocation(name)
 	if err != nil {
-		return nil, fmt.Errorf("必须选择有效 IANA 时区: %w", err)
+		return nil, i18n.M("sitetime.select_a_valid_iana_timezone_2", i18n.Params{"Detail": err}).WithCause(err)
 	}
 	return location, nil
 }

@@ -96,6 +96,7 @@ flowchart LR
 | [快速开始](./docs/getting-started.md) | 安装、首次设置和后续操作 |
 | [架构](./docs/architecture.md) | 服务拓扑、数据所有权、请求链路与蓝绿切换 |
 | [部署](./docs/deployment.md) | 目录、入口、部署前提与验收 |
+| [多语言](./docs/internationalization.md) | 英文默认、接口语言协商、报表与通知语言 |
 | [配置中心](./docs/configuration-center.md) | 邮箱、额度、通知、品牌和上游代理配置 |
 | [升级](./docs/upgrade.md) | 备份、升级、验收与回滚边界 |
 | [备份与恢复](./docs/backup-and-restore.md) | SQLite、主密钥、OAuth 和账号配置恢复 |

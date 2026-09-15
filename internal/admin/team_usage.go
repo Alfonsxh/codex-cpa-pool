@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/Alfonsxh/codex-cpa-pool/internal/controlplane"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/usage"
 	"github.com/gin-gonic/gin"
 )
@@ -38,7 +40,7 @@ type teamUsageCatalog struct {
 
 func (server *Server) readTeamUsage(c *gin.Context) {
 	if server.usage == nil {
-		writeError(c, http.StatusServiceUnavailable, "用量查询服务尚未就绪", "usage_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.usage_query_service_is_not_ready"), "usage_not_ready")
 		return
 	}
 	catalog, err := server.loadTeamUsageCatalog(c)
@@ -76,8 +78,8 @@ func (server *Server) readTeamUsage(c *gin.Context) {
 	rows = append(rows, teamUsageRow{
 		Team: controlplane.Team{
 			ID:          "unassigned",
-			Name:        "未分组",
-			Description: "尚未分配团队的当前用户",
+			Name:        httpi18n.Text(c, "admin.ungrouped"),
+			Description: httpi18n.Text(c, "admin.current_users_with_no_assigned_team"),
 			TagStyle:    "slate",
 			UserCount:   catalog.unassignedCount,
 		},
@@ -95,7 +97,7 @@ func (server *Server) readTeamUsage(c *gin.Context) {
 		}
 		return rows[left].ID < rows[right].ID
 	})
-	c.JSON(http.StatusOK, teamUsageResponse{
+	httpi18n.JSON(c, http.StatusOK, teamUsageResponse{
 		usageWindowContext: window,
 		Attribution:        "current_membership",
 		Teams:              rows,
@@ -104,7 +106,7 @@ func (server *Server) readTeamUsage(c *gin.Context) {
 
 func (server *Server) readTeamUsageBreakdown(c *gin.Context) {
 	if server.usage == nil {
-		writeError(c, http.StatusServiceUnavailable, "用量查询服务尚未就绪", "usage_not_ready")
+		writeError(c, http.StatusServiceUnavailable, i18n.M("admin.usage_query_service_is_not_ready"), "usage_not_ready")
 		return
 	}
 	catalog, err := server.loadTeamUsageCatalog(c)
@@ -114,7 +116,7 @@ func (server *Server) readTeamUsageBreakdown(c *gin.Context) {
 	teamID := strings.TrimSpace(c.Query("team_id"))
 	if teamID != "unassigned" {
 		if _, found := catalog.teamByID[teamID]; !found {
-			writeError(c, http.StatusNotFound, "团队不存在", "team_not_found")
+			writeError(c, http.StatusNotFound, i18n.M("admin.team_does_not_exist"), "team_not_found")
 			return
 		}
 	}
@@ -134,7 +136,7 @@ func (server *Server) readTeamUsageBreakdown(c *gin.Context) {
 		server.internalError(c, "query team usage breakdown", err)
 		return
 	}
-	c.JSON(http.StatusOK, teamUsageBreakdownResponse{
+	httpi18n.JSON(c, http.StatusOK, teamUsageBreakdownResponse{
 		usageWindowContext: window,
 		Definition:         "team_model_reasoning_effort_tokens",
 		TeamBreakdown:      breakdown,
