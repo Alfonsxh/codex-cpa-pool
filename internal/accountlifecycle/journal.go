@@ -19,6 +19,7 @@ const (
 	operationUpdate    = "update"
 	operationDelete    = "delete"
 	operationClearAuth = "clear_auth"
+	operationPolicy    = "policy"
 
 	phaseAccepted           = "accepted"
 	phaseRoutesPrepared     = "routes_prepared"
@@ -118,7 +119,7 @@ func validateOperation(operation Operation) error {
 		return err
 	}
 	switch operation.Kind {
-	case operationCreate, operationDelete, operationClearAuth:
+	case operationCreate, operationDelete, operationClearAuth, operationPolicy:
 		if operation.NewAccountID != "" {
 			return errors.New("unexpected new account ID in lifecycle operation")
 		}
@@ -192,6 +193,18 @@ func (manager *Manager) Recover(ctx context.Context) error {
 	}
 	if err := validateOperation(operation); err != nil {
 		return fmt.Errorf("%w: %v", ErrLifecycleRecoveryRequired, err)
+	}
+	// The policy and all affected routes commit in one SQLite transaction.
+	// Even an accepted journal can lag that commit. Republish the authoritative
+	// state without rebuilding a container or interrupting its old streams.
+	if operation.Kind == operationPolicy {
+		if _, err := manager.projection.Render(ctx); err != nil {
+			return fmt.Errorf("render recovered account policy: %w", err)
+		}
+		if _, err := manager.snapshots.PublishAuthSnapshot(ctx, true); err != nil {
+			return fmt.Errorf("activate recovered account policy: %w", err)
+		}
+		return manager.finishOperation(ctx, operation)
 	}
 	desired, err := manager.recoveryAccount(ctx, operation)
 	if err != nil {

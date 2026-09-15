@@ -639,13 +639,16 @@ func (server *Server) updateAccount(c *gin.Context) {
 		AccountID: body.ID, NewAccountID: body.NewID, Email: body.Email,
 		ProxyMode: body.ProxyMode, ProxyURL: proxyURL, Enabled: body.GroupEnabled,
 		Default: body.DefaultGroup, FallbackAccount: body.FallbackAccount,
+		PolicyOnly: c.FullPath() == "/admin/api/accounts/policy",
 	})
 	if err != nil {
 		server.writeAccountLifecycleError(c, "update account", err)
 		return
 	}
 	message := "CPA 账号已更新并通过运行探针"
-	if result.RenamedFrom != "" {
+	if c.FullPath() == "/admin/api/accounts/policy" {
+		message = "CPA 账号选择策略已更新"
+	} else if result.RenamedFrom != "" {
 		message = "CPA 已重命名、重建并通过运行探针"
 	}
 	c.JSON(http.StatusOK, gin.H{"message": message, "account": result})

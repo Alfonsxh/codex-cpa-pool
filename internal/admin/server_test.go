@@ -1307,7 +1307,7 @@ func TestAccountLifecycleCompatibilityRoutesEnforceConfirmationsAndReturnSecretF
 		"id": "alpha", "group_enabled": false, "default_group": false, "fallback_account": "beta",
 	}, headers, nil)
 	if response.Code != http.StatusOK || service.updateRequest.Enabled == nil || *service.updateRequest.Enabled ||
-		service.updateRequest.FallbackAccount != "beta" {
+		service.updateRequest.FallbackAccount != "beta" || !service.updateRequest.PolicyOnly {
 		t.Fatalf("update account policy response = %d %s request=%#v", response.Code, response.Body.String(), service.updateRequest)
 	}
 

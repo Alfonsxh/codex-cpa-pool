@@ -121,6 +121,7 @@ type UpdateRequest struct {
 	Enabled                     *bool   `json:"enabled"`
 	Default                     *bool   `json:"default"`
 	FallbackAccount             string  `json:"fallback_account"`
+	PolicyOnly                  bool    `json:"-"`
 	AllowUnavailableProxyRepair bool    `json:"-"`
 }
 
@@ -266,6 +267,9 @@ func (manager *Manager) Create(ctx context.Context, request CreateRequest) (resu
 func (manager *Manager) Update(ctx context.Context, request UpdateRequest) (result UpdateResult, returnError error) {
 	manager.lock.Lock()
 	defer manager.lock.Unlock()
+	if request.PolicyOnly {
+		return manager.updatePolicy(ctx, request)
+	}
 	accountID, err := controlplane.NormalizeAccountID(request.AccountID)
 	if err != nil {
 		return UpdateResult{}, err

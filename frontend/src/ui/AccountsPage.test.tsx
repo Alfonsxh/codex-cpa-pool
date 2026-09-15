@@ -579,6 +579,22 @@ describe("AccountsPage", () => {
     });
   });
 
+  it("preserves the chosen disable fallback when the account catalog refreshes", async () => {
+    const expanded = { ...catalog, accounts: [...catalog.accounts, { ...catalog.accounts[1], id: "gamma" }] };
+    vi.stubGlobal("fetch", accountPageFetchMock(expanded));
+    const user = userEvent.setup();
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(<MemoryRouter><QueryClientProvider client={queryClient}><AccountsPage csrfToken="csrf-test" /></QueryClientProvider></MemoryRouter>);
+    await user.click(await screen.findByRole("row", { name: "展开 alpha" }));
+    await user.click(screen.getByRole("button", { name: "停用账号" }));
+    const dialog = screen.getByRole("dialog");
+    fireEvent.change(dialog.querySelector("select")!, { target: { value: "gamma" } });
+    queryClient.setQueryData(["accounts", "today", null, null], {
+      ...expanded, accounts: expanded.accounts.map(account => ({ ...account, routed_users: account.routed_users + 1 }))
+    });
+    await waitFor(() => expect(within(dialog).getByRole("button", { name: "现有用户切换到：gamma" })).toBeInTheDocument());
+  });
+
   it("checks legacy OAuth jobs before confirming and submits through the legacy operation path", async () => {
     const clipboard = { writeText: vi.fn(async () => undefined) };
     const fetchMock = accountPageFetchMock(catalog, {

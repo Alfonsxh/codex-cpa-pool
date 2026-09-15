@@ -297,6 +297,11 @@ paths:
     post:
       operationId: updateAdminAccountPolicy
       tags: [admin-accounts]
+      description: >-
+        Updates only group_enabled, default_group and fallback_account. Disabling atomically
+        moves existing user routes to an enabled eligible fallback and publishes the Gateway
+        snapshot. Account containers and existing streams are preserved; identity and proxy
+        changes must use the account update endpoint.
       security:
         - adminSession: []
       parameters:

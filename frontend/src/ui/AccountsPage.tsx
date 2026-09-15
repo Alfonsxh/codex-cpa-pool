@@ -765,6 +765,7 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
         </Paragraph>
       </LegacyConfirmModal>
       <AccountPolicyModal
+        key={policyAccount?.id ?? "closed"}
         account={policyAccount}
         accounts={catalog.accounts}
         pending={lifecycle.isPending}
@@ -1875,7 +1876,7 @@ function AccountPolicyModal({
     .filter((candidate) => candidate.enabled && candidate.id !== account?.id)
     .map((candidate) => ({ value: candidate.id, label: candidate.id })), [account?.id, accounts]);
   useEffect(() => {
-    setFallback(options[0]?.value ?? "");
+    setFallback((current) => options.some((option) => option.value === current) ? current : options[0]?.value ?? "");
   }, [account?.id, options]);
   if (!account) return null;
   const enabling = !account.enabled;
@@ -1890,10 +1891,14 @@ function AccountPolicyModal({
       closeIcon={<span className="legacy-dialog-close" aria-hidden="true">×</span>}
       transitionName=""
       maskTransitionName=""
-      okText={enabling ? "确认启用" : "确认停用"}
+      okText={pending ? (enabling ? "正在启用…" : "正在停用…") : enabling ? "确认启用" : "确认停用"}
+      confirmLoading={pending}
+      closable={!pending}
+      mask={{ closable: !pending }}
+      keyboard={!pending}
       cancelText="取消"
       okType={enabling ? "primary" : "default"}
-      cancelButtonProps={{ className: "legacy-modal-ghost" }}
+      cancelButtonProps={{ className: "legacy-modal-ghost", disabled: pending }}
       okButtonProps={{
         className: enabling ? undefined : "legacy-modal-danger-outline",
         danger: !enabling,
@@ -1922,9 +1927,10 @@ function AccountPolicyModal({
         {requiresFallback ? (
           <label className="field">
             <span>现有用户切换到</span>
-            <LegacyEnhancedSelect label="现有用户切换到" value={fallback} options={options} onChange={setFallback} />
+            <LegacyEnhancedSelect label="现有用户切换到" value={fallback} options={options} onChange={setFallback} disabled={pending} />
           </label>
         ) : null}
+        {pending ? <div role="status">正在更新账号选择策略，请稍候。</div> : null}
         <LegacyFormError error={error} />
       </div>
     </Modal>
