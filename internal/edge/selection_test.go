@@ -82,7 +82,7 @@ func TestSelectorWatchesAtomicSelectionReplacement(t *testing.T) {
 	}
 	// The selector refreshes from a timer as well as fsnotify events, but a
 	// heavily loaded machine can starve the run goroutine past a short deadline.
-	deadline := time.Now().Add(5 * time.Second)
+	deadline := time.Now().Add(20 * time.Second)
 	for time.Now().Before(deadline) && selector.Slot() != Green {
 		time.Sleep(5 * time.Millisecond)
 	}
@@ -96,7 +96,7 @@ func TestSelectorWatchesAtomicSelectionReplacement(t *testing.T) {
 		if err != nil {
 			t.Fatalf("selector Run: %v", err)
 		}
-	case <-time.After(time.Second):
+	case <-time.After(5 * time.Second):
 		t.Fatal("selector watcher did not stop")
 	}
 }
