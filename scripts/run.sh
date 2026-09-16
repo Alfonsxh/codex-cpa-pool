@@ -1292,7 +1292,7 @@ write_target_env() {
       'CPA_ALLOW_EDGE_RECREATE=true'
     printf 'CPA_CONFIRM_EDGE_MAINTENANCE=%s\n' "$deploy_root"
     printf '%s\n' \
-      'CPA_GATEWAY_DRAIN_TIMEOUT_SECONDS=3600' \
+      'CPA_GATEWAY_DRAIN_TIMEOUT_SECONDS=1' \
       'CPA_GATEWAY_FORCE_STOP_ON_DRAIN_TIMEOUT=true' \
       'CPA_DOCKER_SOCKET_PATH=/var/run/docker.sock' \
       'CPA_ACCOUNT_COMPOSE_PROJECT=cliproxy-multi' \
@@ -2432,8 +2432,15 @@ set +a
 : "${CPA_RUNTIME_OWNER:=codex-cpa}"
 : "${CPA_OWNERSHIP_ACTIVATION_TTL:=2m}"
 : "${CPA_ALLOW_EDGE_RECREATE:=false}"
-: "${CPA_GATEWAY_DRAIN_TIMEOUT_SECONDS:=3600}"
+: "${CPA_GATEWAY_DRAIN_TIMEOUT_SECONDS:=1}"
 : "${CPA_GATEWAY_FORCE_STOP_ON_DRAIN_TIMEOUT:=true}"
+# Targets bootstrapped before v2.1.1 store the former 3600s default in target.env,
+# and that file is sourced above, so the stored value would otherwise keep the old
+# one-hour drain. Treat the legacy default as "use the shipped default"; any other
+# operator value is still honoured.
+if [ "$CPA_GATEWAY_DRAIN_TIMEOUT_SECONDS" = "3600" ]; then
+  CPA_GATEWAY_DRAIN_TIMEOUT_SECONDS=1
+fi
 : "${CPA_CONFIRM_DEPLOY_ROOT:?CPA_CONFIRM_DEPLOY_ROOT must exactly repeat CPA_DEPLOY_ROOT}"
 
 
