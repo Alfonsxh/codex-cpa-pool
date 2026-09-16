@@ -348,8 +348,9 @@ body {
 .usage-account-table { width: 100%; min-width: 0; border-collapse: collapse; table-layout: fixed; }
 .usage-account-table th,
 .usage-account-table td { padding: 14px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
-.usage-account-table thead th { position: sticky; top: 0; z-index: 2; color: var(--faint); background: var(--surface-2); font: 700 10px/1.25 var(--sans); text-align: center; white-space: nowrap; }
+.usage-account-table thead th { position: sticky; top: 0; z-index: 2; color: var(--faint); background: var(--surface-2); font: 700 10px/1.25 var(--sans); text-align: center; vertical-align: top; white-space: nowrap; }
 .usage-sort-button { display: flex; width: 100%; align-items: center; justify-content: center; gap: 6px; padding: 0; color: inherit; background: transparent; border: 0; cursor: pointer; font: inherit; text-align: center; }
+.usage-account-table thead .usage-sort-button { align-items: flex-start; }
 .usage-sort-copy { display: flex; flex-direction: column; align-items: center; }
 .usage-sort-copy > small { margin-top: 5px; color: var(--faint); font: 500 9px/1.2 var(--sans); }
 .usage-sort-button::after { color: #aab3c3; content: "↕"; font-size: 10px; }

@@ -294,7 +294,6 @@ html[lang="en"] .top-bar { flex-wrap: wrap; padding-block: 14px; }
 html[lang="en"] .top-bar h1,
 html[lang="en"] .top-bar-heading .eyebrow { flex-wrap: wrap; white-space: normal; }
 html[lang="en"] .top-bar-actions { max-width: 100%; flex-wrap: wrap; }
-html[lang="en"] .top-bar-refresh-state { max-width: 240px; white-space: normal; }
 .page-content { min-width: 0; padding: 24px clamp(24px, 4vw, 64px) 64px; }
 .page-intro { min-height: 76px; margin-bottom: 16px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); box-shadow: var(--shadow-soft); display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .page-intro p { max-width: 670px; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.65; }
@@ -1166,8 +1165,8 @@ html[lang="en"] .top-bar-refresh-state { max-width: 240px; white-space: normal; 
 }
 .account-search-legacy-icon { width: 0; height: 0; }
 .account-search-input .ant-input::placeholder { color: var(--faint); }
-.account-filter-actions { min-width: 0; display: grid; grid-template-columns: repeat(2, minmax(96px, 1fr)) auto; align-items: end; gap: 12px; }
-.account-time-filter-actions { display: grid; width: 500px; max-width: 100%; min-width: 0; justify-self: end; grid-template-columns: minmax(180px, 1fr) auto; align-items: end; gap: 12px; }
+.account-filter-actions { min-width: 0; display: grid; grid-template-columns: repeat(2, minmax(104px, 1fr)) auto; align-items: end; gap: 12px; }
+.account-time-filter-actions { display: grid; width: 540px; max-width: 100%; min-width: 0; justify-self: end; grid-template-columns: minmax(180px, 1fr) auto; align-items: end; gap: 12px; }
 .account-time-filter-actions .account-search-input { width: 100%; }
 .account-model-test-content { display: grid; gap: 16px; }
 .account-model-test-account { display: grid; gap: 4px; }
@@ -1184,7 +1183,7 @@ html[lang="en"] .top-bar-refresh-state { max-width: 240px; white-space: normal; 
   .account-time-filter-actions { grid-template-columns: minmax(0, 1fr); }
 }
 .account-filter-field { min-width: 0; display: grid; gap: 8px; }
-.account-filter-field > span:first-child { color: var(--faint); font: 700 8px/12px var(--sans); letter-spacing: .04em; text-transform: uppercase; }
+.account-filter-field > span:first-child { min-width: 0; overflow: hidden; color: var(--faint); font: 700 8px/12px var(--sans); letter-spacing: .04em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 .account-filter-field .ant-select { width: 100%; min-height: var(--overview-control-height); height: var(--overview-control-height); }
 .account-filter-field .ant-select-content { color: var(--ink); font: 9px/1.25 var(--mono); text-align: left; text-transform: none; transform: translateX(-1px); }
 .admin-wide-select .ant-select-suffix { width: auto; height: 15px; color: var(--faint); font: 12px/15px var(--mono); }
@@ -2054,13 +2053,14 @@ html[lang="en"] .overview-legacy-window-segments button { flex: none; }
 .overview-legacy-window-control legend,
 .overview-token-mode-control legend { display: block; width: 100%; margin: 0 0 8px; line-height: 12px; }
 .overview-token-mode-segments { display: grid; min-width: 0; min-height: var(--overview-control-height); grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px; padding: 4px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface-3); }
-.overview-token-mode-segments button { display: inline-flex; min-width: 0; min-height: 30px; align-items: center; justify-content: center; gap: 6px; padding: 6px 7px; border: 0; border-radius: 6px; color: var(--muted); background: transparent; cursor: pointer; font: 600 8px/1 var(--mono); white-space: nowrap; transition: color .18s ease, background-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+.overview-token-mode-segments button { display: inline-flex; min-width: 0; min-height: 30px; align-items: center; justify-content: center; gap: 6px; overflow: hidden; padding: 6px 5px; border: 0; border-radius: 6px; color: var(--muted); background: transparent; cursor: pointer; font: 600 8px/1 var(--mono); white-space: nowrap; transition: color .18s ease, background-color .18s ease, box-shadow .18s ease, transform .18s ease; }
 .overview-token-mode-segments button i,
 .overview-token-mode-dot { width: 7px; height: 7px; flex: none; display: inline-block; border: 2px solid transparent; border-radius: 50%; }
 .overview-token-mode-segments button.unweighted i,
 .overview-token-mode-dot.unweighted { background: #6374d8; border-color: color-mix(in srgb, #6374d8 35%, transparent); }
 .overview-token-mode-segments button.weighted i,
 .overview-token-mode-dot.weighted { background: #d18b41; border-color: color-mix(in srgb, #d18b41 35%, transparent); }
+.overview-token-mode-segments button > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .overview-token-mode-segments button:hover { color: var(--ink); }
 .overview-token-mode-segments button:active { transform: translateY(1px); }
 .overview-token-mode-segments button[aria-pressed="true"] { color: var(--accent); background: var(--surface); box-shadow: 0 1px 4px rgb(43 54 87 / 14%); }
@@ -2088,6 +2088,8 @@ html[lang="en"] .overview-legacy-window-segments button { flex: none; }
 .overview-legacy-page .usage-variable-select { display: grid; min-width: 0; gap: 5px; color: var(--faint); font-size: 8px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
 .overview-legacy-page .usage-variable-select .enhanced-select { width: 100%; min-width: 0; }
 .overview-legacy-page .usage-refresh-control .enhanced-select { min-width: 0; }
+/* Keep the English interval label ("30 seconds") inside this narrow control. */
+.overview-legacy-page .usage-refresh-control .enhanced-select-trigger { gap: 8px; padding-inline-end: 8px; }
 .overview-legacy-filter { display: grid; min-width: 0; gap: 5px; }
 .overview-legacy-filter .ant-select { width: 100%; min-width: 0; min-height: var(--overview-control-height) !important; height: var(--overview-control-height) !important; overflow: hidden; border-color: var(--line); border-radius: 8px; background: var(--surface); font: 9px/1.2 var(--mono); }
 .overview-legacy-filter .ant-select-content { min-height: 0; align-items: center; }
@@ -3016,7 +3018,7 @@ th[aria-sort="ascending"] > .legacy-sort-button.active::after { content: "↑"; 
 .loading-panel { margin: 10vh clamp(25px, 5vw, 70px); }
 
 @media (min-width: 1440px) {
-  .overview-token-scope-filters { grid-template-columns: minmax(132px, 142px) repeat(2, minmax(110px, 1fr)) minmax(180px, 190px); }
+  .overview-token-scope-filters { grid-template-columns: minmax(184px, 216px) repeat(2, minmax(110px, 1fr)) minmax(180px, 190px); }
 }
 
 @media (min-width: 1800px) {

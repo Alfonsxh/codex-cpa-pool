@@ -320,13 +320,13 @@ export function OverviewPage() {
                     className="unweighted"
                     aria-pressed={tokenMode === "unweighted"}
                     onClick={() => setTokenMode("unweighted")}
-                  ><i aria-hidden="true" />{t("common.unweighted_2")}</button>
+                  ><i aria-hidden="true" /><span>{t("common.unweighted_2")}</span></button>
                   <button
                     type="button"
                     className="weighted"
                     aria-pressed={tokenMode === "weighted"}
                     onClick={() => setTokenMode("weighted")}
-                  ><i aria-hidden="true" />{t("common.weighted_2")}</button>
+                  ><i aria-hidden="true" /><span>{t("common.weighted_2")}</span></button>
                 </div>
               </fieldset>
               <LegacyUsageMultiSelect

@@ -23,7 +23,7 @@ export function configurationControlWidth(field: ConfigurationField): number | "
     const longestLabel = Math.max(0, ...(field.choices ?? []).map((choice) =>
       [...`${choice.label} · ${choice.value}`].reduce((width, character) => width + (character.charCodeAt(0) <= 127 ? 7.5 : 12), 0)
     ));
-    return Math.min(360, Math.max(180, Math.ceil((longestLabel + 56) / 40) * 40));
+    return Math.min(560, Math.max(180, Math.ceil((longestLabel + 56) / 40) * 40));
   }
   return "100%";
 }

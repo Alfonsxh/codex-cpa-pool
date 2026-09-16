@@ -65,8 +65,8 @@
 .configuration-panel {
   --configuration-control-height: 36px;
   --configuration-control-inset: 10px;
-  --configuration-status-width: 104px;
-  --configuration-columns: minmax(0, .85fr) var(--configuration-status-width) minmax(0, 1.15fr);
+  --configuration-status-width: minmax(124px, max-content);
+  --configuration-columns: minmax(0, .8fr) var(--configuration-status-width) minmax(0, 1.2fr);
   --configuration-column-gap: 16px;
   --configuration-row-padding: 18px;
   container: configuration-content / inline-size;
@@ -177,7 +177,7 @@ form.configuration-panel .settings-workspace-content { flex: 1; height: auto; mi
 .configuration-field-value .timezone-select.ant-select input.ant-select-input { padding: 0; text-align: left; background: transparent; border: 0; outline: none; box-shadow: none; }
 .configuration-field-value .timezone-select.ant-select[aria-invalid="true"] { box-shadow: 0 0 0 1px var(--danger); }
 .configuration-choice-control { display: grid; width: 100%; min-width: 0; gap: 7px; }
-.configuration-field-value .enhanced-select-trigger { min-height: var(--configuration-control-height); height: var(--configuration-control-height); padding-block: 0; padding-inline-start: var(--configuration-control-inset); justify-content: space-between; border-radius: 7px; font-size: 12px; text-align: left; background: transparent; border: 0; box-shadow: none; }
+.configuration-field-value .enhanced-select-trigger { min-height: var(--configuration-control-height); height: var(--configuration-control-height); padding-block: 0; padding-inline: var(--configuration-control-inset) 8px; gap: 8px; justify-content: space-between; border-radius: 7px; font-size: 12px; text-align: left; background: transparent; border: 0; box-shadow: none; }
 .configuration-field-value .enhanced-select-trigger:hover:not(:disabled) { background: var(--surface-2); }
 .configuration-field-value .enhanced-select-trigger:focus-visible,
 .configuration-field-value .enhanced-select-trigger[aria-expanded="true"] { background: var(--surface); box-shadow: 0 0 0 1px var(--accent); outline: 2px solid var(--accent-soft); outline-offset: 1px; }
@@ -215,7 +215,7 @@ form.configuration-panel .settings-workspace-content { flex: 1; height: auto; mi
 .configuration-nullable-control { display: grid; gap: 5px; }
 .configuration-nullable-control small { color: var(--faint); font-size: 8px; }
 .configuration-field-meta { display: grid; min-width: 0; align-items: center; justify-items: center; color: var(--faint); text-align: center; }
-.configuration-apply { padding: 3px 6px; color: var(--muted); background: var(--surface-2); border-radius: 5px; font: 600 10px/1.4 var(--mono); white-space: nowrap; }
+.configuration-apply { max-width: 100%; padding: 3px 6px; color: var(--muted); background: var(--surface-2); border-radius: 5px; font: 600 10px/1.4 var(--mono); overflow-wrap: anywhere; text-align: center; white-space: normal; }
 
 .configuration-control-error { display: block; max-width: 100%; margin-top: 2px; color: var(--danger); font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
 .notification-integration { display: grid; gap: 14px; padding: 18px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
@@ -355,7 +355,7 @@ form.configuration-panel .settings-workspace-content { flex: 1; height: auto; mi
   .settings-navigation { padding: 12px; }
 }
 @container configuration-content (max-width: 720px) {
-  .configuration-fields { --configuration-columns: 88px minmax(0, 1fr); --configuration-row-padding: 16px; --configuration-column-gap: 12px; }
+  .configuration-fields { --configuration-columns: max-content minmax(0, 1fr); --configuration-row-padding: 16px; --configuration-column-gap: 12px; }
   .configuration-fields > .configuration-table-head { display: none; }
   .configuration-fields > .configuration-field { row-gap: 10px; }
   .configuration-fields > .configuration-field > .configuration-field-copy { grid-column: 1 / -1; }
