@@ -115,7 +115,9 @@ export function verifyAssets({ release, repo, version, revision, imagePrefix, di
     const assets = (release.assets || []).filter(asset => asset.name === name);
     requireValue(assets.length === 1 && assets[0].state === "uploaded" && assets[0].size > 0 && assets[0].size <= (128 << 20), `发布附件缺失或无效：${name}`);
   }
-  run("gh", ["release", "download", version, "--repo", repo, "--dir", directory, ...[...names, "SHA256SUMS"].flatMap(name => ["--pattern", name])]);
+  // The deployment archive is ~12 MiB and slow links can need several minutes;
+  // the default 120s command budget would report a bogus tool failure.
+  run("gh", ["release", "download", version, "--repo", repo, "--dir", directory, ...[...names, "SHA256SUMS"].flatMap(name => ["--pattern", name])], { timeout: 900_000 });
   const checksums = new Map();
   for (const line of readFileSync(path.join(directory, "SHA256SUMS"), "utf8").trim().split(/\r?\n/)) {
     const match = /^([a-f0-9]{64}) [ *]([^/\\]+)$/.exec(line);
