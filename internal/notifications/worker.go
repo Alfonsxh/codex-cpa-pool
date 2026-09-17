@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Alfonsxh/codex-cpa-pool/internal/controlplane"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/failover"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/quota"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/usage"
@@ -87,9 +88,11 @@ func (worker *Worker) RunOnce(ctx context.Context) (RunResult, error) {
 		return result, worker.recordError(ctx, state, err)
 	}
 	threshold := config.ThresholdPercent
-	currentAccounts := make(map[string]struct{}, len(snapshot.Accounts))
+	quotaAccounts := make(map[string]struct{}, len(snapshot.Accounts))
 	for _, account := range snapshot.Accounts {
-		currentAccounts[account.ID] = struct{}{}
+		if account.Enabled && !strings.EqualFold(strings.TrimSpace(account.StateReason), "account_disabled") {
+			quotaAccounts[account.ID] = struct{}{}
+		}
 	}
 	previousAlerts := make(map[string]AlertRecord)
 	for key, value := range state.QuotaAlerts {
@@ -103,6 +106,10 @@ func (worker *Worker) RunOnce(ctx context.Context) (RunResult, error) {
 	weeklyRefreshDetected := false
 	if evaluateQuota {
 		for _, row := range QuotaRows(snapshot, threshold, nil) {
+			switch row.Level {
+			case "disabled", "stopped", "unauthorized", "credential_unavailable", "degraded", "reserved":
+				continue
+			}
 			currentSignals[row.Key] = row
 		}
 		for key, row := range currentSignals {
@@ -137,7 +144,7 @@ func (worker *Worker) RunOnce(ctx context.Context) (RunResult, error) {
 		}
 		updatedWindows := make(map[string]WindowRecord)
 		for key, value := range previousWindows {
-			if _, found := currentAccounts[accountFromSignalKey(key)]; found && regularSignalKey(key) {
+			if _, found := quotaAccounts[accountFromSignalKey(key)]; found && regularSignalKey(key) {
 				updatedWindows[key] = value
 			}
 		}
@@ -195,7 +202,7 @@ func (worker *Worker) RunOnce(ctx context.Context) (RunResult, error) {
 	if config.QuotaAlertEnabled && evaluateQuota {
 		updatedAlerts := make(map[string]AlertRecord)
 		for key, value := range previousAlerts {
-			if _, found := currentAccounts[accountFromSignalKey(key)]; found && regularSignalKey(key) {
+			if _, found := quotaAccounts[accountFromSignalKey(key)]; found && regularSignalKey(key) {
 				updatedAlerts[key] = value
 			}
 		}
@@ -261,10 +268,12 @@ func CollectSnapshot(
 		}
 	}
 	var (
-		accounts      []controlplane.Account
-		quotaState    quota.RuntimeState
-		activity      map[string]int
-		quotaStateSet bool
+		accounts         []controlplane.Account
+		failoverState    failover.RuntimeState
+		quotaState       quota.RuntimeState
+		activity         map[string]int
+		failoverStateSet bool
+		quotaStateSet    bool
 	)
 	group, groupContext := errgroup.WithContext(ctx)
 	group.Go(func() error {
@@ -275,6 +284,11 @@ func CollectSnapshot(
 	group.Go(func() error {
 		var err error
 		quotaState, quotaStateSet, err = quota.ReadState(groupContext, store)
+		return err
+	})
+	group.Go(func() error {
+		var err error
+		failoverState, failoverStateSet, err = failover.ReadRuntimeState(groupContext, store)
 		return err
 	})
 	group.Go(func() error {
@@ -297,6 +311,12 @@ func CollectSnapshot(
 			quotaByAccount[account.Account] = account
 		}
 	}
+	reasonByAccount := make(map[string]string)
+	if failoverStateSet && failoverState.Mode == failover.ModeActive {
+		for account, state := range failoverState.Accounts {
+			reasonByAccount[account] = state.Reason
+		}
+	}
 	windowSeconds := int64(900)
 	if reader, ok := activityProvider.(interface{ ActiveUserWindow() time.Duration }); ok {
 		windowSeconds = int64(reader.ActiveUserWindow() / time.Second)
@@ -308,7 +328,8 @@ func CollectSnapshot(
 			accountQuota = quota.AccountQuota{Account: account.ID, Status: "unavailable", WeeklyWindows: []quota.WeeklyWindow{}}
 		}
 		result.Accounts = append(result.Accounts, AccountSnapshot{
-			ID: account.ID, ActiveUsers1H: activity[account.ID], Quota: accountQuota,
+			ID: account.ID, Enabled: account.GroupEnabled, StateReason: reasonByAccount[account.ID],
+			ActiveUsers1H: activity[account.ID], Quota: accountQuota,
 		})
 	}
 	return result, nil

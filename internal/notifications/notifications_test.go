@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/Alfonsxh/codex-cpa-pool/internal/controlplane"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/failover"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/quota"
 	"github.com/go-resty/resty/v2"
@@ -135,6 +136,76 @@ func TestQuotaRowsAndMarkdownUseAccountSummary(t *testing.T) {
 		strings.Index(content, "| 🟢 cpa-2 |") < strings.Index(content, "| 🔴 cpa-10 |") &&
 		strings.Index(content, "| 🔴 cpa-10 |") < strings.Index(content, "| ⚪ cpa-3 |")) {
 		t.Fatalf("markdown row ordering:\n%s", content)
+	}
+}
+
+func TestDisabledAccountsAreRecordedSeparately(t *testing.T) {
+	now := time.Date(2026, 7, 20, 10, 0, 0, 0, time.FixedZone("CST", 8*60*60))
+	snapshot := Snapshot{Accounts: []AccountSnapshot{
+		testAccountSnapshot("active", 20, "常规周限额"),
+		testAccountSnapshot("disabled", 99, "常规周限额"),
+	}}
+	snapshot.Accounts[1].Enabled = false
+	snapshot.Accounts[1].ActiveUsers1H = 0
+	rows := QuotaRows(snapshot, 90, nil)
+	if len(rows) != 2 || rows[0].Account != "active" || rows[0].Level != "normal" ||
+		rows[1].Account != "disabled" || rows[1].Level != "disabled" || rows[1].UsedPercent != nil {
+		t.Fatalf("disabled rows = %#v", rows)
+	}
+	content, err := buildChineseMarkdownV2(
+		snapshot, "CPA 账号额度报告", now.Location(), 90, now, nil, nil,
+		UsageCenterURL("http://cpa.example.com"),
+	)
+	if err != nil {
+		t.Fatalf("BuildMarkdownV2: %v", err)
+	}
+	for _, expected := range []string{
+		"| ⏸️ disabled | — | 0 | — | — |", "账号总数 2", "额度正常 1", "已停用 1",
+	} {
+		if !strings.Contains(content, expected) {
+			t.Fatalf("markdown is missing %q:\n%s", expected, content)
+		}
+	}
+	if strings.Contains(content, "99%") {
+		t.Fatalf("disabled account quota leaked into markdown:\n%s", content)
+	}
+}
+
+func TestQuotaRowsMapCanonicalOperationalStates(t *testing.T) {
+	cases := []struct {
+		reason   string
+		level    string
+		hasQuota bool
+	}{
+		{reason: "container_not_running", level: "stopped", hasQuota: true},
+		{reason: "oauth_missing", level: "unauthorized"},
+		{reason: "credential_unavailable", level: "credential_unavailable"},
+		{reason: "transient_cooldown", level: "degraded", hasQuota: true},
+		{reason: "rate_limited", level: "degraded", hasQuota: true},
+		{reason: "degraded", level: "degraded", hasQuota: true},
+		{reason: "reserve_reached", level: "reserved", hasQuota: true},
+		{reason: "quota_stale", level: "unavailable"},
+		{reason: "quota_unavailable", level: "unavailable"},
+		{reason: "runtime_unknown", level: "unavailable"},
+		{reason: "upstream_disallowed", level: "exhausted", hasQuota: true},
+		{reason: "quota_exhausted", level: "exhausted", hasQuota: true},
+		{reason: "future_state", level: "unavailable"},
+	}
+	for _, item := range cases {
+		t.Run(item.reason, func(t *testing.T) {
+			snapshot := Snapshot{Accounts: []AccountSnapshot{testAccountSnapshot("alpha", 20, "常规周限额")}}
+			snapshot.Accounts[0].StateReason = item.reason
+			rows := QuotaRows(snapshot, 90, nil)
+			if len(rows) != 1 || rows[0].Level != item.level {
+				t.Fatalf("rows = %#v, want level %q", rows, item.level)
+			}
+			if item.hasQuota && rows[0].UsedPercent == nil {
+				t.Fatalf("known quota was discarded: %#v", rows[0])
+			}
+			if !item.hasQuota && rows[0].UsedPercent != nil {
+				t.Fatalf("untrusted quota was retained: %#v", rows[0])
+			}
+		})
 	}
 }
 
@@ -423,6 +494,52 @@ func TestWorkerQuotaStateMachineDeduplicatesRecoversAndRearms(t *testing.T) {
 	}
 }
 
+func TestWorkerDisabledAccountClearsQuotaStateWithoutAlert(t *testing.T) {
+	store, activity, sender := workerFixtures()
+	store.settings["notification.daily_times"] = "23:59"
+	store.accounts = append(store.accounts, controlplane.Account{ID: "beta", GroupEnabled: true})
+	worker := &Worker{Store: store, Activity: activity, Sender: sender}
+	setQuotas(store, map[string]float64{"alpha": 10, "beta": 20})
+	runWorkerAt(t, worker, 10, 0, nil)
+	if _, found := store.notificationState(t).QuotaWindows["beta|default:primary_window"]; !found {
+		t.Fatal("enabled account quota was not recorded")
+	}
+
+	store.accounts[1].GroupEnabled = false
+	setQuotas(store, map[string]float64{"alpha": 10, "beta": 95})
+	runWorkerAt(t, worker, 10, 1, nil)
+	state := store.notificationState(t)
+	if _, found := state.QuotaWindows["beta|default:primary_window"]; found {
+		t.Fatalf("disabled account quota record was retained: %#v", state.QuotaWindows)
+	}
+	if _, found := state.QuotaAlerts["beta|default:primary_window"]; found {
+		t.Fatalf("disabled account generated quota alert: %#v", state.QuotaAlerts)
+	}
+	if len(sender.contents) != 0 {
+		t.Fatalf("disabled account generated notification: %#v", sender.contents)
+	}
+}
+
+func TestWorkerOperationalStateDoesNotRewriteQuotaBaseline(t *testing.T) {
+	store, activity, sender := workerFixtures()
+	store.settings["notification.daily_times"] = "23:59"
+	store.accounts = append(store.accounts, controlplane.Account{ID: "beta", GroupEnabled: true})
+	worker := &Worker{Store: store, Activity: activity, Sender: sender}
+	setQuotas(store, map[string]float64{"alpha": 10, "beta": 20})
+	runWorkerAt(t, worker, 10, 0, nil)
+
+	setFailoverReasons(store, map[string]string{"alpha": "available", "beta": "container_not_running"})
+	setQuotas(store, map[string]float64{"alpha": 10, "beta": 95})
+	runWorkerAt(t, worker, 10, 1, nil)
+	state := store.notificationState(t)
+	if got := state.QuotaWindows["beta|default:primary_window"].UsedPercent; got != 20 {
+		t.Fatalf("stopped account rewrote quota baseline: %#v", state.QuotaWindows)
+	}
+	if _, found := state.QuotaAlerts["beta|default:primary_window"]; found || len(sender.contents) != 0 {
+		t.Fatalf("stopped account generated a quota notification: alerts=%#v contents=%#v", state.QuotaAlerts, sender.contents)
+	}
+}
+
 func TestWorkerClearsRecordedFailureAfterRecovery(t *testing.T) {
 	store, activity, sender := workerFixtures()
 	store.settings["notification.daily_times"] = "23:59"
@@ -477,7 +594,7 @@ func TestWorkerRefreshBaselineAdvancesEvenWhenWebhookFails(t *testing.T) {
 func TestWorkerWeeklyRefreshSendsCompleteAccountTable(t *testing.T) {
 	store, activity, sender := workerFixtures()
 	store.settings["notification.daily_times"] = "23:59"
-	store.accounts = append(store.accounts, controlplane.Account{ID: "beta"})
+	store.accounts = append(store.accounts, controlplane.Account{ID: "beta", GroupEnabled: true})
 	worker := &Worker{Store: store, Activity: activity, Sender: sender}
 	cycleEnd := fixedNow("Asia/Shanghai", 2026, 7, 20, 10, 1, 0)().Unix()
 	setQuotas(store, map[string]float64{"alpha": 40, "beta": 55}, cycleEnd)
@@ -543,7 +660,7 @@ func testAccountSnapshot(account string, used float64, label string) AccountSnap
 	resetAt := int64(1_900_000_000)
 	resetCount := int64(2)
 	return AccountSnapshot{
-		ID: account, ActiveUsers1H: 3,
+		ID: account, Enabled: true, ActiveUsers1H: 3,
 		Quota: quota.AccountQuota{
 			Account: account, Status: "ok", ResetCreditCount: &resetCount,
 			WeeklyWindows: []quota.WeeklyWindow{{
@@ -687,7 +804,7 @@ func workerFixtures() (*fakeStore, *fakeActivity, *fakeSender) {
 		"branding.short_name":                   "Codex CPA",
 		"branding.public_base_url":              "https://cpa.example.com",
 	}
-	store.accounts = []controlplane.Account{{ID: "alpha"}}
+	store.accounts = []controlplane.Account{{ID: "alpha", GroupEnabled: true}}
 	setQuota(store, "alpha", 25, "ok")
 	return store, &fakeActivity{values: map[string]int{"alpha": 3}}, &fakeSender{configured: true}
 }
@@ -738,6 +855,18 @@ func setQuotas(store *fakeStore, values map[string]float64, resetTimes ...int64)
 	}
 	raw, _ := json.Marshal(state)
 	store.runtime[quota.RuntimeStateName] = raw
+}
+
+func setFailoverReasons(store *fakeStore, values map[string]string) {
+	store.mu.Lock()
+	defer store.mu.Unlock()
+	accounts := make(map[string]failover.AccountState, len(values))
+	for account, reason := range values {
+		accounts[account] = failover.AccountState{Account: account, Reason: reason}
+	}
+	state := failover.RuntimeState{Version: 1, Mode: failover.ModeActive, Accounts: accounts}
+	raw, _ := json.Marshal(state)
+	store.runtime[failover.RuntimeStateName] = raw
 }
 
 func fixedNow(zone string, year int, month time.Month, day int, hour int, minute int, second int) func() time.Time {

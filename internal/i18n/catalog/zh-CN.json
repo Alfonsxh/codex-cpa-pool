@@ -1905,7 +1905,7 @@
   },
   {
     "id": "notifications.total_accounts_active_accounts_healthy_quota_warning_exhausted_unavailable",
-    "other": "> **账号总数 {{.Value1}}**　{{.Value2}}活跃账号 {{.Value3}}\n> 🟢 额度正常 {{.Value4}}　🟠 预警 {{.Value5}}　🔴 耗尽 {{.Value6}}　⚪ 数据不可用 {{.Value7}}"
+    "other": "> **账号总数 {{.Value1}}**　{{.Value2}}活跃账号 {{.Value3}}\n> 🟢 额度正常 {{.Value4}}　🟠 预警 {{.Value5}}　🔴 耗尽 {{.Value6}}　⚪ 数据不可用 {{.Value7}}　⏸️ 已停用 {{.Value8}}"
   },
   {
     "id": "notifications.users_resets_remaining_next_period_reset",

@@ -1916,7 +1916,7 @@
   },
   {
     "id": "notifications.total_accounts_active_accounts_healthy_quota_warning_exhausted_unavailable",
-    "other": "> **Total accounts {{.Value1}}**  Active accounts ({{.Value2}}) {{.Value3}}\n> 🟢 Healthy quota {{.Value4}}  🟠 Warning {{.Value5}}  🔴 Exhausted {{.Value6}}  ⚪ Unavailable {{.Value7}}"
+    "other": "> **Total accounts {{.Value1}}**  Active accounts ({{.Value2}}) {{.Value3}}\n> 🟢 Healthy quota {{.Value4}}  🟠 Warning {{.Value5}}  🔴 Exhausted {{.Value6}}  ⚪ Unavailable {{.Value7}}  ⏸️ Disabled {{.Value8}}"
   },
   {
     "id": "notifications.users_resets_remaining_next_period_reset",

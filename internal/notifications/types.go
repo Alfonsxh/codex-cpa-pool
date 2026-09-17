@@ -57,6 +57,8 @@ type MessageRecord struct {
 
 type AccountSnapshot struct {
 	ID            string
+	Enabled       bool
+	StateReason   string
 	ActiveUsers1H int
 	Quota         quota.AccountQuota
 }

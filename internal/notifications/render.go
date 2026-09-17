@@ -44,22 +44,27 @@ func QuotaRows(snapshot Snapshot, thresholdPercent float64, onlyKeys map[string]
 			Key: id + "|unavailable", Account: id, Label: i18n.Text(i18n.English, "notifications.weekly_limit"),
 			ActiveUsers: max(0, account.ActiveUsers1H), Level: "unavailable",
 		}
-		if account.Quota.Status == "ok" {
+		if !account.Enabled {
+			row.Key, row.Level = id+"|disabled", "disabled"
+		} else if account.Quota.Status == "ok" {
 			row.ResetCount = account.Quota.ResetCreditCount
 		}
-		if window, found := regularWeeklyWindow(account.Quota); found {
-			row.Key = id + "|" + window.Key
-			if account.Quota.Status == "ok" && !math.IsNaN(window.UsedPercent) && !math.IsInf(window.UsedPercent, 0) {
-				used := math.Max(0, math.Min(window.UsedPercent, 100))
-				row.Level = "normal"
-				switch {
-				case window.LimitReached || used >= 100:
-					used, row.Level = 100, "exhausted"
-				case used >= thresholdPercent:
-					row.Level = "warning"
+		if account.Enabled {
+			if window, found := regularWeeklyWindow(account.Quota); found {
+				row.Key = id + "|" + window.Key
+				if account.Quota.Status == "ok" && !math.IsNaN(window.UsedPercent) && !math.IsInf(window.UsedPercent, 0) {
+					used := math.Max(0, math.Min(window.UsedPercent, 100))
+					row.Level = "normal"
+					switch {
+					case window.LimitReached || used >= 100:
+						used, row.Level = 100, "exhausted"
+					case used >= thresholdPercent:
+						row.Level = "warning"
+					}
+					row.UsedPercent, row.ResetAt, row.ResetKey = &used, window.ResetAt, window.ResetAt
 				}
-				row.UsedPercent, row.ResetAt, row.ResetKey = &used, window.ResetAt, window.ResetAt
 			}
+			applyOperationalState(&row, account)
 		}
 		if len(onlyKeys) > 0 {
 			if _, found := onlyKeys[row.Key]; !found {
@@ -88,6 +93,54 @@ func QuotaRows(snapshot Snapshot, thresholdPercent float64, onlyKeys map[string]
 		return naturalCompare(rows[left].Account, rows[right].Account) < 0
 	})
 	return rows
+}
+
+func applyOperationalState(row *Row, account AccountSnapshot) {
+	if row == nil {
+		return
+	}
+	reason := strings.ToLower(strings.TrimSpace(account.StateReason))
+	switch reason {
+	case "", "available":
+		if account.Quota.Allowed != nil && !*account.Quota.Allowed {
+			row.Level = "exhausted"
+		}
+		if account.Quota.LimitReached != nil && *account.Quota.LimitReached {
+			row.Level = "exhausted"
+		}
+	case "account_disabled":
+		markUnavailable(row)
+		row.Level = "disabled"
+	case "quota_exhausted", "upstream_disallowed":
+		row.Level = "exhausted"
+	case "container_not_running":
+		row.Level = "stopped"
+	case "oauth_missing":
+		markUnavailable(row)
+		row.Level = "unauthorized"
+	case "credential_unavailable":
+		markUnavailable(row)
+		row.Level = "credential_unavailable"
+	case "transient_cooldown", "rate_limited", "degraded":
+		row.Level = "degraded"
+	case "reserve_reached":
+		row.Level = "reserved"
+	case "quota_stale", "quota_unavailable", "runtime_unknown":
+		markUnavailable(row)
+	default:
+		markUnavailable(row)
+	}
+}
+
+func markUnavailable(row *Row) {
+	if row == nil {
+		return
+	}
+	row.Level = "unavailable"
+	row.UsedPercent = nil
+	row.ResetAt = nil
+	row.ResetKey = nil
+	row.ResetCount = nil
 }
 
 func regularWeeklyWindow(accountQuota quota.AccountQuota) (quota.WeeklyWindow, bool) {
@@ -196,12 +249,23 @@ func accountSummary(rows []Row, windowSeconds int64, languages ...i18n.Language)
 	counts := make(map[string]int)
 	active := 0
 	for _, row := range rows {
-		counts[row.Level]++
-		if row.ActiveUsers > 0 {
+		counts[summaryLevel(row.Level)]++
+		if row.Level != "disabled" && row.ActiveUsers > 0 {
 			active++
 		}
 	}
-	return i18n.M("notifications.total_accounts_active_accounts_healthy_quota_warning_exhausted_unavailable", i18n.Params{"Value1": len(rows), "Value2": activeWindowLabel(windowSeconds, lang), "Value3": active, "Value4": counts["normal"], "Value5": counts["warning"], "Value6": counts["exhausted"], "Value7": counts["unavailable"]}).Render(lang)
+	return i18n.M("notifications.total_accounts_active_accounts_healthy_quota_warning_exhausted_unavailable", i18n.Params{"Value1": len(rows), "Value2": activeWindowLabel(windowSeconds, lang), "Value3": active, "Value4": counts["normal"], "Value5": counts["warning"], "Value6": counts["exhausted"], "Value7": counts["unavailable"], "Value8": counts["disabled"]}).Render(lang)
+}
+
+func summaryLevel(level string) string {
+	switch level {
+	case "stopped", "unauthorized", "credential_unavailable":
+		return "unavailable"
+	case "degraded", "reserved":
+		return "warning"
+	default:
+		return level
+	}
 }
 
 func activeWindowLabel(seconds int64, languages ...i18n.Language) string {
@@ -218,7 +282,11 @@ func activeWindowLabel(seconds int64, languages ...i18n.Language) string {
 
 func accountTable(rows []Row, transitions map[string]string, previous map[string]WindowRecord, location *time.Location, now time.Time, eventsOnly bool, windowSeconds int64, languages ...i18n.Language) string {
 	lang := i18n.Selected(languages)
-	icons := map[string]string{"normal": "🟢", "warning": "🟠", "exhausted": "🔴", "unavailable": "⚪"}
+	icons := map[string]string{
+		"normal": "🟢", "warning": "🟠", "exhausted": "🔴", "unavailable": "⚪",
+		"disabled": "⏸️", "stopped": "⛔", "unauthorized": "🔐",
+		"credential_unavailable": "🔐", "degraded": "⚠️", "reserved": "🟠",
+	}
 	withChanges := eventsOnly || len(transitions) > 0
 	table := []string{
 		i18n.Text(lang, "notifications.account_weekly_quota_used") + activeWindowLabel(windowSeconds, lang) + i18n.Text(lang, "notifications.users_resets_remaining_next_period_reset"),
