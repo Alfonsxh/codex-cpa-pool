@@ -257,6 +257,13 @@ export function notifyRelease({ action, repo, version, revision, imagePrefix, co
   const destination = checkDestination(config, api);
   return deliver({ config, release, message, destination, action, api });
 }
+export function notificationOutput(result, inCI = process.env.GITHUB_ACTIONS === "true") {
+  if (!inCI) return result;
+  // Public Actions logs must not contain private destination IDs or full receipts.
+  return Object.fromEntries(["status", "version", "reason", "message_url", "reused"]
+    .filter(key => result[key] !== undefined).map(key => [key, result[key]]));
+}
+
 // macOS temporary worktrees may enter via /var while ESM resolves /private/var.
 if (process.argv[1] && existsSync(process.argv[1]) && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
@@ -266,7 +273,7 @@ if (process.argv[1] && existsSync(process.argv[1]) && realpathSync(process.argv[
       options[args[i]] = args[i + 1];
     }
     const configFile = options["--config"] || process.env.CPAP_TELEGRAM_CONFIG || path.join(process.env.XDG_CONFIG_HOME || path.join(os.homedir(), ".config"), "codex-cpa-pool", "telegram-release", "config.json");
-    console.log(JSON.stringify(notifyRelease({ action, repo: options["--repo"], version: options["--version"], revision: options["--revision"], imagePrefix: options["--image-prefix"], configFile }), null, 2));
+    console.log(JSON.stringify(notificationOutput(notifyRelease({ action, repo: options["--repo"], version: options["--version"], revision: options["--revision"], imagePrefix: options["--image-prefix"], configFile })), null, 2));
   } catch (error) {
     // JSON/filesystem/parser errors can include input fragments. Log only our own
     // curated errors; never leak malformed private config or subprocess objects.

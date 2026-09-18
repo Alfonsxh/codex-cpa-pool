@@ -6,11 +6,16 @@ import { chmodSync, existsSync, mkdtempSync, rmSync, symlinkSync, writeFileSync 
 import { fileURLToPath } from "node:url";
 import os from "node:os";
 import path from "node:path";
-import { atLeast, checkDestination, deliver, eligible, notifyRelease, readConfig, readReceipt, receiptPath, renderMessage, stable, telegramAPI } from "./telegram-release.mjs";
+import { atLeast, checkDestination, deliver, eligible, notificationOutput, notifyRelease, readConfig, readReceipt, receiptPath, renderMessage, stable, telegramAPI } from "./telegram-release.mjs";
 
 const sha = v => createHash("sha256").update(v).digest("hex");
 const version = "v2.0.2", repo = "fixture-a/pool", revision = "a".repeat(40), source = "b".repeat(64);
 const body = "## 社群摘要\n新增账号模型通信测试。\n- 改进时间筛选。\n\n## 升级提示\n运行 run.sh，保留现有数据。\n\n## 更新详情\n详细说明。";
+test("CI logs retain status and public URL without exposing private receipt fields", () => {
+  const receipt = { status: "sent", version, message_url: "https://t.me/example/1", chat_id: "-123", bot_id: 456, content_sha256: source };
+  assert.deepEqual(notificationOutput(receipt, true), { status: "sent", version, message_url: "https://t.me/example/1" });
+  assert.equal(notificationOutput(receipt, false), receipt);
+});
 function fixture(t) {
   const directory = mkdtempSync(path.join(os.tmpdir(), "cpap-telegram-test-"));
   chmodSync(directory, 0o700);
