@@ -217,6 +217,11 @@ jobs:
         env:
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # This builder shares the opc account with the OPC deploy host user. A
+          # workflow-scoped GITHUB_TOKEN written to ~/.docker/config.json would
+          # expire with the job and break other deployments on that host, so
+          # keep the release credentials in a job-private config directory.
+          DOCKER_CONFIG: ${{ runner.temp }}/docker-ghcr
           VERSION: ${{ inputs.version }}
           IMAGE_PREFIXES: ${{ inputs.image_prefixes }}
           PLATFORM: linux/amd64
@@ -226,5 +231,6 @@ jobs:
             echo "publish_images requires version and image_prefixes inputs" >&2
             exit 1
           fi
+          mkdir -p "$DOCKER_CONFIG"
           printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
           sh scripts/release-images.sh publish
