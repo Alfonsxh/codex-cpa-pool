@@ -1802,6 +1802,10 @@
     "other": "Your management session expired. Enter the management key again."
   },
   {
+    "id": "configuration.debug_description",
+    "other": "Maps to debug. Enable CPA debug logs for troubleshooting; this may increase log volume."
+  },
+  {
     "id": "configuration.language_chinese",
     "other": "Simplified Chinese"
   },
@@ -1810,8 +1814,20 @@
     "other": "English"
   },
   {
+    "id": "configuration.logging_to_file_description",
+    "other": "Maps to logging-to-file. Write CPA logs to the mounted log directory."
+  },
+  {
     "id": "configuration.model_multiplier",
     "other": "{{.Model}} model multiplier"
+  },
+  {
+    "id": "configuration.passthrough_headers",
+    "other": "Forward upstream response headers"
+  },
+  {
+    "id": "configuration.passthrough_headers_description",
+    "other": "Maps to passthrough-headers. Forward filtered upstream response headers for enabled CPA accounts. Saving this option alone hot-loads it without restarting containers."
   },
   {
     "id": "configuration.reasoning_color",
@@ -1822,12 +1838,24 @@
     "other": "{{.Effort}} reasoning multiplier"
   },
   {
+    "id": "configuration.session_affinity_description",
+    "other": "Maps to routing.session-affinity. Prefer the same credential for requests in a session."
+  },
+  {
+    "id": "configuration.session_affinity_ttl_description",
+    "other": "Maps to routing.affinity-ttl. How long to retain the session-to-credential association, for example 30s or 1h."
+  },
+  {
     "id": "configuration.system_language",
     "other": "Notification language"
   },
   {
     "id": "configuration.system_language_description",
     "other": "Language for scheduled notifications. Browser and report language follows the language selector."
+  },
+  {
+    "id": "configuration.usage_statistics_enabled_description",
+    "other": "Maps to usage-statistics-enabled. Enable CPA usage events; disabling stops collection of new token usage."
   },
   {
     "id": "notifications.account_change_weekly_quota_used",

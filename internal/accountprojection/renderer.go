@@ -248,6 +248,7 @@ type cpaConfig struct {
 	LogsMaxTotalSizeMiB          int                 `yaml:"logs-max-total-size-mb"`
 	ErrorLogsMaxFiles            int                 `yaml:"error-logs-max-files"`
 	UsageStatisticsEnabled       bool                `yaml:"usage-statistics-enabled"`
+	PassthroughHeaders           bool                `yaml:"passthrough-headers,omitempty"`
 	DisableImageGeneration       any                 `yaml:"disable-image-generation"`
 	UsageQueueRetentionSeconds   int                 `yaml:"redis-usage-queue-retention-seconds"`
 	ProxyURL                     string              `yaml:"proxy-url"`
@@ -300,6 +301,10 @@ func renderCPAConfig(
 	if err != nil {
 		return nil, err
 	}
+	passthrough, err := boolSetting(settings, "cpa.passthrough_headers", false)
+	if err != nil {
+		return nil, err
+	}
 	affinity, err := boolSetting(settings, "cpa.session_affinity", true)
 	if err != nil {
 		return nil, err
@@ -320,6 +325,7 @@ func renderCPAConfig(
 		LogsMaxTotalSizeMiB:        mustIntSetting(settings, "cpa.logs_max_total_size_mb", defaultLogsSizeMiB, 16, 1024),
 		ErrorLogsMaxFiles:          mustIntSetting(settings, "cpa.error_logs_max_files", defaultErrorLogFiles, 1, 100),
 		UsageStatisticsEnabled:     usage,
+		PassthroughHeaders:         passthrough && account.GroupEnabled,
 		DisableImageGeneration:     disableImages,
 		UsageQueueRetentionSeconds: mustIntSetting(settings, "cpa.usage_queue_retention_seconds", defaultQueueRetention, 60, 604800),
 		ProxyURL:                   proxyURL,

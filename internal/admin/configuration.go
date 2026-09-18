@@ -175,6 +175,7 @@ func buildConfigurationDefinitions() []configurationDefinition {
 		integer("cpa.max_retry_interval", "admin.maximum_retry_wait", 12, 1, 300, "accounts"),
 		integer("cpa.transient_error_cooldown_seconds", "admin.transient_error_cooldown", 10, 1, 300, "accounts"),
 		boolean("cpa.session_affinity", "admin.session_affinity", true, "accounts"),
+		boolean("cpa.passthrough_headers", "configuration.passthrough_headers", false, "live"),
 		simple("cpa.session_affinity_ttl", "admin.session_affinity_duration", "duration", "1h", "accounts"),
 		boolean("cpa.debug", "admin.debug_logging", false, "accounts"),
 		boolean("cpa.logging_to_file", "admin.write_cpa_log_files", true, "accounts"),
@@ -396,6 +397,9 @@ func (server *Server) updateConfiguration(c *gin.Context) {
 func (server *Server) applyConfiguration(ctx context.Context, change ConfigurationChange) error {
 	if server.configurationApplier != nil {
 		return server.configurationApplier.ApplyConfiguration(ctx, change)
+	}
+	if configurationLiveCPAChanged(change) {
+		return errors.New("configuration account projector is unavailable")
 	}
 	for _, mode := range change.Modes {
 		if mode == "accounts" || mode == "collector" || mode == "deployment" {

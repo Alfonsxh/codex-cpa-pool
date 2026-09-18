@@ -1145,5 +1145,7 @@
   "common.notifications": "Notifications",
   "common.notification_runtime_status": "Notification runtime status",
   "common.test_again": "Test again",
-  "admin.multiplier_unit": "×"
+  "admin.multiplier_unit": "×",
+  "admin.cpa_container_settings": "CPA container settings",
+  "admin.cpa_container_settings_description": "Debug logs, usage statistics, response headers and session affinity"
 }

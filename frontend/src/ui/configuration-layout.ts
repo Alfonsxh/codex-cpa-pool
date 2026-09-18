@@ -38,7 +38,7 @@ export const configurationSections: Array<{
   { id: "access", category: "admin.system_settings", title: t("admin.access_credentials"), description: t("admin.management_key_initial_user_password") },
   { id: "appearance", category: "admin.system_settings", title: t("admin.display_preferences"), description: t("admin.reasoning_effort_colors_in_account_details") },
   { id: "requests", category: "admin.requests_accounts", title: t("admin.requests_proxies"), description: t("admin.default_upstream_proxy_retries_image_tools") },
-  { id: "affinity", category: "admin.requests_accounts", title: t("admin.session_affinity"), description: t("admin.credential_reuse_expiry") },
+  { id: "cpa-container", category: "admin.requests_accounts", title: t("admin.cpa_container_settings"), description: t("admin.cpa_container_settings_description") },
   { id: "failover", category: "admin.requests_accounts", title: t("admin.automatic_account_switching"), description: t("admin.migration_policy_when_official_quotas_are_exhausted") },
   { id: "provisioning", category: "admin.requests_accounts", title: t("admin.provisioning_runtime"), description: t("admin.new_account_ports_listen_address_update_image") },
   { id: "logging", category: "admin.requests_accounts", title: t("admin.logs_diagnostics"), description: t("admin.debug_settings_file_logs_retention_limits") },
@@ -53,6 +53,7 @@ export const configurationSections: Array<{
 ];
 
 const legacySections: Record<string, string> = {
+  "affinity": "cpa-container",
   "brand_identity": "brand",
   "system_settings": "general",
   "cpa_requests": "requests",
@@ -76,7 +77,8 @@ const legacySections: Record<string, string> = {
 
 export function configurationSectionFor(field: Pick<ConfigurationField, "key">, originalGroup: string) {
   const key = field.key;
-  const id = key.startsWith("branding.") ? "brand"
+  const id = ["cpa.debug", "cpa.logging_to_file", "cpa.usage_statistics_enabled", "cpa.passthrough_headers", "cpa.session_affinity", "cpa.session_affinity_ttl"].includes(key) ? "cpa-container"
+    : key.startsWith("branding.") ? "brand"
     : key.startsWith("identity.") ? "identity"
     : key === "portal.session_ttl_seconds" || key.startsWith("system.") ? "general"
     : key.startsWith("portal.") ? "client"
@@ -88,8 +90,7 @@ export function configurationSectionFor(field: Pick<ConfigurationField, "key">, 
     : key.startsWith("usage.") ? "quota"
     : key.startsWith("account_failover.") ? "failover"
     : key.startsWith("accounts.") || key.startsWith("runtime.") ? "provisioning"
-    : key.startsWith("cpa.session_affinity") ? "affinity"
-    : ["cpa.debug", "cpa.logging_to_file", "cpa.logs_max_total_size_mb", "cpa.error_logs_max_files"].includes(key) ? "logging"
+    : ["cpa.logs_max_total_size_mb", "cpa.error_logs_max_files"].includes(key) ? "logging"
     : key.startsWith("cpa.") ? "requests"
     : key.startsWith("notification.") ? "notifications"
     : legacySections[originalGroup] ?? "general";

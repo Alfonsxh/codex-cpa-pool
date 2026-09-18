@@ -14,8 +14,8 @@ import (
 )
 
 func TestConfigurationDefinitionsMatchCompleteGoContract(t *testing.T) {
-	if len(configurationDefinitions) != 80 {
-		t.Fatalf("configuration definition count = %d, want 80", len(configurationDefinitions))
+	if len(configurationDefinitions) != 81 {
+		t.Fatalf("configuration definition count = %d, want 81", len(configurationDefinitions))
 	}
 	if len(configurationPresentationByKey) != len(configurationDefinitions) {
 		t.Fatalf("configuration presentation count = %d, want %d", len(configurationPresentationByKey), len(configurationDefinitions))
@@ -82,7 +82,7 @@ func TestConfigurationCatalogReturnsCompleteMetadataWithoutProxySecret(t *testin
 	}
 	var catalog configurationCatalogResponse
 	decodeAdminResponse(t, response, &catalog)
-	if catalog.Version != 3 || catalog.FieldCount != 80 || len(catalog.Groups) != 11 || catalog.GeneratedAt <= 0 {
+	if catalog.Version != 3 || catalog.FieldCount != 81 || len(catalog.Groups) != 11 || catalog.GeneratedAt <= 0 {
 		t.Fatalf("configuration catalog summary = %#v", catalog)
 	}
 	groupNames := make([]string, 0, len(catalog.Groups))
@@ -102,7 +102,7 @@ func TestConfigurationCatalogReturnsCompleteMetadataWithoutProxySecret(t *testin
 			fields[field.Key] = field
 		}
 	}
-	if len(fields) != 80 {
+	if len(fields) != 81 {
 		t.Fatalf("configuration catalog fields = %d", len(fields))
 	}
 	proxy := fields["cpa.proxy_url"]
@@ -466,6 +466,36 @@ func TestConfigurationUpdateMigratesObserveAndLegacyProxyOutOfSettings(t *testin
 	proxy, found, err := store.ReadSecret(ctx, defaultProxySecretName)
 	if err != nil || !found || proxy != legacyProxy {
 		t.Fatalf("migrated proxy = (%q, %v, %v)", proxy, found, err)
+	}
+}
+
+func TestConfigurationHeadersPersistAndHotApplyWithoutRestart(t *testing.T) {
+	base, store := newTestAdmin(t)
+	base.Close()
+	projection := &recordingConfigurationProjection{}
+	runtime := &recordingConfigurationRuntime{}
+	applier := &ConfigurationRuntimeApplier{Projection: projection, Runtime: runtime, ControlRuntime: runtime}
+	server, err := New(Config{Store: store, ConfigurationApplier: applier})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(server.Close)
+	response := performAdminRequest(server, http.MethodPost, "/admin/api/settings/configuration", map[string]any{
+		"confirm": "save", "values": map[string]any{"cpa.passthrough_headers": true},
+	}, map[string]string{"X-Management-Key": "test-management-key"}, nil)
+	if response.Code != http.StatusOK {
+		t.Fatalf("save headers = %d %s", response.Code, response.Body.String())
+	}
+	settings, err := store.ReadSettings(context.Background())
+	if err != nil || settings["cpa.passthrough_headers"] != true || projection.calls != 1 || len(runtime.targets) != 0 {
+		t.Fatalf("hot apply = settings %v, projection %d, runtime %v, error %v", settings["cpa.passthrough_headers"], projection.calls, runtime.targets, err)
+	}
+	change := ConfigurationChange{Changed: []string{"cpa.passthrough_headers"}, Modes: []string{"live"}, Rollback: true}
+	if err := applier.ApplyConfiguration(context.Background(), change); err != nil || projection.calls != 2 || len(runtime.targets) != 0 {
+		t.Fatalf("rollback must also hot apply: %v", err)
+	}
+	if err := (&ConfigurationRuntimeApplier{}).ApplyConfiguration(context.Background(), change); err == nil {
+		t.Fatal("headers accepted without a projector")
 	}
 }
 

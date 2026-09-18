@@ -1,7 +1,7 @@
 {
   "version": 2,
   "generated_at": 1787500800,
-  "field_count": 78,
+  "field_count": 79,
   "groups": [
     {
       "name": "Brand & identity",
@@ -230,7 +230,7 @@
         {
           "key": "cpa.session_affinity",
           "label": "Session affinity",
-          "description": "Reuse session credentials.",
+          "description": "Maps to routing.session-affinity. Prefer the same credential for requests in a session.",
           "type": "boolean",
           "value": true,
           "default": true,
@@ -240,7 +240,7 @@
         {
           "key": "cpa.session_affinity_ttl",
           "label": "Session affinity duration",
-          "description": "Credential reuse duration, such as 30s.",
+          "description": "Maps to routing.affinity-ttl. How long to retain the session-to-credential association, for example 30s or 1h.",
           "type": "duration",
           "value": "1h",
           "default": "1h",
@@ -250,7 +250,7 @@
         {
           "key": "cpa.debug",
           "label": "Debug logging",
-          "description": "Enable for troubleshooting; increases log volume.",
+          "description": "Maps to debug. Enable CPA debug logs for troubleshooting; this may increase log volume.",
           "type": "boolean",
           "value": false,
           "default": false,
@@ -260,7 +260,7 @@
         {
           "key": "cpa.logging_to_file",
           "label": "Write CPA log files",
-          "description": "Save CPA logs to files.",
+          "description": "Maps to logging-to-file. Write CPA logs to the mounted log directory.",
           "type": "boolean",
           "value": true,
           "default": true,
@@ -294,6 +294,16 @@
           "min": 1,
           "max": 100,
           "unit_code": "items"
+        },
+        {
+          "key": "cpa.passthrough_headers",
+          "label": "Forward upstream response headers",
+          "description": "Maps to passthrough-headers. Forward filtered upstream response headers for enabled CPA accounts. Saving this option alone hot-loads it without restarting containers.",
+          "type": "boolean",
+          "value": true,
+          "default": false,
+          "apply_mode": "live",
+          "editable": true
         }
       ]
     },
@@ -304,7 +314,7 @@
         {
           "key": "cpa.usage_statistics_enabled",
           "label": "Official usage events",
-          "description": "Disabling stops collection of new token usage.",
+          "description": "Maps to usage-statistics-enabled. Enable CPA usage events; disabling stops collection of new token usage.",
           "type": "boolean",
           "value": true,
           "default": true,

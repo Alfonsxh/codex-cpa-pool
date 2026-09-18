@@ -1,7 +1,7 @@
 {
   "version": 2,
   "generated_at": 1787500800,
-  "field_count": 78,
+  "field_count": 79,
   "groups": [
     {
       "name": "品牌与身份",
@@ -230,7 +230,7 @@
         {
           "key": "cpa.session_affinity",
           "label": "会话亲和",
-          "description": "是否复用会话凭据。",
+          "description": "对应 routing.session-affinity；同一会话优先复用已有凭据。",
           "type": "boolean",
           "value": true,
           "default": true,
@@ -240,7 +240,7 @@
         {
           "key": "cpa.session_affinity_ttl",
           "label": "会话亲和有效期",
-          "description": "凭据复用时长，如 30s。",
+          "description": "对应 routing.affinity-ttl；会话与凭据的关联保留时长，例如 30s、1h。",
           "type": "duration",
           "value": "1h",
           "default": "1h",
@@ -250,7 +250,7 @@
         {
           "key": "cpa.debug",
           "label": "调试日志",
-          "description": "排障时开启，会增加日志量。",
+          "description": "对应 debug；开启 CPA 调试日志，用于排查问题，可能增加日志量。",
           "type": "boolean",
           "value": false,
           "default": false,
@@ -260,7 +260,7 @@
         {
           "key": "cpa.logging_to_file",
           "label": "写入 CPA 日志文件",
-          "description": "是否保存 CPA 日志。",
+          "description": "对应 logging-to-file；将 CPA 日志写入容器挂载的日志目录。",
           "type": "boolean",
           "value": true,
           "default": true,
@@ -294,6 +294,16 @@
           "min": 1,
           "max": 100,
           "unit_code": "个"
+        },
+        {
+          "key": "cpa.passthrough_headers",
+          "label": "透传上游响应头",
+          "description": "对应 passthrough-headers；为已启用的 CPA 账号透传经过过滤的上游响应头，单独保存此项后热加载，无需重启容器。",
+          "type": "boolean",
+          "value": true,
+          "default": false,
+          "apply_mode": "live",
+          "editable": true
         }
       ]
     },
@@ -304,7 +314,7 @@
         {
           "key": "cpa.usage_statistics_enabled",
           "label": "官方用量事件",
-          "description": "关闭后停止采集新增 Token 用量。",
+          "description": "对应 usage-statistics-enabled；开启 CPA 用量事件统计，关闭后不再采集新的 Token 用量。",
           "type": "boolean",
           "value": true,
           "default": true,

@@ -138,6 +138,75 @@ func TestRendererKeepsLegacyFileForRuntimeMigrationAndRejectsUnsafeConfigDirecto
 	}
 }
 
+func TestRendererPersistsCPAContainerSettings(t *testing.T) {
+	root := t.TempDir()
+	store := newProjectionStore(t, root)
+	ctx := context.Background()
+	accounts, err := store.ReadAccounts(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	accounts[0].GroupEnabled = true
+	if err := store.WriteAccounts(ctx, accounts); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.UpdateSettings(ctx, map[string]any{
+		"cpa.debug": true, "cpa.logging_to_file": false, "cpa.usage_statistics_enabled": false,
+		"cpa.passthrough_headers": true, "cpa.session_affinity": false, "cpa.session_affinity_ttl": "30m",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	renderer := &Renderer{Root: root, Store: store}
+	for i := 0; i < 2; i++ {
+		if _, err := renderer.Render(ctx); err != nil {
+			t.Fatal(err)
+		}
+		var config cpaConfig
+		if err := yaml.Unmarshal([]byte(readProjectionFile(t, root, "configs/"+accounts[0].ID+"/config.yaml")), &config); err != nil {
+			t.Fatal(err)
+		}
+		if !config.Debug || config.LoggingToFile || config.UsageStatisticsEnabled || !config.PassthroughHeaders || config.Routing.SessionAffinity || config.Routing.AffinityTTL != "30m" {
+			t.Fatal("persisted CPA settings did not reach the rendered container configuration")
+		}
+	}
+}
+
+func TestRendererPreservesHeaderSettingAcrossRefreshWithoutEnablingDisabledAccounts(t *testing.T) {
+	root := t.TempDir()
+	store := newProjectionStore(t, root)
+	ctx := context.Background()
+	accounts, err := store.ReadAccounts(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	accounts[0].GroupEnabled, accounts[1].GroupEnabled = true, false
+	if err := store.WriteAccounts(ctx, accounts); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.UpdateSettings(ctx, map[string]any{"cpa.passthrough_headers": true}); err != nil {
+		t.Fatal(err)
+	}
+	renderer := &Renderer{Root: root, Store: store}
+	for i := 0; i < 2; i++ {
+		if _, err := renderer.Render(ctx); err != nil {
+			t.Fatal(err)
+		}
+		for _, account := range accounts {
+			var config cpaConfig
+			if err := yaml.Unmarshal([]byte(readProjectionFile(t, root, "configs/"+account.ID+"/config.yaml")), &config); err != nil {
+				t.Fatal(err)
+			}
+			if config.PassthroughHeaders != account.GroupEnabled {
+				t.Fatalf("account %s header setting = %v", account.ID, config.PassthroughHeaders)
+			}
+		}
+	}
+	after, err := store.ReadAccounts(ctx)
+	if err != nil || after[1].GroupEnabled {
+		t.Fatalf("disabled account was changed: %v", err)
+	}
+}
+
 func TestRendererFailsBeforeReplacingOutputsWhenCustomProxyIsMissing(t *testing.T) {
 	root := t.TempDir()
 	store := newProjectionStore(t, root)

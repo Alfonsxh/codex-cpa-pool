@@ -1145,5 +1145,7 @@
   "common.notifications": "通知开关",
   "common.notification_runtime_status": "通知运行状态",
   "common.test_again": "重新测试",
-  "admin.multiplier_unit": "倍"
+  "admin.multiplier_unit": "倍",
+  "admin.cpa_container_settings": "CPA 容器参数",
+  "admin.cpa_container_settings_description": "调试日志、用量统计、响应头透传与会话亲和"
 }

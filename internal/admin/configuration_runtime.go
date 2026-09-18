@@ -59,6 +59,7 @@ func (applier *ConfigurationRuntimeApplier) ApplyConfiguration(
 	_, accountsChanged := modes["accounts"]
 	_, collectorChanged := modes["collector"]
 	_, quotaChanged := modes["quota"]
+	liveCPAChanged := configurationLiveCPAChanged(change)
 
 	// Validate every dependency before the first file or runtime mutation so a
 	// partially configured Admin always fails closed.
@@ -68,6 +69,9 @@ func (applier *ConfigurationRuntimeApplier) ApplyConfiguration(
 	if accountsChanged && (applier.Accounts == nil || applier.Projection == nil || applier.Runtime == nil) {
 		return errors.New("account configuration runtime is unavailable")
 	}
+	if liveCPAChanged && applier.Projection == nil {
+		return errors.New("account configuration projector is unavailable")
+	}
 	if (collectorChanged || quotaChanged) && applier.ControlRuntime == nil {
 		return errors.New("collector configuration runtime is unavailable")
 	}
@@ -75,6 +79,13 @@ func (applier *ConfigurationRuntimeApplier) ApplyConfiguration(
 	if deploymentChanged {
 		if err := applier.AccountEnvironment.ProjectConfiguration(ctx, change.After); err != nil {
 			return fmt.Errorf("project account Compose environment: %w", err)
+		}
+	}
+	// CLIProxyAPI hot-loads response headers. These changes
+	// must not start stopped accounts or interrupt existing account streams.
+	if liveCPAChanged && !accountsChanged {
+		if err := applier.Projection.RefreshAccounts(ctx); err != nil {
+			return fmt.Errorf("refresh live account configuration: %w", err)
 		}
 	}
 	if accountsChanged {
@@ -101,6 +112,15 @@ func (applier *ConfigurationRuntimeApplier) ApplyConfiguration(
 		}
 	}
 	return nil
+}
+
+func configurationLiveCPAChanged(change ConfigurationChange) bool {
+	for _, key := range change.Changed {
+		if key == "cpa.passthrough_headers" {
+			return true
+		}
+	}
+	return false
 }
 
 // AccountComposeEnvironmentProjector preserves the already-applied CPA image identity

@@ -1792,6 +1792,10 @@
     "other": "管理会话已过期，请重新输入管理密钥"
   },
   {
+    "id": "configuration.debug_description",
+    "other": "对应 debug；开启 CPA 调试日志，用于排查问题，可能增加日志量。"
+  },
+  {
     "id": "configuration.language_chinese",
     "other": "简体中文"
   },
@@ -1800,8 +1804,20 @@
     "other": "英文"
   },
   {
+    "id": "configuration.logging_to_file_description",
+    "other": "对应 logging-to-file；将 CPA 日志写入容器挂载的日志目录。"
+  },
+  {
     "id": "configuration.model_multiplier",
     "other": "{{.Model}} 模型倍率"
+  },
+  {
+    "id": "configuration.passthrough_headers",
+    "other": "透传上游响应头"
+  },
+  {
+    "id": "configuration.passthrough_headers_description",
+    "other": "对应 passthrough-headers；为已启用的 CPA 账号透传经过过滤的上游响应头，单独保存此项后热加载，无需重启容器。"
   },
   {
     "id": "configuration.reasoning_color",
@@ -1812,12 +1828,24 @@
     "other": "{{.Effort}} 推理强度倍率"
   },
   {
+    "id": "configuration.session_affinity_description",
+    "other": "对应 routing.session-affinity；同一会话优先复用已有凭据。"
+  },
+  {
+    "id": "configuration.session_affinity_ttl_description",
+    "other": "对应 routing.affinity-ttl；会话与凭据的关联保留时长，例如 30s、1h。"
+  },
+  {
     "id": "configuration.system_language",
     "other": "后台通知语言"
   },
   {
     "id": "configuration.system_language_description",
     "other": "后台定时通知使用的语言；页面与报表语言跟随语言切换器。"
+  },
+  {
+    "id": "configuration.usage_statistics_enabled_description",
+    "other": "对应 usage-statistics-enabled；开启 CPA 用量事件统计，关闭后不再采集新的 Token 用量。"
   },
   {
     "id": "notifications.account_change_weekly_quota_used",
