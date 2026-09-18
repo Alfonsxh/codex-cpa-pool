@@ -64,7 +64,7 @@ make -f scripts/build.mk release VERSION=v2.1.5
 
 将示例版本替换为待发布版本。本机只需 Git 和已登录的 `gh`，命令锁定当前提交并触发流水线，不在本机构建或推送镜像。也可在 Actions 页面选择 `main`、`operation=publish` 和版本号。
 
-流水线先运行完整源码检查、macOS 浏览器验收和部署包校验，再由已有自托管 Runner 发布 Linux AMD64 镜像、Tag、五个附件和 GitHub Release，最后校验产物并发送正式版公告。发布使用当前运行及当前重试次数的验收结果；源码改变、检查失败或已公开的版本都会阻止发布。镜像固定使用 `ghcr.io/alfonsxh`，组件源码摘要相同则复用已有镜像。
+流水线先运行完整源码检查、Linux 容器中的浏览器验收和部署包校验，所有任务均在已有 OPC 自托管 Runner 执行，随后发布 Linux AMD64 镜像、Tag、五个附件和 GitHub Release，最后校验产物并发送正式版公告。发布使用当前运行及当前重试次数的验收结果；源码改变、检查失败或已公开的版本都会阻止发布。镜像固定使用 `ghcr.io/alfonsxh`，组件源码摘要相同则复用已有镜像。
 
 所有版本的发布串行执行，不会因新任务而取消正在发布的版本。发布阶段失败后选择 Actions 的 `Re-run all jobs`，确保本次重试也有完整验收结果。`vX.Y.Z` 正式版更新 Latest，RC 等使用 Pre-release。通知失败不回滚已公开版本，检查回执后单独重试通知。
 
@@ -78,7 +78,7 @@ make -f scripts/build.mk release-notify VERSION=v2.1.5 NOTIFY_ACTION=status
 make -f scripts/build.mk release-notify VERSION=v2.1.5
 ```
 
-`release-verify` 保留为可选本地验收；本地记录不会替代 CI 验收。原有 CI 工作流仍可手动执行检查和打包，正式发布统一走 Release 工作流。工作流使用临时 `GITHUB_TOKEN` 发布，Docker 登录目录按任务隔离并在结束时清理，不覆盖 Runner 原有登录。
+`release-verify` 保留为可选本地验收；本地记录不会替代 CI 验收。浏览器使用与 Playwright 锁文件匹配的固定镜像和 Linux 视觉基准；Mac 本地基准独立保留。CI 的 `update_browser_snapshots` 仅生成待审查基准，不属于发布验收。原有 CI 工作流仍可手动执行检查和打包，正式发布统一走 Release 工作流。工作流使用临时 `GITHUB_TOKEN` 发布，Docker 登录目录按任务隔离并在结束时清理，不覆盖 Runner 原有登录。
 
 通知 Secrets 和持久化回执见[配置说明](telegram-release.md#配置)。CI 不持有部署凭据、不连接业务环境；测试和生产升级仍分别在目标机运行 `run.sh`。
 

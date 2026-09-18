@@ -1,24 +1,15 @@
 name: CI
+run-name: ${{ inputs.update_browser_snapshots && 'Linux browser baseline review' || 'CI' }} · ${{ github.sha }}
 
-# Defaults to the trusted self-hosted builder (OPC, labels self-hosted+x86_64)
-# which carries qemu-user-static for linux/amd64 image builds. Pick
-# runner=github-hosted to fall back to GitHub's runners.
-
+# All jobs use the existing OPC Runner; browser libraries live in a pinned container.
 on:
   workflow_dispatch:
     inputs:
-      runner:
-        description: Runner pool for the Linux jobs
-        type: choice
-        options:
-          - self-hosted-x86
-          - github-hosted
-        default: self-hosted-x86
+      update_browser_snapshots:
+        description: Generate Linux visual baselines for review only (no release acceptance)
+        type: boolean
+        default: false
   workflow_call:
-    inputs:
-      runner:
-        type: string
-        default: self-hosted-x86
 
 permissions:
   contents: read
@@ -29,7 +20,8 @@ concurrency:
 
 jobs:
   validate:
-    runs-on: ${{ fromJSON(inputs.runner == 'github-hosted' && '["ubuntu-24.04"]' || '["self-hosted","x86_64"]') }}
+    if: ${{ !inputs.update_browser_snapshots }}
+    runs-on: [self-hosted, cpa, build]
     steps:
       - name: Check out source
         uses: actions/checkout@v7
@@ -101,7 +93,9 @@ jobs:
 
   browser:
     needs: validate
-    runs-on: macos-15
+    if: ${{ !cancelled() && (needs.validate.result == 'success' || inputs.update_browser_snapshots) }}
+    runs-on: [self-hosted, cpa, build]
+    timeout-minutes: 30
     steps:
       - name: Check out source
         uses: actions/checkout@v7
@@ -119,10 +113,20 @@ jobs:
       - name: Install browser dependencies
         run: |
           npm ci --prefix frontend --registry=https://registry.npmmirror.com
-          npx --prefix frontend playwright install chromium
 
       - name: Run React browser matrix
-        run: npm --prefix frontend run test:e2e
+        env:
+          UPDATE_SNAPSHOTS: ${{ inputs.update_browser_snapshots || false }}
+        run: sh scripts/browser-ci.sh "$UPDATE_SNAPSHOTS"
+
+      - name: Upload Linux visual baselines for review
+        if: ${{ inputs.update_browser_snapshots && !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-browser-baselines-${{ github.sha }}
+          path: frontend/e2e/**/*-snapshots/*-linux.png
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Upload browser failure evidence
         if: failure()
@@ -137,7 +141,7 @@ jobs:
 
   package:
     needs: [validate, browser]
-    runs-on: ${{ fromJSON(inputs.runner == 'github-hosted' && '["ubuntu-24.04"]' || '["self-hosted","x86_64"]') }}
+    runs-on: [self-hosted, cpa, build]
     steps:
       - name: Check out source
         uses: actions/checkout@v7

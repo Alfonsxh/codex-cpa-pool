@@ -36,8 +36,6 @@ jobs:
   checks:
     if: inputs.operation != 'notify'
     uses: ./.github/workflows/ci.yml
-    with:
-      runner: self-hosted-x86
 
   release:
     needs: checks
