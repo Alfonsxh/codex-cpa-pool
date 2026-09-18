@@ -52,9 +52,9 @@ jobs:
           set -euo pipefail
           if command -v apt-get >/dev/null 2>&1; then
             sudo apt-get update
-            sudo apt-get install -y ripgrep
+            sudo apt-get install -y ripgrep sqlite3
           elif command -v dnf >/dev/null 2>&1; then
-            sudo dnf -y install ripgrep
+            sudo dnf -y install ripgrep sqlite
           fi
           npm ci --prefix frontend --registry=https://registry.npmmirror.com
           npm ci --prefix tools/openapi --registry=https://registry.npmmirror.com
