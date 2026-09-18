@@ -33,7 +33,7 @@ for (const viewport of [
       ["cpa.usage_statistics_enabled", "官方用量事件", "usage-statistics-enabled"],
       ["cpa.passthrough_headers", "透传上游响应头", "passthrough-headers"],
       ["cpa.session_affinity", "会话亲和", "routing.session-affinity"],
-      ["cpa.session_affinity_ttl", "会话亲和有效期", "routing.affinity-ttl"]
+      ["cpa.session_affinity_ttl", "会话亲和有效期", "routing.session-affinity-ttl"]
     ] as const;
     await expect(page.locator("article[data-configuration-field]")).toHaveCount(6);
     expect(catalog!.groups.flatMap((g) => g.fields).some((f) => f.key.startsWith("cpa.codex_default_"))).toBe(false);

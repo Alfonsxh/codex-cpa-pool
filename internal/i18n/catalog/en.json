@@ -1843,7 +1843,7 @@
   },
   {
     "id": "configuration.session_affinity_ttl_description",
-    "other": "Maps to routing.affinity-ttl. How long to retain the session-to-credential association, for example 30s or 1h."
+    "other": "Maps to routing.session-affinity-ttl. How long to retain the session-to-credential association, for example 30s or 1h."
   },
   {
     "id": "configuration.system_language",

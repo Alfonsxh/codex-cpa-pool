@@ -240,7 +240,7 @@
         {
           "key": "cpa.session_affinity_ttl",
           "label": "会话亲和有效期",
-          "description": "对应 routing.affinity-ttl；会话与凭据的关联保留时长，例如 30s、1h。",
+          "description": "对应 routing.session-affinity-ttl；会话与凭据的关联保留时长，例如 30s、1h。",
           "type": "duration",
           "value": "1h",
           "default": "1h",

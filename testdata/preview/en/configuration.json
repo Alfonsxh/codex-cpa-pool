@@ -240,7 +240,7 @@
         {
           "key": "cpa.session_affinity_ttl",
           "label": "Session affinity duration",
-          "description": "Maps to routing.affinity-ttl. How long to retain the session-to-credential association, for example 30s or 1h.",
+          "description": "Maps to routing.session-affinity-ttl. How long to retain the session-to-credential association, for example 30s or 1h.",
           "type": "duration",
           "value": "1h",
           "default": "1h",
