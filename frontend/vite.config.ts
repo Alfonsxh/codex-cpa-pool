@@ -38,6 +38,9 @@ export default defineConfig(({ mode }) => {
       // Vitest's per-test timeout. Keep the suite deterministic: each file still
       // exercises its own async behavior, while files run one at a time.
       fileParallelism: false,
+      // The shared ARM CI Runner needs more wall time for Ant Design's layout
+      // and user-event work. Keep all assertions and the local 5-second limit.
+      testTimeout: process.env.CI ? 15_000 : 5_000,
       setupFiles: "./src/test/setup.ts",
       restoreMocks: true
     }
