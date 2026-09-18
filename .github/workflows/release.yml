@@ -1,0 +1,141 @@
+name: Release
+run-name: Release ${{ inputs.operation }} ${{ inputs.version || github.sha }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Check only, publish a prepared Draft, or retry its notification
+        type: choice
+        options: [check, publish, notify]
+        default: check
+      version:
+        description: Release tag (required for publish and notify)
+        type: string
+        default: ""
+      revision:
+        description: Expected main commit (the CLI supplies this to prevent dispatch races)
+        type: string
+        default: ""
+      notification_action:
+        description: Action for notification-only runs
+        type: choice
+        options: [send, status, preview, edit]
+        default: send
+
+permissions:
+  contents: read
+
+# Serialize all versions because stable releases also move shared latest tags.
+# Never cancel a run that may already have uploaded images or published a Release.
+concurrency:
+  group: release-publication
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    if: inputs.operation != 'notify'
+    uses: ./.github/workflows/ci.yml
+    with:
+      runner: self-hosted-x86
+
+  release:
+    needs: checks
+    if: ${{ always() && !cancelled() && (needs.checks.result == 'success' || inputs.operation == 'notify') }}
+    runs-on: [self-hosted, cpa, build]
+    timeout-minutes: 90
+    permissions:
+      contents: write
+      packages: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERSION: ${{ inputs.version }}
+      IMAGE_PREFIX: ghcr.io/alfonsxh
+      PLATFORM: linux/amd64
+    steps:
+      - name: Check out the exact tested commit
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: Verify runner and release identity
+        env:
+          OPERATION: ${{ inputs.operation }}
+          EXPECTED_REVISION: ${{ inputs.revision }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/main
+          test -z "$EXPECTED_REVISION" || test "$EXPECTED_REVISION" = "$GITHUB_SHA"
+          if [ "$OPERATION" != check ]; then test -n "$VERSION"; fi
+          if ! command -v gh >/dev/null; then
+            if command -v dnf >/dev/null; then sudo dnf -y install gh;
+            elif command -v apt-get >/dev/null; then sudo apt-get update && sudo apt-get install -y gh;
+            else echo 'GitHub CLI is required on the release Runner' >&2; exit 1; fi
+          fi
+          command -v gh
+          docker buildx version
+          docker compose version
+          printf 'DOCKER_CONFIG=%s/release-docker-%s-%s\n' "$RUNNER_TEMP" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" >> "$GITHUB_ENV"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if [ "$OPERATION" != notify ]; then node scripts/ci-release-gate.mjs "$GITHUB_SHA"; fi
+
+      - name: Authenticate to GHCR with a job-private Docker config
+        env:
+          GHCR_USER: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$DOCKER_CONFIG"
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+          docker buildx inspect --bootstrap | tee "$RUNNER_TEMP/release-builder.txt"
+          grep -Eq 'Platforms:.*linux/amd64' "$RUNNER_TEMP/release-builder.txt"
+
+      - name: Prepare private notification configuration and check destination
+        env:
+          CPAP_TELEGRAM_CONFIG_JSON: ${{ secrets.CPAP_TELEGRAM_CONFIG_JSON }}
+          CPAP_TELEGRAM_BOT_TOKEN: ${{ secrets.CPAP_TELEGRAM_BOT_TOKEN }}
+          CPAP_TELEGRAM_RECEIPTS_JSON: ${{ secrets.CPAP_TELEGRAM_RECEIPTS_JSON }}
+        run: node scripts/ci-release-notification.mjs
+
+      - name: Check, publish, or retry notification
+        env:
+          OPERATION: ${{ inputs.operation }}
+          NOTIFY_ACTION: ${{ inputs.notification_action }}
+        run: |
+          set -euo pipefail
+          case "$OPERATION" in
+            check)
+              if [ -n "$VERSION" ]; then sh scripts/local-release.sh check; fi
+              echo 'Source, browser, archive, runner and notification checks passed; nothing published.'
+              ;;
+            publish) sh scripts/local-release.sh publish ;;
+            notify) node scripts/telegram-release.mjs "$NOTIFY_ACTION" --repo "$GH_REPO" --version "$VERSION" --image-prefix "$IMAGE_PREFIX" ;;
+            *) exit 1 ;;
+          esac
+
+      - name: Record release result
+        if: success()
+        env:
+          OPERATION: ${{ inputs.operation }}
+        run: |
+          printf 'Operation: `%s`\n\nSource: `%s`\n\n' "$OPERATION" "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$OPERATION" != check ]; then
+            printf '[Release](https://github.com/%s/releases/tag/%s)\n' "$GH_REPO" "$VERSION" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Remove ephemeral registry credentials
+        if: always()
+        run: if [ -n "${DOCKER_CONFIG:-}" ]; then rm -rf -- "$DOCKER_CONFIG"; fi

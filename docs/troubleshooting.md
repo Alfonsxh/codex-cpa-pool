@@ -18,7 +18,7 @@ make -f scripts/build.mk target-smoke TARGET_ENV=/absolute/path/to/target.env
 - 心跳正常：检查开关、Webhook、发送错误、计划时间和系统时区。
 - 手动发送成功仅证明通道可用；超过补发窗口的漏发不会自动补发。
 
-Telegram 正式版公告由发布工作站发送，按[通知文档](telegram-release.md#预览与回执)检查回执。
+Telegram 正式版公告由 GitHub Release 工作流发送，按[通知文档](telegram-release.md#预览与回执)检查回执。
 
 ## Gateway 请求失败
 

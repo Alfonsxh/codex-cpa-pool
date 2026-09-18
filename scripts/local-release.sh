@@ -11,6 +11,12 @@ GIT_REMOTE=${GIT_REMOTE:-origin}
 RELEASE_BRANCH=${RELEASE_BRANCH:-main}
 DIST_DIR=${DIST_DIR:-$ROOT_DIR/dist}
 
+# Shared implementation for the Runner. Workstations dispatch release.yml.
+if [ "$ACTION" = publish ] && [ "${GITHUB_ACTIONS:-}" != true ]; then
+  echo '正式发布已迁移到 GitHub Actions；请运行 make -f scripts/build.mk release' >&2
+  exit 1
+fi
+
 run_stage() {
   STAGE_LABEL=$1
   shift
@@ -63,7 +69,7 @@ if [ "$ACTION" != verify ]; then
 fi
 
 CURRENT_BRANCH=$(git -C "$ROOT_DIR" symbolic-ref --quiet --short HEAD || true)
-if [ "$ACTION" != verify ] && [ "$CURRENT_BRANCH" != "$RELEASE_BRANCH" ]; then
+if [ "$ACTION" != verify ] && [ "$CURRENT_BRANCH" != "$RELEASE_BRANCH" ] && [ "${GITHUB_ACTIONS:-}" != true ]; then
   echo "只能从 $RELEASE_BRANCH 分支发布，当前分支：${CURRENT_BRANCH:-detached HEAD}" >&2
   exit 1
 fi
@@ -73,6 +79,9 @@ if [ -n "$(git -C "$ROOT_DIR" status --porcelain --untracked-files=normal)" ]; t
 fi
 
 REVISION=$(git -C "$ROOT_DIR" rev-parse HEAD)
+if [ "$ACTION" = publish ]; then
+  node "$ROOT_DIR/scripts/ci-release-gate.mjs" "$REVISION"
+fi
 if [ "$ACTION" != verify ]; then
   # 发布只接受已经推送到主分支的提交，避免 GitHub Release 指向本地独有 revision。
   git -C "$ROOT_DIR" fetch "$GIT_REMOTE" "$RELEASE_BRANCH" --tags
@@ -114,6 +123,10 @@ if [ "$ACTION" != verify ]; then
     fi
   fi
 
+  if [ "$RELEASE_STATE" != draft ]; then
+    echo '请先为该版本准备经过审核的 GitHub Release Draft' >&2
+    exit 1
+  fi
   printf 'version=%s\nrevision=%s\nimage_prefix=%s\ngithub_repo=%s\nrelease_state=%s\n' \
     "$VERSION" "$REVISION" "$IMAGE_PREFIX" "$GH_REPO" "$RELEASE_STATE"
   # With local notifications enabled, reject missing notes or destination rights
@@ -141,13 +154,15 @@ cleanup_snapshot() {
 }
 trap cleanup_snapshot EXIT HUP INT TERM
 git -C "$ROOT_DIR" worktree add --detach "$SNAPSHOT_ROOT" "$REVISION" >/dev/null
-# Each snapshot owns its dependency/cache directories, so acceptance cannot
-# interfere with the operator's development servers. npm reuses its download cache.
-for npm_workspace in frontend tools/openapi; do
-  npm --prefix "$SNAPSHOT_ROOT/$npm_workspace" ci --prefer-offline --no-audit --no-fund
-done
-unset npm_workspace
-node "$SNAPSHOT_ROOT/scripts/release-validation.mjs" "$SNAPSHOT_ROOT" "$CACHE_ROOT" "$PLATFORM"
+# Local verification owns its dependencies. CI publication has already passed
+# its source/browser/package jobs and builds images from this exact source.
+if [ "$ACTION" = verify ]; then
+  for npm_workspace in frontend tools/openapi; do
+    npm --prefix "$SNAPSHOT_ROOT/$npm_workspace" ci --prefer-offline --no-audit --no-fund
+  done
+  unset npm_workspace
+  node "$SNAPSHOT_ROOT/scripts/release-validation.mjs" "$SNAPSHOT_ROOT" "$CACHE_ROOT" "$PLATFORM"
+fi
 if [ "$ACTION" = verify ]; then
   echo "发布验收完成；未推送代码、Tag、镜像或 Release"
   exit 0
@@ -163,7 +178,6 @@ fi
   VERSION="$VERSION" \
   PLATFORM="$PLATFORM" \
   IMAGE_PREFIXES="$IMAGE_PREFIX" \
-  RELEASE_VALIDATION_CACHE="$CACHE_ROOT" \
     run_stage "镜像准备与推送" sh scripts/release-images.sh publish
 )
 
@@ -199,28 +213,14 @@ if [ -z "$REMOTE_TAG_REVISION" ]; then
   git -C "$ROOT_DIR" push "$GIT_REMOTE" "refs/tags/$VERSION"
 fi
 
-if [ "$RELEASE_STATE" = missing ]; then
-  run_stage "附件创建与上传" gh release create "$VERSION" \
-    "$ARCHIVE#Deployment archive" \
-    "$RELEASE_DESCRIPTOR#Release descriptor" \
-    "$RELEASE_ENV#deployment environment" \
-    "$RUN_ASSET#single installation and upgrade script" \
-    "$CHECKSUMS#SHA-256 checksums" \
-    --repo "$GH_REPO" \
-    --verify-tag \
-    --draft \
-    --generate-notes \
-    --title "$VERSION"
-else
-  run_stage "附件上传" gh release upload "$VERSION" \
-    "$ARCHIVE#Deployment archive" \
-    "$RELEASE_DESCRIPTOR#Release descriptor" \
-    "$RELEASE_ENV#deployment environment" \
-    "$RUN_ASSET#single installation and upgrade script" \
-    "$CHECKSUMS#SHA-256 checksums" \
-    --repo "$GH_REPO" \
-    --clobber
-fi
+run_stage "附件上传" gh release upload "$VERSION" \
+  "$ARCHIVE#Deployment archive" \
+  "$RELEASE_DESCRIPTOR#Release descriptor" \
+  "$RELEASE_ENV#deployment environment" \
+  "$RUN_ASSET#single installation and upgrade script" \
+  "$CHECKSUMS#SHA-256 checksums" \
+  --repo "$GH_REPO" \
+  --clobber
 
 # GitHub Release 最后公开，确保用户看见版本时全部附件已经可用。
 # SemVer prereleases cannot be GitHub Latest. Apply the policy to Drafts too.

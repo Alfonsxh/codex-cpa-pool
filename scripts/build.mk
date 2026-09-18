@@ -10,7 +10,7 @@ IMAGE_PREFIXES ?=
 HARBOR_PREFIX ?=
 DOCKERHUB_PREFIX ?=
 GHCR_PREFIX ?=
-IMAGE_PREFIX ?=
+IMAGE_PREFIX ?= ghcr.io/alfonsxh
 RELEASE_ARCHIVE ?= $(ROOT_DIR)/dist/codex-cpa-pool-$(VERSION).tar.gz
 GH_REPO ?= Alfonsxh/codex-cpa-pool
 GIT_REMOTE ?= origin
@@ -50,8 +50,8 @@ help:
 	  'make -f scripts/build.mk images VERSION=v1.0.0 [PLATFORM=linux/amd64]' \
 	  'make -f scripts/build.mk publish VERSION=v1.0.0 IMAGE_PREFIXES="registry.example.com/team docker.io/user"' \
 	  'make -f scripts/build.mk release-verify' \
-	  'make -f scripts/build.mk release-check VERSION=v1.1.0 IMAGE_PREFIX=ghcr.io/owner' \
-	  'make -f scripts/build.mk release VERSION=v1.1.0 IMAGE_PREFIX=ghcr.io/owner' \
+	  'make -f scripts/build.mk release-check [VERSION=v1.1.0]' \
+	  'make -f scripts/build.mk release VERSION=v1.1.0' \
 	  'make -f scripts/build.mk release-notify VERSION=v1.1.0 [NOTIFY_ACTION=preview|status|send|edit]'
 
 verify:
@@ -160,13 +160,13 @@ release-verify:
 	cd "$(ROOT_DIR)" && PLATFORM="$(PLATFORM)" sh scripts/local-release.sh verify
 
 release-check:
-	cd "$(ROOT_DIR)" && VERSION="$(VERSION)" IMAGE_PREFIX="$(IMAGE_PREFIX)" PLATFORM="$(PLATFORM)" GH_REPO="$(GH_REPO)" GIT_REMOTE="$(GIT_REMOTE)" RELEASE_BRANCH="$(RELEASE_BRANCH)" sh scripts/local-release.sh check
+	cd "$(ROOT_DIR)" && VERSION="$(VERSION)" IMAGE_PREFIX="$(IMAGE_PREFIX)" GH_REPO="$(GH_REPO)" GIT_REMOTE="$(GIT_REMOTE)" RELEASE_BRANCH="$(RELEASE_BRANCH)" sh scripts/github-release.sh check
 
 release:
-	cd "$(ROOT_DIR)" && VERSION="$(VERSION)" IMAGE_PREFIX="$(IMAGE_PREFIX)" PLATFORM="$(PLATFORM)" GH_REPO="$(GH_REPO)" GIT_REMOTE="$(GIT_REMOTE)" RELEASE_BRANCH="$(RELEASE_BRANCH)" sh scripts/local-release.sh publish
+	cd "$(ROOT_DIR)" && VERSION="$(VERSION)" IMAGE_PREFIX="$(IMAGE_PREFIX)" GH_REPO="$(GH_REPO)" GIT_REMOTE="$(GIT_REMOTE)" RELEASE_BRANCH="$(RELEASE_BRANCH)" sh scripts/github-release.sh publish
 
 release-notify:
-	cd "$(ROOT_DIR)" && node scripts/telegram-release.mjs "$(NOTIFY_ACTION)" --repo "$(GH_REPO)" --version "$(VERSION)"
+	cd "$(ROOT_DIR)" && NOTIFY_ACTION="$(NOTIFY_ACTION)" VERSION="$(VERSION)" IMAGE_PREFIX="$(IMAGE_PREFIX)" GH_REPO="$(GH_REPO)" GIT_REMOTE="$(GIT_REMOTE)" RELEASE_BRANCH="$(RELEASE_BRANCH)" sh scripts/github-release.sh notify
 
 run:
 	$(MAKE) -f "$(ROOT_DIR)/scripts/build.mk" target-config TARGET_ENV="$(TARGET_ENV)"

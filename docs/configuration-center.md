@@ -64,7 +64,7 @@ Webhook 独立保存，已保存地址仅展示 key 末四位；更换时输入�
 
 “下次周期重置”表示常规周额度窗口的重置时间；仅用量下降不判定为周期重置。定时漏发超过补发窗口不自动补发。单条消息上限为 4096 字节，超限报错。
 
-Telegram 项目发布公告在发布工作站[单独配置](telegram-release.md)。
+Telegram 项目发布公告通过 GitHub Actions Secrets [单独配置](telegram-release.md)。
 
 ## 开发约定
 

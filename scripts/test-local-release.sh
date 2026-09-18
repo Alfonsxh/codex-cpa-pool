@@ -13,7 +13,7 @@ cat >"$TEST_ROOT/source/scripts/release-images.sh" <<'EOF'
 #!/usr/bin/env sh
 set -eu
 printf 'images %s\n' "$VERSION" >>"$FIXTURE_LOG"
-test -n "$RELEASE_VALIDATION_CACHE"
+test -z "${RELEASE_VALIDATION_CACHE:-}"
 EOF
 cat >"$TEST_ROOT/source/scripts/package-release.sh" <<'EOF'
 #!/usr/bin/env sh
@@ -29,6 +29,7 @@ case "$*" in
   'auth status '*) exit 0 ;;
   'release view '*) printf 'true\n' ;;
   'release upload '*) exit 0 ;;
+  'workflow run '*) exit 0 ;;
   'release edit '*)
     if [ -f "$FIXTURE_FAIL_ONCE" ]; then
       rm "$FIXTURE_FAIL_ONCE"
@@ -43,6 +44,7 @@ cat >"$TEST_ROOT/bin/node" <<'EOF'
 #!/usr/bin/env sh
 set -eu
 case "$1" in
+  */ci-release-gate.mjs) printf "ci-gate %s\n" "$2" >>"$FIXTURE_LOG"; exit 0 ;;
   */telegram-release.mjs)
     printf 'notify %s\n' "$*" >>"$FIXTURE_LOG"
     if [ "$2" = send ] && [ -f "$FIXTURE_NOTIFY_FAIL" ]; then exit 1; fi
@@ -84,6 +86,14 @@ sh "$TEST_ROOT/source/scripts/local-release.sh" verify >/dev/null
 ! grep -Eq '^(gh|images) ' "$FIXTURE_LOG" || { echo 'verify published externally' >&2; exit 1; }
 git -C "$TEST_ROOT/source" switch -q main
 
+# Direct workstation publication is rejected before any external mutation.
+: >"$FIXTURE_LOG"
+if GITHUB_ACTIONS=false VERSION=v9.9.9 sh "$TEST_ROOT/source/scripts/local-release.sh" publish >"$TEST_ROOT/local-error.log" 2>&1; then
+  echo 'workstation publication was allowed' >&2; exit 1
+fi
+test ! -s "$FIXTURE_LOG"
+export GITHUB_ACTIONS=true
+
 # A failed public step can be retried against its already-created tag and Draft.
 VERSION=v9.9.9-rc.1
 export VERSION
@@ -107,4 +117,28 @@ if VERSION=v9.9.10 sh "$TEST_ROOT/source/scripts/local-release.sh" publish >"$TE
   echo 'notification failure was hidden' >&2; exit 1
 fi
 grep -Fq 'GitHub Release 已发布，但 Telegram 通知未完成' "$TEST_ROOT/notify-error.log"
-printf '%s\n' 'local release orchestration contract tests passed'
+grep -q '^ci-gate ' "$FIXTURE_LOG"
+printf '%s\n' 'CI release orchestration contract tests passed'
+
+# The workstation entry dispatches the exact pushed revision without publishing.
+cp "$ROOT_DIR/scripts/github-release.sh" "$TEST_ROOT/source/scripts/github-release.sh"
+git -C "$TEST_ROOT/source" add scripts/github-release.sh
+git -C "$TEST_ROOT/source" commit -qm 'dispatch fixture'
+git -C "$TEST_ROOT/source" push -q origin main
+export GH_REPO=Alfonsxh/codex-cpa-pool IMAGE_PREFIX=ghcr.io/alfonsxh
+: >"$FIXTURE_LOG"
+sh "$TEST_ROOT/source/scripts/github-release.sh" publish >/dev/null
+grep -Fq "workflow run release.yml --repo $GH_REPO --ref main -f operation=publish -f version=$VERSION -f revision=$(git -C "$TEST_ROOT/source" rev-parse HEAD)" "$FIXTURE_LOG"
+! grep -Eq '^(images|notify) |^gh release ' "$FIXTURE_LOG"
+NOTIFY_ACTION=status sh "$TEST_ROOT/source/scripts/github-release.sh" notify >/dev/null
+grep -Fq 'notification_action=status' "$FIXTURE_LOG"
+touch "$TEST_ROOT/source/dirty"
+if sh "$TEST_ROOT/source/scripts/github-release.sh" publish >"$TEST_ROOT/dirty-error.log" 2>&1; then
+  echo 'dirty dispatch accepted' >&2; exit 1
+fi
+rm "$TEST_ROOT/source/dirty"
+git -C "$TEST_ROOT/source" commit --allow-empty -qm 'unpushed fixture'
+if sh "$TEST_ROOT/source/scripts/github-release.sh" publish >"$TEST_ROOT/unpushed-error.log" 2>&1; then
+  echo 'unpushed dispatch accepted' >&2; exit 1
+fi
+printf '%s\n' 'GitHub release dispatch contract tests passed'

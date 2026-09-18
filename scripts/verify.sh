@@ -12,6 +12,7 @@ sh -n \
   "$ROOT_DIR/scripts/run.sh" \
   "$ROOT_DIR/scripts/generate-api.sh" \
   "$ROOT_DIR/scripts/local-release.sh" \
+  "$ROOT_DIR/scripts/github-release.sh" \
   "$ROOT_DIR/scripts/package-release.sh" \
   "$ROOT_DIR/scripts/release-images.sh" \
   "$ROOT_DIR/scripts/test-release-images.sh" \
@@ -31,7 +32,7 @@ sh "$ROOT_DIR/scripts/test-run-backup.sh"
 sh "$ROOT_DIR/scripts/test-run.sh"
 sh "$ROOT_DIR/scripts/test-run-compat.sh"
 sh "$ROOT_DIR/scripts/test-release-images.sh"
-node --test "$ROOT_DIR/scripts/release-validation.test.mjs"
+node --test "$ROOT_DIR/scripts/release-validation.test.mjs" "$ROOT_DIR/scripts/ci-release.test.mjs"
 node --test "$ROOT_DIR/scripts/telegram-release.test.mjs"
 sh "$ROOT_DIR/scripts/test-local-release.sh"
 UNFORMATTED_GO=$(find "$ROOT_DIR/cmd" "$ROOT_DIR/internal" -type f -name '*.go' -exec gofmt -l {} +)

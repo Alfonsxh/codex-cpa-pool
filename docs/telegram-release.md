@@ -1,12 +1,18 @@
 # Telegram 发布通知
 
-本机发布入口在正式 Release 公开并校验附件、Tag 和镜像后发送公告。无需常驻进程，与业务环境的企业微信通知独立。
+GitHub Release 工作流在正式 Release 公开并校验附件、Tag 和镜像后发送公告。无需常驻进程，与业务环境的企业微信通知独立。
 
 仅发送规范 `vX.Y.Z` 正式版。代码 push、独立 Tag、Draft、RC/beta、构建后缀及启用前的历史版本不发送。
 
 ## 配置
 
-在发布工作站的 `~/.config/codex-cpa-pool/telegram-release/` 保存：
+在 GitHub 仓库 Actions Secrets 中配置：
+
+- `CPAP_TELEGRAM_CONFIG_JSON`：下面的完整 JSON 配置。
+- `CPAP_TELEGRAM_BOT_TOKEN`：Bot Token。
+- `CPAP_TELEGRAM_RECEIPTS_JSON`：首次迁移时使用的历史回执 JSON 数组；导入确认后删除此 Secret。
+
+工作流将配置写入自托管 Runner 的 `~/.config/codex-cpa-pool/ci-telegram-release/`，后续任务继续使用同一目录和回执：
 
 - `bot-token`：BotFather 提供的 Token。
 - `config.json`：下列配置，示例值须替换。
@@ -47,7 +53,7 @@ Agent 审核变更后编写 Release Draft，包含以下两个唯一、非空段
 
 标题、功能名加粗，小标题与正文间空一行，更新条目之间不空行，升级命令与提示文字同行并使用等宽文字。程序仅转换粗体和行内代码，转义原始 HTML；通知上限为 3800 个 UTF-16 单元（含标记）。底部“发布详情”指向本版本，“安装升级”指向维护中的升级文档。
 
-发布命令见[开发指南](development.md#发布版本)。关闭 `enabled` 或未创建配置时会跳过公告；已启用但凭据、权限或内容无效时预检失败。
+发布命令见[开发指南](development.md#发布版本)。Release 工作流要求有效且启用的通知 Secrets，并在发布前检查目标权限。工作站的代理地址不能直接复制到 Runner；按 Runner 的实际网络配置。迁移导入仅补充不存在的历史回执，已有回执始终保留。
 
 ## 预览与回执
 
@@ -65,6 +71,8 @@ make -f scripts/build.mk release-notify VERSION=v2.0.2 NOTIFY_ACTION=edit
 | `edit` | 先更新并审核 Release 正文，再修改原消息 |
 | `failed` | Telegram 明确拒绝，修复原因后可重试 |
 | `pending` / `unknown` | 先核对实际群消息，禁止盲目重发或删除回执 |
+
+上述命令触发 CI 的通知专用操作，结果在 Actions 日志中查看；不会重建镜像或重新发布 Release。请备份 Runner 的 `deliveries/`，迁移或更换 Runner 时一起迁移，避免丢失去重记录。
 
 回执绑定仓库、版本、群、Release 与 Bot；目录锁防止并发。遗留锁须确认进程已退出后处理。明确限流最多重试三次，每次等待不超过 60 秒。
 
