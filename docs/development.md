@@ -78,7 +78,7 @@ make -f scripts/build.mk release-notify VERSION=v2.1.5 NOTIFY_ACTION=status
 make -f scripts/build.mk release-notify VERSION=v2.1.5
 ```
 
-`release-verify` 保留为可选本地验收；本地记录不会替代 CI 验收。浏览器使用与 Playwright 锁文件匹配的固定镜像和 Linux 视觉基准；Mac 本地基准独立保留。CI 的 `update_browser_snapshots` 仅生成待审查基准，不属于发布验收。原有 CI 工作流仍可手动执行检查和打包，正式发布统一走 Release 工作流。工作流使用临时 `GITHUB_TOKEN` 发布，Docker 登录目录按任务隔离并在结束时清理，不覆盖 Runner 原有登录。
+`release-verify` 保留为可选本地验收；本地记录不会替代 CI 验收。浏览器使用与 Playwright 锁文件匹配的固定镜像和 Linux 视觉基准；Mac 本地基准独立保留。CI 的 `update_browser_snapshots` 仅生成待审查基准，可用 `snapshot_test_filter` 定位单个用例；普通验收禁止过滤测试或更新基准。原有 CI 工作流仍可手动执行检查和打包，正式发布统一走 Release 工作流。工作流使用临时 `GITHUB_TOKEN` 发布，Docker 登录目录按任务隔离并在结束时清理，不覆盖 Runner 原有登录。
 
 通知 Secrets 和持久化回执见[配置说明](telegram-release.md#配置)。CI 不持有部署凭据、不连接业务环境；测试和生产升级仍分别在目标机运行 `run.sh`。
 

@@ -9,6 +9,10 @@ on:
         description: Generate Linux visual baselines for review only (no release acceptance)
         type: boolean
         default: false
+      snapshot_test_filter:
+        description: Optional test title pattern for baseline generation only
+        type: string
+        default: ""
   workflow_call:
 
 permissions:
@@ -117,7 +121,8 @@ jobs:
       - name: Run React browser matrix
         env:
           UPDATE_SNAPSHOTS: ${{ inputs.update_browser_snapshots || false }}
-        run: sh scripts/browser-ci.sh "$UPDATE_SNAPSHOTS"
+          SNAPSHOT_TEST_FILTER: ${{ inputs.snapshot_test_filter || '' }}
+        run: sh scripts/browser-ci.sh "$UPDATE_SNAPSHOTS" "$SNAPSHOT_TEST_FILTER"
 
       - name: Upload Linux visual baselines for review
         if: ${{ inputs.update_browser_snapshots && !cancelled() }}

@@ -36,11 +36,14 @@ grep -Fq -- "--user $(id -u):$(id -g)" "$TEST_ROOT/commands"
 grep -Fq -- '--shm-size=2g' "$TEST_ROOT/commands"
 grep -Fq -- '--env CPAP_E2E_WORKERS=1' "$TEST_ROOT/commands"
 grep -Fq -- "rm -f $(printf '%064d' 1)" "$TEST_ROOT/commands"
-! grep -Eq 'update-snapshots|docker.sock|--privileged|--network|prune' "$TEST_ROOT/commands"
+grep -Fq -- '--update-snapshots=none' "$TEST_ROOT/commands"
+! grep -Eq 'update-snapshots=all|docker.sock|--privileged|--network|prune' "$TEST_ROOT/commands"
 test -z "$(ls -A "$RUNNER_TEMP")"
 : >"$TEST_ROOT/commands"
 sh "$TEST_ROOT/source/scripts/browser-ci.sh" true
 grep -Fq -- '--update-snapshots=all' "$TEST_ROOT/commands"
+sh "$TEST_ROOT/source/scripts/browser-ci.sh" true '30 days Tooltip'
+grep -Fq -- '--grep 30 days Tooltip' "$TEST_ROOT/commands"
 # Failed tests still clean up only the container ID produced by this invocation.
 if BROWSER_FIXTURE_EXIT=17 sh "$TEST_ROOT/source/scripts/browser-ci.sh" false; then
   echo 'browser failure was ignored' >&2; exit 1
@@ -48,6 +51,7 @@ fi
 test -z "$(ls -A "$RUNNER_TEMP")"
 : >"$TEST_ROOT/commands"
 if sh "$TEST_ROOT/source/scripts/browser-ci.sh" invalid >/dev/null 2>&1; then exit 1; fi
+if sh "$TEST_ROOT/source/scripts/browser-ci.sh" false '30 days Tooltip' >/dev/null 2>&1; then exit 1; fi
 test ! -s "$TEST_ROOT/commands"
 printf '%s\n' '{"packages":{"node_modules/@playwright/test":{"version":"0.0.0"}}}' >"$TEST_ROOT/source/frontend/package-lock.json"
 if sh "$TEST_ROOT/source/scripts/browser-ci.sh" false >/dev/null 2>&1; then exit 1; fi

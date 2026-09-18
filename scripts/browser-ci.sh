@@ -2,7 +2,9 @@
 set -eu
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 UPDATE_SNAPSHOTS=${1:-false}
+SNAPSHOT_TEST_FILTER=${2:-}
 case "$UPDATE_SNAPSHOTS" in true|false) ;; *) echo 'snapshot update must be true or false' >&2; exit 1 ;; esac
+[ -z "$SNAPSHOT_TEST_FILTER" ] || [ "$UPDATE_SNAPSHOTS" = true ] || { echo 'Test filtering is allowed only for baseline generation' >&2; exit 1; }
 [ "$(uname -s)" = Linux ] || { echo 'Run this browser container on the Linux CI Runner' >&2; exit 1; }
 # Match the lockfile and pin the multi-architecture image used for Linux baselines.
 PLAYWRIGHT_VERSION=1.62.1
@@ -28,7 +30,12 @@ trap cleanup EXIT HUP INT TERM
 mkdir -p "$BROWSER_TASK_ROOT/home" "$MODULE_CACHE" "$BUILD_CACHE"
 docker pull "$PLAYWRIGHT_IMAGE"
 set -- npm --prefix frontend run test:e2e --
-if [ "$UPDATE_SNAPSHOTS" = true ]; then set -- "$@" --update-snapshots=all; fi
+if [ "$UPDATE_SNAPSHOTS" = true ]; then
+  set -- "$@" --update-snapshots=all
+  if [ -n "$SNAPSHOT_TEST_FILTER" ]; then set -- "$@" --grep "$SNAPSHOT_TEST_FILTER"; fi
+else
+  set -- "$@" --update-snapshots=none
+fi
 # Do not mount the Docker socket or join business Compose networks. Match the host
 # UID so generated evidence and snapshots remain writable by subsequent jobs.
 docker run --rm --init --shm-size=2g \
