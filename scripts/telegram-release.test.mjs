@@ -15,6 +15,8 @@ test("CI logs retain status and public URL without exposing private receipt fiel
   const receipt = { status: "sent", version, message_url: "https://t.me/example/1", chat_id: "-123", bot_id: 456, content_sha256: source };
   assert.deepEqual(notificationOutput(receipt, true), { status: "sent", version, message_url: "https://t.me/example/1" });
   assert.equal(notificationOutput(receipt, false), receipt);
+  assert.deepEqual(notificationOutput({ status: "preview", text: "Reviewed public release notes", chat_id: "-123" }, true),
+    { status: "preview", text: "Reviewed public release notes" });
 });
 function fixture(t) {
   const directory = mkdtempSync(path.join(os.tmpdir(), "cpap-telegram-test-"));

@@ -108,6 +108,8 @@ jobs:
           CPAP_TELEGRAM_CONFIG_JSON: ${{ secrets.CPAP_TELEGRAM_CONFIG_JSON }}
           CPAP_TELEGRAM_BOT_TOKEN: ${{ secrets.CPAP_TELEGRAM_BOT_TOKEN }}
           CPAP_TELEGRAM_RECEIPTS_JSON: ${{ secrets.CPAP_TELEGRAM_RECEIPTS_JSON }}
+          OPERATION: ${{ inputs.operation }}
+          NOTIFY_ACTION: ${{ inputs.notification_action }}
         run: node scripts/ci-release-notification.mjs
 
       - name: Check, publish, or retry notification

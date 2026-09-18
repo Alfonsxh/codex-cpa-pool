@@ -260,7 +260,7 @@ export function notifyRelease({ action, repo, version, revision, imagePrefix, co
 export function notificationOutput(result, inCI = process.env.GITHUB_ACTIONS === "true") {
   if (!inCI) return result;
   // Public Actions logs must not contain private destination IDs or full receipts.
-  return Object.fromEntries(["status", "version", "reason", "message_url", "reused"]
+  return Object.fromEntries(["status", "version", "reason", "message_url", "reused", "attempts", "updated_at", "text", "reply_markup"]
     .filter(key => result[key] !== undefined).map(key => [key, result[key]]));
 }
 

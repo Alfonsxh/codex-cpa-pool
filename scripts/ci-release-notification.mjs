@@ -56,9 +56,10 @@ if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.me
       repo: process.env.GH_REPO, configJSON: process.env.CPAP_TELEGRAM_CONFIG_JSON, token,
       seedJSON: process.env.CPAP_TELEGRAM_RECEIPTS_JSON
     });
-    checkDestination(prepared.config, telegramAPI(token, undefined, prepared.config.proxy_url));
+    const statusOnly = process.env.OPERATION === "notify" && process.env.NOTIFY_ACTION === "status";
+    if (!statusOnly) checkDestination(prepared.config, telegramAPI(token, undefined, prepared.config.proxy_url));
     appendFileSync(process.env.GITHUB_ENV, `CPAP_TELEGRAM_CONFIG=${prepared.configFile}\n`);
-    console.log(`Telegram destination verified; imported ${prepared.imported} historical receipts. No message sent.`);
+    console.log(`Telegram configuration ready; destination ${statusOnly ? "not queried for receipt status" : "verified"}; imported ${prepared.imported} historical receipts. No message sent.`);
   } catch {
     console.error("Runner 通知配置或目标校验失败；检查私有配置、Secrets、回执权限和网络。未发送公告。");
     process.exitCode = 1;
