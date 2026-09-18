@@ -243,6 +243,19 @@ func TestWebhookScannerAllowsOnlyExplicitFixtureKeys(t *testing.T) {
 	}
 }
 
+func TestBrowserRegistryDomainDoesNotAllowLookalikes(t *testing.T) {
+	for host, want := range map[string]bool{
+		"mcr.microsoft.com":          true,
+		"microsoft.com":              false,
+		"evil-mcr.microsoft.com":     false,
+		"mcr.microsoft.com.evil.tld": false,
+	} {
+		if got := allowedDomain(host); got != want {
+			t.Fatalf("allowedDomain(%q) = %v, want %v", host, got, want)
+		}
+	}
+}
+
 func TestPublicCommunityDomainDoesNotAllowLookalikes(t *testing.T) {
 	for _, test := range []struct {
 		host string

@@ -107,6 +107,7 @@ var allowedDomainSuffixes = []string{
 	"alpinelinux.org", "aliyun.com", "chatgpt.com", "daocloud.io", "debian.org",
 	"docker.io", "dotenvx.com", "example.com", "example.net", "example.org",
 	"github.com", "ghcr.io", "golang.google.cn", "goproxy.cn", "invalid",
+	"mcr.microsoft.com",
 	"npmmirror.com", "openai.com", "opencollective.com", "paulmillr.com",
 	"shields.io", "test", "tidelift.com", "w3.org", "weixin.qq.com",
 }
