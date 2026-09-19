@@ -8,6 +8,7 @@ import (
 
 	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/reasoningpolicy"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/usage"
 	"github.com/gin-gonic/gin"
 )
@@ -180,6 +181,7 @@ var configurationPresentationByKey = map[string]configurationPresentation{
 	"portal.provider_name":                               {Group: "admin.brand_identity", Description: "admin.client_provider_name_2"},
 	"portal.api_key_env":                                 {Group: "admin.brand_identity", Description: "admin.shell_variable_for_the_key"},
 	"portal.default_model":                               {Group: "admin.brand_identity", Description: "admin.default_client_model_2"},
+	reasoningpolicy.SettingKey:                           {Group: "admin.cpa_requests", Description: "configuration.max_reasoning_effort_description", ChoiceLabels: map[string]string{"unlimited": "configuration.no_reasoning_limit"}},
 	"cpa.proxy_enabled":                                  {Group: "admin.cpa_requests", Description: "admin.used_only_by_cpas_that_inherit_the_default_proxy"},
 	"cpa.proxy_url":                                      {Group: "admin.cpa_requests", Description: "admin.default_proxy_url_http_https_socks5"},
 	"cpa.request_retry":                                  {Group: "admin.cpa_requests", Description: "admin.retries_after_upstream_failures"},

@@ -1,7 +1,7 @@
 {
   "version": 2,
   "generated_at": 1787500800,
-  "field_count": 79,
+  "field_count": 80,
   "groups": [
     {
       "name": "Brand & identity",
@@ -130,6 +130,54 @@
       "name": "CPA requests",
       "description": "CPA request and proxy settings.",
       "fields": [
+        {
+          "key": "gateway.max_reasoning_effort",
+          "label": "Maximum reasoning effort",
+          "description": "Only explicit levels above this limit are lowered. With xhigh, max and ultra become xhigh; lower levels stay unchanged. Unset, auto and unknown levels pass through. Applies to new requests and new WebSocket turns after saving.",
+          "type": "choice",
+          "value": "unlimited",
+          "default": "unlimited",
+          "apply_mode": "live",
+          "editable": true,
+          "choices": [
+            {
+              "value": "unlimited",
+              "label": "No limit"
+            },
+            {
+              "value": "none",
+              "label": "none"
+            },
+            {
+              "value": "minimal",
+              "label": "minimal"
+            },
+            {
+              "value": "low",
+              "label": "low"
+            },
+            {
+              "value": "medium",
+              "label": "medium"
+            },
+            {
+              "value": "high",
+              "label": "high"
+            },
+            {
+              "value": "xhigh",
+              "label": "xhigh"
+            },
+            {
+              "value": "max",
+              "label": "max"
+            },
+            {
+              "value": "ultra",
+              "label": "ultra"
+            }
+          ]
+        },
         {
           "key": "cpa.proxy_enabled",
           "label": "Enable default upstream proxy",

@@ -8,7 +8,7 @@
 | --- | --- |
 | 品牌与身份 | 产品名称、Logo、公开地址、邮箱域、Key 前缀、客户端导出 |
 | 系统设置 | 业务时区、使用中心登录有效期、管理密钥、初始密码、推理配色 |
-| 请求与账号 | 代理、重试、会话保持、账号切换、端口、镜像、日志 |
+| 请求与账号 | 推理强度上限、代理、重试、会话保持、账号切换、端口、镜像、日志 |
 | 用量与额度 | 额度、模型倍率、推理倍率、用量采集 |
 | 通知设置 | 企业微信 Webhook、发送计划、额度预警 |
 | 数据与审计 | 账号备份、存储状态、审计记录 |
@@ -33,6 +33,26 @@
 - 使用中心登录有效期为 1–12 小时，可用小时、天和小数显示，接口保存整数秒。
 - 会话亲和默认 1 小时，范围 30 秒至 30 天，支持秒、分钟、小时、天显示。
 - 账号自动切换支持 `off`、`active`。
+
+### 最高推理强度
+
+入口为“请求与账号 → 请求与代理 → 最高推理强度”，配置键为 `gateway.max_reasoning_effort`，默认“不限制”。选择上限后，Gateway 在发送给 CPA 前，只降低用户显式指定且高于上限的等级。
+
+等级按 `none < minimal < low < medium < high < xhigh < max < ultra` 比较。例如上限为 `xhigh` 时：
+
+| 用户请求 | 转发值 |
+| --- | --- |
+| `max`、`ultra` | `xhigh` |
+| `xhigh`、`high`、`medium`、`low`、`minimal`、`none` | 原值 |
+| 未指定、`auto`、未知等级 | 原值 |
+
+支持 Responses 的 `reasoning.effort`、Chat Completions 的 `reasoning_effort`，以及 CPA 的显式等级模型后缀（如 `model(ultra)`）。数值 Token 预算不转换；该设置也不会替用户补默认等级或推断模型是否支持某个等级。匹配已知等级时忽略大小写及首尾空格。
+
+保存成功表示配置已写入控制库，并已等待 Gateway 加载新的鉴权快照。无需重启账号容器；后续 HTTP 请求和已有 Responses WebSocket 连接中的下一条 `response.create` 使用新上限，正在生成的响应不受影响。保存失败会尝试恢复旧配置并重新下发。选择“不限制”可恢复原始等级透传。
+
+该策略在本项目 Gateway 执行，不需要修改 CLIProxyAPI 源码，也不属于 CPA 容器 YAML。直接访问 CPA 容器会绕过此策略。Responses WebSocket 的消息格式遵循[官方协议](https://developers.openai.com/api/docs/guides/websocket-mode)。
+
+启用上限后，匹配的 HTTP 请求要求 JSON 对象，支持未压缩或 gzip，解压后最多 64 MiB；无效 JSON、重复顶层字段或重复 `reasoning` 子字段会被拒绝。Responses WebSocket 单条消息最多 64 MiB。其他 API、响应内容、模型倍率和历史用量不因本设置改写。
 
 ### 系统时区
 

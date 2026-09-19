@@ -224,6 +224,10 @@ func TestHTTPGatewayStreamsTracksInflightAndPropagatesCancellation(t *testing.T)
 	upstreamCanceled := make(chan struct{})
 	releaseFirstChunk := make(chan struct{})
 	upstream := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		body, _ := io.ReadAll(request.Body)
+		if !strings.Contains(string(body), `"effort":"xhigh"`) {
+			t.Error("stream request was not capped")
+		}
 		close(upstreamStarted)
 		writer.Header().Set("Content-Type", "text/event-stream")
 		_, _ = io.WriteString(writer, "data: first\n\n")
@@ -242,6 +246,7 @@ func TestHTTPGatewayStreamsTracksInflightAndPropagatesCancellation(t *testing.T)
 	}
 	now := time.Unix(1000, 0)
 	engine := loadFixtureEngine(t, now)
+	setTestEffortLimit(t, engine, "xhigh", now)
 	loadFailOpenHeartbeat(t, engine)
 	gateway := newTestHTTPGateway(t, engine, now, transport, nil)
 	server := httptest.NewServer(gateway.PublicHandler())
@@ -249,7 +254,7 @@ func TestHTTPGatewayStreamsTracksInflightAndPropagatesCancellation(t *testing.T)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	request, err := http.NewRequestWithContext(ctx, http.MethodPost, server.URL+"/v1/responses", nil)
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, server.URL+"/v1/responses", strings.NewReader(`{"reasoning":{"effort":"ultra"},"stream":true}`))
 	if err != nil {
 		t.Fatalf("create request: %v", err)
 	}

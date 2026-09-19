@@ -11,6 +11,8 @@ import (
 	"strings"
 
 	"github.com/Alfonsxh/codex-cpa-pool/internal/controlplane"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/identity"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/reasoningpolicy"
 	"github.com/google/renameio/v2"
 )
 
@@ -38,6 +40,7 @@ type ConfigurationRuntimeApplier struct {
 	Accounts interface {
 		ReadAccounts(context.Context) ([]controlplane.Account, error)
 	}
+	GatewaySnapshots   identity.SnapshotPublisher
 	Projection         ConfigurationAccountProjector
 	Runtime            ConfigurationRuntime
 	ControlRuntime     ConfigurationRuntime
@@ -60,6 +63,10 @@ func (applier *ConfigurationRuntimeApplier) ApplyConfiguration(
 	_, collectorChanged := modes["collector"]
 	_, quotaChanged := modes["quota"]
 	liveCPAChanged := configurationLiveCPAChanged(change)
+	gatewayChanged := configurationGatewayPolicyChanged(change)
+	if gatewayChanged && applier.GatewaySnapshots == nil {
+		return errors.New("gateway policy publisher is unavailable")
+	}
 
 	// Validate every dependency before the first file or runtime mutation so a
 	// partially configured Admin always fails closed.
@@ -111,7 +118,21 @@ func (applier *ConfigurationRuntimeApplier) ApplyConfiguration(
 			return fmt.Errorf("restart usage collector: %w", err)
 		}
 	}
+	if gatewayChanged {
+		if _, err := applier.GatewaySnapshots.PublishAuthSnapshot(ctx, true); err != nil {
+			return fmt.Errorf("publish gateway request policy: %w", err)
+		}
+	}
 	return nil
+}
+
+func configurationGatewayPolicyChanged(change ConfigurationChange) bool {
+	for _, key := range change.Changed {
+		if key == reasoningpolicy.SettingKey {
+			return true
+		}
+	}
+	return false
 }
 
 func configurationLiveCPAChanged(change ConfigurationChange) bool {

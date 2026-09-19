@@ -19,6 +19,7 @@ import (
 
 	"github.com/Alfonsxh/codex-cpa-pool/internal/controlplane"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/gateway"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/reasoningpolicy"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/snapshotfile"
 	"github.com/google/uuid"
 )
@@ -29,6 +30,7 @@ const (
 )
 
 type AuthSnapshotStore interface {
+	ReadSettings(context.Context) (map[string]any, error)
 	ReadAccounts(context.Context) ([]controlplane.Account, error)
 	ReadRoutes(context.Context) (map[string]string, error)
 	ReadKeyRecords(context.Context) ([]controlplane.KeyRecord, error)
@@ -89,7 +91,15 @@ func (publisher *AuthSnapshotPublisher) PublishAuthSnapshot(
 		if err != nil {
 			return fmt.Errorf("read auth snapshot internal keys: %w", err)
 		}
-		payload, builtGeneration, err := publisher.buildPayload(accounts, routes, records, internalKeys)
+		settings, err := publisher.Store.ReadSettings(ctx)
+		if err != nil {
+			return fmt.Errorf("read gateway request policy: %w", err)
+		}
+		limit, err := reasoningpolicy.FromSettings(settings)
+		if err != nil {
+			return err
+		}
+		payload, builtGeneration, err := publisher.buildPayload(accounts, routes, records, internalKeys, limit)
 		if err != nil {
 			return err
 		}
@@ -115,6 +125,7 @@ func (publisher *AuthSnapshotPublisher) buildPayload(
 	routes map[string]string,
 	records []controlplane.KeyRecord,
 	internalKeys map[string]controlplane.InternalKey,
+	maxReasoningEffort string,
 ) ([]byte, string, error) {
 	accountCatalog := make(map[string]controlplane.Account, len(accounts))
 	for _, account := range accounts {
@@ -199,10 +210,11 @@ func (publisher *AuthSnapshotPublisher) buildPayload(
 		now = publisher.Now
 	}
 	snapshot := gateway.AuthSnapshot{
-		Version:     1,
-		Generation:  generation,
-		GeneratedAt: float64(now().Unix()),
-		Records:     authRecords,
+		Version:            1,
+		Generation:         generation,
+		GeneratedAt:        float64(now().Unix()),
+		Records:            authRecords,
+		MaxReasoningEffort: maxReasoningEffort,
 	}
 	payload, err := json.Marshal(snapshot)
 	if err != nil {

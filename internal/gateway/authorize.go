@@ -39,12 +39,13 @@ type ErrorResponse struct {
 }
 
 type Decision struct {
-	Allowed           bool
-	Status            int
-	Identity          *Identity
-	Response          *ErrorResponse
-	RetryAfterSeconds int64
-	Warning           string
+	Allowed            bool
+	Status             int
+	Identity           *Identity
+	Response           *ErrorResponse
+	RetryAfterSeconds  int64
+	MaxReasoningEffort string
+	Warning            string
 }
 
 func (decision Decision) UpstreamAuthorization() string {
@@ -55,6 +56,7 @@ func (decision Decision) UpstreamAuthorization() string {
 }
 
 type authState struct {
+	maxReasoningEffort string
 	generation         string
 	previousGeneration string
 	generatedAt        float64
@@ -107,6 +109,7 @@ func (engine *Engine) LoadAuthSnapshot(reader io.Reader, loadedAt time.Time) err
 	}
 	engine.auth.Store(&authState{
 		generation:         snapshot.Generation,
+		maxReasoningEffort: snapshot.MaxReasoningEffort,
 		previousGeneration: previousGeneration,
 		generatedAt:        snapshot.GeneratedAt,
 		loadedAt:           loadedAt.Unix(),
@@ -171,7 +174,7 @@ func (engine *Engine) Authorize(now time.Time, authorization string, enforceQuot
 	if !ok {
 		return invalidKeyDecision()
 	}
-	decision := Decision{Allowed: true, Identity: &identity}
+	decision := Decision{Allowed: true, Identity: &identity, MaxReasoningEffort: auth.maxReasoningEffort}
 	if !enforceQuota {
 		return decision
 	}
@@ -250,4 +253,12 @@ func invalidKeyDecision() Decision {
 			Type:    "invalid_request_error",
 		}},
 	}
+}
+
+// MaxReasoningEffort is read for each new response on an established WebSocket.
+func (engine *Engine) MaxReasoningEffort() string {
+	if state := engine.auth.Load(); state != nil {
+		return state.maxReasoningEffort
+	}
+	return ""
 }

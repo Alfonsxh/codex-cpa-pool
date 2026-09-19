@@ -421,6 +421,7 @@ func runOwnedAdmin(
 		defer runtimeJobs.Close()
 	}
 	configurationApplier := &adminapi.ConfigurationRuntimeApplier{
+		GatewaySnapshots:   snapshotPublisher,
 		Accounts:           store,
 		Projection:         configurationProjectionAdapter{renderer: projectionRenderer},
 		AccountEnvironment: composeEnvironmentProjector,

@@ -1808,8 +1808,20 @@
     "other": "对应 logging-to-file；将 CPA 日志写入容器挂载的日志目录。"
   },
   {
+    "id": "configuration.max_reasoning_effort",
+    "other": "最高推理强度"
+  },
+  {
+    "id": "configuration.max_reasoning_effort_description",
+    "other": "只降低明确超过上限的等级。例如设为 xhigh 时，max、ultra 映射为 xhigh，较低等级保持原值；未指定、auto 和未知等级不映射。保存后对新请求及 WebSocket 的新轮次生效。"
+  },
+  {
     "id": "configuration.model_multiplier",
     "other": "{{.Model}} 模型倍率"
+  },
+  {
+    "id": "configuration.no_reasoning_limit",
+    "other": "不限制"
   },
   {
     "id": "configuration.passthrough_headers",

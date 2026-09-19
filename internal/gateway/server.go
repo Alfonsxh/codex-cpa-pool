@@ -171,6 +171,13 @@ func (gateway *HTTPGateway) handlePublicRequest(c *gin.Context) {
 	c.Set(contextAccountKey, identity.Account)
 	done := gateway.inflight.Start(identity.Label, identity.Account)
 	defer done()
+	if responseWebSocket(c.Request, normalizedPath) {
+		gateway.proxyResponsesWebSocket(c, identity, normalizedPath)
+		return
+	}
+	if !gateway.applyReasoningPolicy(c, decision.MaxReasoningEffort, normalizedPath) {
+		return
+	}
 	gateway.proxyRequest(c, identity, normalizedPath)
 }
 

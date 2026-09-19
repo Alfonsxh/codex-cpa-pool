@@ -1,6 +1,6 @@
-ARG GO_BUILDER_IMAGE=docker.m.daocloud.io/library/golang:1.25.0-alpine3.22@sha256:f18a072054848d87a8077455f0ac8a25886f2397f88bfdd222d6fafbb5bba440
-ARG NODE_BUILDER_IMAGE=docker.m.daocloud.io/library/node:22-alpine3.22@sha256:cd7807368cf24826297cbad5dca1a44972ccfd770647db52a8c7589eb4599ac8
-ARG RUNTIME_IMAGE=docker.m.daocloud.io/library/alpine:3.22@sha256:14358309a308569c32bdc37e2e0e9694be33a9d99e68afb0f5ff33cc1f695dce
+ARG GO_BUILDER_IMAGE=docker.io/library/golang:1.25.0-alpine3.22@sha256:f18a072054848d87a8077455f0ac8a25886f2397f88bfdd222d6fafbb5bba440
+ARG NODE_BUILDER_IMAGE=docker.io/library/node:22-alpine3.22@sha256:cd7807368cf24826297cbad5dca1a44972ccfd770647db52a8c7589eb4599ac8
+ARG RUNTIME_IMAGE=docker.io/library/alpine:3.22@sha256:14358309a308569c32bdc37e2e0e9694be33a9d99e68afb0f5ff33cc1f695dce
 
 FROM --platform=$BUILDPLATFORM ${GO_BUILDER_IMAGE} AS go-base
 ARG GOPROXY=https://goproxy.cn
@@ -30,6 +30,7 @@ RUN --mount=type=cache,id=cpap-go-mod,target=/go/pkg/mod \
 FROM go-base AS gateway-builder
 COPY cmd/gateway ./cmd/gateway
 COPY internal/gateway ./internal/gateway
+COPY internal/reasoningpolicy ./internal/reasoningpolicy
 RUN --mount=type=cache,id=cpap-go-mod,target=/go/pkg/mod \
     --mount=type=cache,id=cpap-go-build,target=/root/.cache/go-build \
     go build -tags timetzdata -trimpath -buildvcs=false -ldflags='-s -w' -o /out/cpa-gateway ./cmd/gateway

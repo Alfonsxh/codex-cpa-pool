@@ -91,7 +91,7 @@ export function configurationSectionFor(field: Pick<ConfigurationField, "key">, 
     : key.startsWith("account_failover.") ? "failover"
     : key.startsWith("accounts.") || key.startsWith("runtime.") ? "provisioning"
     : ["cpa.logs_max_total_size_mb", "cpa.error_logs_max_files"].includes(key) ? "logging"
-    : key.startsWith("cpa.") ? "requests"
+    : key.startsWith("cpa.") || key === "gateway.max_reasoning_effort" ? "requests"
     : key.startsWith("notification.") ? "notifications"
     : legacySections[originalGroup] ?? "general";
   return configurationSections.find((section) => section.id === id)!;

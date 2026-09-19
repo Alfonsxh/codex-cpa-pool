@@ -10,6 +10,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/Alfonsxh/codex-cpa-pool/internal/reasoningpolicy"
 )
 
 const MaxSnapshotBytes = 16 * 1024 * 1024
@@ -27,10 +29,11 @@ type AuthRecord struct {
 }
 
 type AuthSnapshot struct {
-	Version     int          `json:"version"`
-	Generation  string       `json:"generation"`
-	GeneratedAt float64      `json:"generated_at"`
-	Records     []AuthRecord `json:"records"`
+	Version            int          `json:"version"`
+	Generation         string       `json:"generation"`
+	GeneratedAt        float64      `json:"generated_at"`
+	Records            []AuthRecord `json:"records"`
+	MaxReasoningEffort string       `json:"max_reasoning_effort,omitempty"`
 }
 
 type QuotaRecord struct {
@@ -73,10 +76,11 @@ type rawQuotaRecord struct {
 }
 
 type rawAuthSnapshot struct {
-	Version     int          `json:"version"`
-	Generation  string       `json:"generation"`
-	GeneratedAt any          `json:"generated_at"`
-	Records     []AuthRecord `json:"records"`
+	Version            int          `json:"version"`
+	Generation         string       `json:"generation"`
+	GeneratedAt        any          `json:"generated_at"`
+	Records            []AuthRecord `json:"records"`
+	MaxReasoningEffort string       `json:"max_reasoning_effort,omitempty"`
 }
 
 type rawQuotaSnapshot struct {
@@ -106,14 +110,15 @@ func ParseAuthSnapshot(reader io.Reader) (*AuthSnapshot, error) {
 	if err := json.Unmarshal(raw, &input); err != nil {
 		return nil, fmt.Errorf("decode auth snapshot: %w", err)
 	}
-	if input.Version != 1 || !validLowerHex(input.Generation, 32) || input.Records == nil {
+	if input.Version != 1 || !validLowerHex(input.Generation, 32) || input.Records == nil || !reasoningpolicy.ValidLimit(input.MaxReasoningEffort) {
 		return nil, errors.New("invalid auth snapshot envelope")
 	}
 	snapshot := &AuthSnapshot{
-		Version:     input.Version,
-		Generation:  input.Generation,
-		GeneratedAt: snapshotNumberOrFallback(input.GeneratedAt, 0),
-		Records:     input.Records,
+		Version:            input.Version,
+		Generation:         input.Generation,
+		GeneratedAt:        snapshotNumberOrFallback(input.GeneratedAt, 0),
+		Records:            input.Records,
+		MaxReasoningEffort: input.MaxReasoningEffort,
 	}
 	seen := make(map[string]struct{}, len(snapshot.Records))
 	for index, record := range snapshot.Records {

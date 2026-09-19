@@ -1818,8 +1818,20 @@
     "other": "Maps to logging-to-file. Write CPA logs to the mounted log directory."
   },
   {
+    "id": "configuration.max_reasoning_effort",
+    "other": "Maximum reasoning effort"
+  },
+  {
+    "id": "configuration.max_reasoning_effort_description",
+    "other": "Only explicit levels above this limit are lowered. With xhigh, max and ultra become xhigh; lower levels stay unchanged. Unset, auto and unknown levels pass through. Applies to new requests and new WebSocket turns after saving."
+  },
+  {
     "id": "configuration.model_multiplier",
     "other": "{{.Model}} model multiplier"
+  },
+  {
+    "id": "configuration.no_reasoning_limit",
+    "other": "No limit"
   },
   {
     "id": "configuration.passthrough_headers",

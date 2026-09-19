@@ -22,6 +22,7 @@ import (
 	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/identity"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/reasoningpolicy"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/runtimeops"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/sitetime"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/usage"
@@ -167,6 +168,7 @@ func buildConfigurationDefinitions() []configurationDefinition {
 		text("portal.default_model", "admin.default_client_model", "gpt-5.6-sol", 1, 128, "live", false),
 		choice(i18n.SettingKey, "configuration.system_language", "en", "live", "en", "zh-CN"),
 		simple(sitetime.SettingKey, "admin.system_timezone", "timezone", sitetime.DefaultName, "collector"),
+		choice(reasoningpolicy.SettingKey, "configuration.max_reasoning_effort", "unlimited", "live", append([]string{"unlimited"}, reasoningpolicy.Levels()...)...),
 		boolean("cpa.proxy_enabled", "admin.enable_default_upstream_proxy", false, "accounts"),
 		simple("cpa.proxy_url", "admin.default_upstream_proxy_url", "proxy_url_secret", "", "accounts"),
 		integer("cpa.request_retry", "admin.request_retries", 2, 0, 10, "accounts"),
@@ -397,6 +399,9 @@ func (server *Server) updateConfiguration(c *gin.Context) {
 func (server *Server) applyConfiguration(ctx context.Context, change ConfigurationChange) error {
 	if server.configurationApplier != nil {
 		return server.configurationApplier.ApplyConfiguration(ctx, change)
+	}
+	if configurationGatewayPolicyChanged(change) {
+		return errors.New("gateway policy publisher is unavailable")
 	}
 	if configurationLiveCPAChanged(change) {
 		return errors.New("configuration account projector is unavailable")

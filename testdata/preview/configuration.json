@@ -1,7 +1,7 @@
 {
   "version": 2,
   "generated_at": 1787500800,
-  "field_count": 79,
+  "field_count": 80,
   "groups": [
     {
       "name": "品牌与身份",
@@ -130,6 +130,54 @@
       "name": "CPA 请求",
       "description": "CPA 请求与代理配置。",
       "fields": [
+        {
+          "key": "gateway.max_reasoning_effort",
+          "label": "最高推理强度",
+          "description": "只降低明确超过上限的等级。例如设为 xhigh 时，max、ultra 映射为 xhigh，较低等级保持原值；未指定、auto 和未知等级不映射。保存后对新请求及 WebSocket 的新轮次生效。",
+          "type": "choice",
+          "value": "unlimited",
+          "default": "unlimited",
+          "apply_mode": "live",
+          "editable": true,
+          "choices": [
+            {
+              "value": "unlimited",
+              "label": "不限制"
+            },
+            {
+              "value": "none",
+              "label": "none"
+            },
+            {
+              "value": "minimal",
+              "label": "minimal"
+            },
+            {
+              "value": "low",
+              "label": "low"
+            },
+            {
+              "value": "medium",
+              "label": "medium"
+            },
+            {
+              "value": "high",
+              "label": "high"
+            },
+            {
+              "value": "xhigh",
+              "label": "xhigh"
+            },
+            {
+              "value": "max",
+              "label": "max"
+            },
+            {
+              "value": "ultra",
+              "label": "ultra"
+            }
+          ]
+        },
         {
           "key": "cpa.proxy_enabled",
           "label": "启用默认上游代理",

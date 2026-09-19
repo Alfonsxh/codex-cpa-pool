@@ -72,7 +72,7 @@ var componentInputs = map[string][]string{
 		"internal/accountconfig", "internal/accountlifecycle", "internal/accountprojection", "internal/accountstatus",
 		"internal/admin", "internal/branding", "internal/collector", "internal/contract",
 		"internal/bootstrap", "internal/controlplane", "internal/failover",
-		"internal/gateway", "internal/httpi18n", "internal/i18n", "internal/identity", "internal/logmaintenance", "internal/notifications",
+		"internal/gateway", "internal/httpi18n", "internal/i18n", "internal/identity", "internal/logmaintenance", "internal/notifications", "internal/reasoningpolicy",
 		"internal/ownership", "internal/portal", "internal/quota", "internal/runtimeops",
 		"internal/scheduler", "internal/sitetime", "internal/snapshotfile", "internal/usage", "internal/usagereport",
 	},
@@ -84,7 +84,7 @@ var componentInputs = map[string][]string{
 		"frontend/vite.portal.config.ts", "frontend/vite.shared.ts", "frontend/vite.usage.config.ts",
 	},
 	"gateway": {
-		".dockerignore", "Dockerfile", "docker-bake.hcl", "go.mod", "go.sum", "cmd/gateway", "internal/gateway",
+		".dockerignore", "Dockerfile", "docker-bake.hcl", "go.mod", "go.sum", "cmd/gateway", "internal/gateway", "internal/reasoningpolicy",
 	},
 	"edge": {
 		".dockerignore", "Dockerfile", "docker-bake.hcl", "go.mod", "go.sum", "cmd/edge", "internal/edge",

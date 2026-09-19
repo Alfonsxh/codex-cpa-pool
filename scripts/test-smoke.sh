@@ -41,7 +41,7 @@ health=$(curl --noproxy '*' -fsS "${PUBLIC_URL}/__health")
 test "$health" = "ok"
 
 curl --noproxy '*' -fsS -D "$TEMP_DIR/landing.headers" "${PUBLIC_URL}/" >"$TEMP_DIR/landing.html"
-grep -F '<title>服务入口</title>' "$TEMP_DIR/landing.html" >/dev/null
+grep -F '<title>Service portal</title>' "$TEMP_DIR/landing.html" >/dev/null
 grep -i '^Cache-Control: no-cache' "$TEMP_DIR/landing.headers" >/dev/null
 grep -Eo '(src|href)="/portal/assets/[^"]+"' "$TEMP_DIR/landing.html" \
   | sed -E 's/^(src|href)="([^"]+)"$/\2/' \

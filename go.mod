@@ -5,6 +5,7 @@ go 1.25.0
 require (
 	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/alitto/pond/v2 v2.7.1
+	github.com/coder/websocket v1.8.15
 	github.com/containerd/errdefs v1.0.0
 	github.com/fsnotify/fsnotify v1.10.1
 	github.com/gin-gonic/gin v1.12.0
