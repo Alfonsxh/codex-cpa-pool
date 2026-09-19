@@ -41,6 +41,8 @@ jobs:
         uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+          # This persistent Runner already retains its Go module/build caches.
+          cache: false
 
       - name: Install frontend and OpenAPI dependencies
         shell: bash
@@ -113,6 +115,7 @@ jobs:
         uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+          cache: false
 
       - name: Install browser dependencies
         run: |
@@ -156,6 +159,7 @@ jobs:
         uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+          cache: false
 
       - name: Build release archive
         run: sh scripts/package-release.sh "dist/codex-cpa-pool-${GITHUB_SHA::12}.tar.gz"

@@ -68,6 +68,8 @@ jobs:
         uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+          # Reuse the Runner's local caches without restoring over read-only modules.
+          cache: false
 
       - name: Verify runner and release identity
         env:
