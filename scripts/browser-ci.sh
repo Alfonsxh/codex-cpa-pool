@@ -3,6 +3,8 @@ set -eu
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 UPDATE_SNAPSHOTS=${1:-false}
 SNAPSHOT_TEST_FILTER=${2:-}
+BROWSER_WORKERS=${CPAP_E2E_WORKERS:-2}
+case "$BROWSER_WORKERS" in 1|2) ;; *) echo 'browser workers must be 1 or 2 on the shared CI Runner' >&2; exit 1 ;; esac
 case "$UPDATE_SNAPSHOTS" in true|false) ;; *) echo 'snapshot update must be true or false' >&2; exit 1 ;; esac
 [ -z "$SNAPSHOT_TEST_FILTER" ] || [ "$UPDATE_SNAPSHOTS" = true ] || { echo 'Test filtering is allowed only for baseline generation' >&2; exit 1; }
 [ "$(uname -s)" = Linux ] || { echo 'Run this browser container on the Linux CI Runner' >&2; exit 1; }
@@ -49,5 +51,5 @@ docker run --rm --init --shm-size=2g \
   --mount "type=bind,src=$BROWSER_TASK_ROOT/home,dst=/home/browser" \
   --env HOME=/home/browser --env GOMODCACHE=/go-mod --env GOCACHE=/go-build \
   --env PATH=/opt/node/bin:/opt/go/bin:/usr/local/bin:/usr/bin:/bin \
-  --env CI=true --env CPAP_E2E_WORKERS=1 --env CGO_ENABLED=0 \
+  --env CI=true --env "CPAP_E2E_WORKERS=$BROWSER_WORKERS" --env CGO_ENABLED=0 \
   "$PLAYWRIGHT_IMAGE" sh -c 'set -eu; go build -o /home/browser/test-preview ./cmd/test-preview; exec "$@"' sh "$@"

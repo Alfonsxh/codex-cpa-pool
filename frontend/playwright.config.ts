@@ -38,7 +38,9 @@ export default defineConfig({
     timezoneId: "Asia/Shanghai",
     colorScheme: "light",
     screenshot: "only-on-failure",
-    trace: "retain-on-failure"
+    // CI keeps failure screenshots and DOM/network traces without continuously
+    // encoding screencast frames on the shared Runner during successful tests.
+    trace: { mode: "retain-on-failure", screenshots: !process.env.CI, snapshots: true, sources: true }
   },
   webServer: [
     {

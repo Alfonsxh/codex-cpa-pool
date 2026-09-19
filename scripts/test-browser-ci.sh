@@ -31,14 +31,18 @@ SH
 chmod 0755 "$TEST_ROOT/bin/"*
 export BROWSER_FIXTURE="$TEST_ROOT" RUNNER_TEMP="$TEST_ROOT/runtime"
 export PATH="$TEST_ROOT/bin:$PATH"
+unset CPAP_E2E_WORKERS
 sh "$TEST_ROOT/source/scripts/browser-ci.sh" false
 grep -Fq -- "--user $(id -u):$(id -g)" "$TEST_ROOT/commands"
 grep -Fq -- '--shm-size=2g' "$TEST_ROOT/commands"
-grep -Fq -- '--env CPAP_E2E_WORKERS=1' "$TEST_ROOT/commands"
+grep -Fq -- '--env CPAP_E2E_WORKERS=2' "$TEST_ROOT/commands"
 grep -Fq -- "rm -f $(printf '%064d' 1)" "$TEST_ROOT/commands"
 grep -Fq -- '--update-snapshots=none' "$TEST_ROOT/commands"
 ! grep -Eq 'update-snapshots=all|docker.sock|--privileged|--network|prune' "$TEST_ROOT/commands"
 test -z "$(ls -A "$RUNNER_TEMP")"
+: >"$TEST_ROOT/commands"
+CPAP_E2E_WORKERS=1 sh "$TEST_ROOT/source/scripts/browser-ci.sh" false
+grep -Fq -- '--env CPAP_E2E_WORKERS=1' "$TEST_ROOT/commands"
 : >"$TEST_ROOT/commands"
 sh "$TEST_ROOT/source/scripts/browser-ci.sh" true
 grep -Fq -- '--update-snapshots=all' "$TEST_ROOT/commands"
@@ -52,6 +56,8 @@ test -z "$(ls -A "$RUNNER_TEMP")"
 : >"$TEST_ROOT/commands"
 if sh "$TEST_ROOT/source/scripts/browser-ci.sh" invalid >/dev/null 2>&1; then exit 1; fi
 if sh "$TEST_ROOT/source/scripts/browser-ci.sh" false '30 days Tooltip' >/dev/null 2>&1; then exit 1; fi
+if CPAP_E2E_WORKERS=0 sh "$TEST_ROOT/source/scripts/browser-ci.sh" false >/dev/null 2>&1; then exit 1; fi
+if CPAP_E2E_WORKERS=8 sh "$TEST_ROOT/source/scripts/browser-ci.sh" false >/dev/null 2>&1; then exit 1; fi
 test ! -s "$TEST_ROOT/commands"
 printf '%s\n' '{"packages":{"node_modules/@playwright/test":{"version":"0.0.0"}}}' >"$TEST_ROOT/source/frontend/package-lock.json"
 if sh "$TEST_ROOT/source/scripts/browser-ci.sh" false >/dev/null 2>&1; then exit 1; fi

@@ -141,6 +141,7 @@ jobs:
           path: |
             frontend/test-results/**/*.png
             frontend/test-results/**/error-context.md
+            frontend/test-results/**/trace.zip
           if-no-files-found: error
           retention-days: 7
 
