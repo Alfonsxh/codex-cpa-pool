@@ -42,7 +42,7 @@ npm --prefix frontend run test:e2e
 
 `verify` 包含生成契约、Shell/Go 检查、单元与竞态测试、前端类型/测试/构建、部署脚本、隐私和 Compose 校验。修改 OpenAPI 后先运行 `make -f scripts/build.mk generate-api`。
 
-Playwright 默认两个 worker，资源紧张时设 `CPAP_E2E_WORKERS=1`。隔离数据面演练：
+Playwright 本地和 CI 默认两个 worker，资源紧张时设 `CPAP_E2E_WORKERS=1`；共享 Runner 的容器入口仅接受 1 或 2，避免无界并发挤占其他服务。Vitest 在 CI 中最多并行两个测试文件，本地仍按文件串行执行。所有测试、截图比较和超时保持不变。CI 的 trace 关闭连续截图，仍保留失败截图、DOM 快照、源码和网络记录，并在失败时上传 `trace.zip`。隔离数据面演练：
 
 ```sh
 make -f scripts/build.mk test-build
@@ -78,7 +78,7 @@ make -f scripts/build.mk release-notify VERSION=v2.1.5 NOTIFY_ACTION=status
 make -f scripts/build.mk release-notify VERSION=v2.1.5
 ```
 
-`release-verify` 保留为可选本地验收；本地记录不会替代 CI 验收。浏览器使用与 Playwright 锁文件匹配的固定镜像和 Linux 视觉基准；Mac 本地基准独立保留。CI 的 `update_browser_snapshots` 仅生成待审查基准，可用 `snapshot_test_filter` 定位单个用例；普通验收禁止过滤测试或更新基准。原有 CI 工作流仍可手动执行检查和打包，正式发布统一走 Release 工作流。工作流使用临时 `GITHUB_TOKEN` 发布，Docker 登录目录按任务隔离并在结束时清理，不覆盖 Runner 原有登录。
+`release-verify` 保留为可选本地验收；本地记录不会替代 CI 验收。浏览器使用与 Playwright 锁文件匹配的固定镜像和 Linux 视觉基准；Mac 本地基准独立保留。CI 的 `update_browser_snapshots` 仅生成待审查基准，可用 `snapshot_test_filter` 定位单个用例；普通验收禁止过滤测试或更新基准。原有 CI 工作流仍可手动执行检查和打包，正式发布统一走 Release 工作流。自托管 Runner 直接复用本地 Go 模块和编译缓存，`setup-go` 关闭远程缓存恢复，避免重复下载并覆盖只读模块文件；Go 本身的缓存保持启用。工作流使用临时 `GITHUB_TOKEN` 发布，Docker 登录目录按任务隔离并在结束时清理，不覆盖 Runner 原有登录。
 
 通知 Secrets 和持久化回执见[配置说明](telegram-release.md#配置)。CI 不持有部署凭据、不连接业务环境；测试和生产升级仍分别在目标机运行 `run.sh`。
 

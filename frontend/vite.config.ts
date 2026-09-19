@@ -32,12 +32,10 @@ export default defineConfig(({ mode }) => {
     test: {
       environment: "jsdom",
       exclude: [...configDefaults.exclude, "e2e/**"],
-      // Ant Design mounts portals and runs layout effects for most admin pages.
-      // Running every page file in parallel makes the shared local validation
-      // gate CPU-bound and causes otherwise healthy interaction tests to exceed
-      // Vitest's per-test timeout. Keep the suite deterministic: each file still
-      // exercises its own async behavior, while files run one at a time.
-      fileParallelism: false,
+      // Bound CI concurrency on the shared four-core Runner. Unbounded workers
+      // overload Ant Design's layout work; local checks keep one file at a time.
+      fileParallelism: Boolean(process.env.CI),
+      maxWorkers: process.env.CI ? 2 : 1,
       // The shared ARM CI Runner needs more wall time for Ant Design's layout
       // and user-event work. Keep all assertions and the local 5-second limit.
       testTimeout: process.env.CI ? 15_000 : 5_000,
