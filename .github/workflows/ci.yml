@@ -124,6 +124,15 @@ jobs:
           SNAPSHOT_TEST_FILTER: ${{ inputs.snapshot_test_filter || '' }}
         run: sh scripts/browser-ci.sh "$UPDATE_SNAPSHOTS" "$SNAPSHOT_TEST_FILTER"
 
+      - name: Upload browser timing report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: browser-timings-${{ github.sha }}
+          path: frontend/test-results/browser-timings.json
+          if-no-files-found: warn
+          retention-days: 7
+
       - name: Upload Linux visual baselines for review
         if: ${{ inputs.update_browser_snapshots && !cancelled() }}
         uses: actions/upload-artifact@v7

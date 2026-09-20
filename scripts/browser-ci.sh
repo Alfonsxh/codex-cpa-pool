@@ -3,8 +3,11 @@ set -eu
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 UPDATE_SNAPSHOTS=${1:-false}
 SNAPSHOT_TEST_FILTER=${2:-}
+E2E_WORKERS=${CPAP_E2E_WORKERS:-2}
 case "$UPDATE_SNAPSHOTS" in true|false) ;; *) echo 'snapshot update must be true or false' >&2; exit 1 ;; esac
 [ -z "$SNAPSHOT_TEST_FILTER" ] || [ "$UPDATE_SNAPSHOTS" = true ] || { echo 'Test filtering is allowed only for baseline generation' >&2; exit 1; }
+case "$E2E_WORKERS" in ''|*[!0-9]*) echo 'CPAP_E2E_WORKERS must be a positive integer' >&2; exit 1 ;; esac
+[ "$E2E_WORKERS" -gt 0 ] || { echo 'CPAP_E2E_WORKERS must be a positive integer' >&2; exit 1; }
 [ "$(uname -s)" = Linux ] || { echo 'Run this browser container on the Linux CI Runner' >&2; exit 1; }
 # Match the lockfile and pin the multi-architecture image used for Linux baselines.
 PLAYWRIGHT_VERSION=1.62.1
@@ -38,6 +41,7 @@ else
 fi
 # Do not mount the Docker socket or join business Compose networks. Match the host
 # UID so generated evidence and snapshots remain writable by subsequent jobs.
+# Two isolated workers share the four-core Runner; permit a serial override.
 docker run --rm --init --shm-size=2g \
   --cidfile "$BROWSER_TASK_ROOT/container-id" \
   --user "$(id -u):$(id -g)" --workdir /work \
@@ -49,5 +53,5 @@ docker run --rm --init --shm-size=2g \
   --mount "type=bind,src=$BROWSER_TASK_ROOT/home,dst=/home/browser" \
   --env HOME=/home/browser --env GOMODCACHE=/go-mod --env GOCACHE=/go-build \
   --env PATH=/opt/node/bin:/opt/go/bin:/usr/local/bin:/usr/bin:/bin \
-  --env CI=true --env CPAP_E2E_WORKERS=1 --env CGO_ENABLED=0 \
+  --env CI=true --env "CPAP_E2E_WORKERS=$E2E_WORKERS" --env CGO_ENABLED=0 \
   "$PLAYWRIGHT_IMAGE" sh -c 'set -eu; go build -o /home/browser/test-preview ./cmd/test-preview; exec "$@"' sh "$@"

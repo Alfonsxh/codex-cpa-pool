@@ -27,7 +27,7 @@ export default defineConfig({
   // Contexts and route overrides are per test; the preview serves read-only fixtures.
   fullyParallel: true,
   workers: Number(process.env.CPAP_E2E_WORKERS || 2),
-  reporter: [["list"], ["html", { open: "never" }]],
+  reporter: [["list"], ["html", { open: "never" }], ["json", { outputFile: "test-results/browser-timings.json" }]],
   use: {
     baseURL: "http://127.0.0.1:5193",
     browserName: "chromium",

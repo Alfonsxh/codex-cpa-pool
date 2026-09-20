@@ -206,6 +206,11 @@ func (renderer *Renderer) buildFiles(
 			if ticketProxy == "" && plugin.Enabled && plugin.Selected(account.ID) && account.GroupEnabled && !installed.Staging && (plugin.Harvest || plugin.Inject) {
 				return nil, fmt.Errorf("%w: configure a Ticket proxy for %s before enabling harvesting or injection", ErrInvalidProjection, account.ID)
 			}
+			// A blank line keeps paused output valid but remains unconfigured to
+			// the plugin. Preserve configured URLs within its bounded file size.
+			if ticketProxy == "" {
+				ticketProxy = "\n"
+			}
 			files = append(files, renderedFile{relative: filepath.ToSlash(filepath.Join("configs", account.ID, "codex-ticket-proxy.url")), payload: []byte(ticketProxy), mode: 0o600})
 		}
 	}

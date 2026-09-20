@@ -50,6 +50,72 @@ func TestPluginDedicatedProxyPreservesBusinessExitAndStagesWithoutTraffic(t *tes
 	}
 }
 
+func TestInstalledPluginWithoutProxyCanRenderWhileTrafficIsPaused(t *testing.T) {
+	for _, name := range []string{"legacy direct migration", "unselected", "staging", "disabled account", "active without proxy"} {
+		t.Run(name, func(t *testing.T) {
+			root := t.TempDir()
+			store := newProjectionStore(t, root)
+			ctx := context.Background()
+			settings := map[string]any{cpaplugin.Prefix + "enabled": true, cpaplugin.Prefix + "accounts": "alpha", cpaplugin.Prefix + "proxy_source": "custom", cpaplugin.Prefix + "harvest_enabled": true, cpaplugin.Prefix + "inject_enabled": true}
+			installed := cpaplugin.Installation{Version: cpaplugin.DefaultVersion}
+			switch name {
+			case "legacy direct migration":
+				settings[cpaplugin.Prefix+"proxy_source"] = "direct"
+				settings[cpaplugin.Prefix+"version"] = cpaplugin.LegacyVersion
+				installed.Version = cpaplugin.LegacyVersion
+			case "unselected":
+				settings[cpaplugin.Prefix+"accounts"] = "beta"
+			case "staging":
+				installed.Staging = true
+			case "disabled account":
+				accounts, err := store.ReadAccounts(ctx)
+				if err != nil {
+					t.Fatal(err)
+				}
+				accounts[0].GroupEnabled = false
+				if err := store.WriteAccounts(ctx, accounts); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if err := store.UpdateSettings(ctx, settings); err != nil {
+				t.Fatal(err)
+			}
+			if err := store.WriteRuntimeState(ctx, cpaplugin.StatePrefix+"alpha", installed); err != nil {
+				t.Fatal(err)
+			}
+			renderer := &Renderer{Root: root, Store: store}
+			for range 2 {
+				_, err := renderer.Render(ctx)
+				if name == "active without proxy" {
+					if err == nil || !strings.Contains(err.Error(), "configure a Ticket proxy") {
+						t.Fatalf("active plugin must reject a missing proxy: %v", err)
+					}
+					return
+				}
+				if err != nil {
+					t.Fatal(err)
+				}
+				var config cpaConfig
+				if err := yaml.Unmarshal([]byte(readProjectionFile(t, root, "configs/alpha/config.yaml")), &config); err != nil {
+					t.Fatal(err)
+				}
+				plugin := config.Plugins["configs"].(map[string]any)["codex-ticket"].(map[string]any)
+				if plugin["harvest_enabled"] != false || plugin["inject_enabled"] != false || config.ProxyURL != "direct" {
+					t.Fatalf("paused plugin changed traffic or business proxy: %#v", config)
+				}
+				if config.Plugins["dir"] != "/CLIProxyAPI/account-config/plugins/"+installed.Version {
+					t.Fatal("installed plugin version changed")
+				}
+				proxyPath := "configs/alpha/codex-ticket-proxy.url"
+				if proxy := strings.TrimSpace(readProjectionFile(t, root, proxyPath)); proxy != "" {
+					t.Fatalf("unconfigured proxy became %q", proxy)
+				}
+				assertMode(t, filepath.Join(root, proxyPath), 0o600)
+			}
+		})
+	}
+}
+
 func TestRendererBuildsCompatibleAtomicAccountProjectionsWithoutChangingExternalKeys(t *testing.T) {
 	root := t.TempDir()
 	store := newProjectionStore(t, root)
