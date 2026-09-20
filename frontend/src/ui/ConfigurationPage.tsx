@@ -1,7 +1,7 @@
 import "../i18n/admin";
 import { t, getIntlLocale } from "../i18n";
 import { useSiteTimezone, formatSiteTimestamp } from "./site-time";
-import { Alert, Button, Form, Input, Modal } from "antd";
+import { Alert, Button, Form, Input, Modal, Select } from "antd";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -59,7 +59,7 @@ import { useTheme } from "./ThemeProvider";
 
 import { configurationCategories, configurationControlWidth, configurationSections, configurationSectionFor, legacyConfigurationSection, type ConfigurationCategory } from "./configuration-layout";
 import "./configuration-page.css";
-import { SoftwareVersions } from "./components/SoftwareVersions";
+import { CPAReleaseStatus, TicketPluginSettings, softwareVersionsQueryKey, ticketAccountIDs } from "./components/SoftwareVersions";
 
 type DraftValue = string | number | boolean | null;
 type Draft = Record<string, DraftValue>;
@@ -243,6 +243,8 @@ export function ConfigurationPage({
     const target = [...document.querySelectorAll<HTMLElement>("[data-configuration-field]")]
       .find((item) => item.dataset.configurationField === focusKey);
     if (!target) return;
+    const details = target.closest("details");
+    if (details) details.open = true;
     target.classList.add("configuration-field-highlight");
     target.scrollIntoView?.({ block: "center", behavior: "smooth" });
     target.querySelector<HTMLElement>('input:not([type="hidden"]):not([type="file"]):not(:disabled), select:not(.enhanced-select-native):not(:disabled), textarea:not(:disabled), button:not(:disabled)')?.focus({ preventScroll: true });
@@ -263,6 +265,9 @@ export function ConfigurationPage({
       await queryClient.invalidateQueries({ queryKey: publicSiteQueryKey });
       const refreshed = await catalog.refetch();
       if (refreshed.data) setDraft(configurationDraft(refreshed.data));
+      if (dirtyFields.some((field) => field.key.startsWith("plugins.") || field.key.startsWith("software."))) {
+        await queryClient.invalidateQueries({ queryKey: softwareVersionsQueryKey });
+      }
       if (dirtyFields.some((field) => field.key.startsWith(reasoningColorPrefix))) {
         const stylesheet = document.querySelector<HTMLLinkElement>('link[href*="reasoning-effort-colors.css"]');
         if (stylesheet) stylesheet.href = `/admin/reasoning-effort-colors.css?v=${Date.now()}`;
@@ -500,14 +505,25 @@ export function ConfigurationPage({
             <fieldset className="configuration-section-list" disabled={saveMutation.isPending}>
               {selectedSections.map((section) => {
                 const sectionFields = fields.filter((field) => field.section === section.id);
-                const specialized = (field: EditorField) => section.id === "model-multipliers"
+                const specialized = (field: EditorField) => section.id === "codex-ticket" || (section.id === "model-multipliers"
                   ? field.key.startsWith(modelMultiplierPrefix)
                   : section.id === "reasoning-multipliers" ? field.key.startsWith(reasoningMultiplierPrefix)
-                  : section.id === "appearance" && field.key.startsWith(reasoningColorPrefix);
+                  : section.id === "appearance" && field.key.startsWith(reasoningColorPrefix));
                 const ordinaryFields = sectionFields.filter((field) => !specialized(field));
+                const renderField = (key: string) => {
+                  const field = sectionFields.find(item => item.key === key);
+                  if (!field) return null;
+                  const displayed = key === "plugins.codex_ticket.models" ? { ...field, description: t("admin.ticket_models_help") }
+                    : key === "software.check_interval_hours" ? { ...field, description: t("admin.ticket_shared_interval") } : field;
+                  return <ConfigurationEditor key={key} field={displayed} value={draft[key]} error={errors[key]} dirty={dirtyFields.some(item => item.key === key)} onChange={value => updateField(field, value)} />;
+                };
                 return <section className="configuration-section" key={section.id} aria-label={section.title} data-configuration-field={section.id}>
                   <div id={`configuration-section-${section.id}`}>
-                    {section.id === "software" ? <SoftwareVersions csrfToken={csrfToken} /> : null}
+                    {section.id === "codex-ticket" ? <TicketPluginSettings csrfToken={csrfToken} renderField={renderField} tableHeader={<ConfigurationTableHeader />} accounts={String(draft["plugins.codex_ticket.accounts"] ?? "")} accountsError={errors["plugins.codex_ticket.accounts"]} onAccountsChange={value => {
+                      const field = sectionFields.find(item => item.key === "plugins.codex_ticket.accounts");
+                      if (field) updateField(field, value);
+                    }} hasUnsavedChanges={dirtyFields.length > 0} saving={saveMutation.isPending} focusKey={focusKey} /> : null}
+                    {section.id === "provisioning" ? <CPAReleaseStatus csrfToken={csrfToken} /> : null}
                     {section.id === "brand" ? <BrandingLogoEditor custom={general.data.branding.custom_logo} sha256={general.data.branding.logo_sha256} pending={logoMutation.isPending || logoResetMutation.isPending} error={logoError} onFile={(file) => { const error = validateLogoFile(file); setLogoError(error); if (!error) logoMutation.mutate(file); }} onReset={() => setLogoResetOpen(true)} /> : null}
                     {ordinaryFields.length ? <div className="configuration-fields">
                       <ConfigurationTableHeader />
@@ -528,7 +544,7 @@ export function ConfigurationPage({
             </ConfigurationSavingContext.Provider>
             {!fields.length && category === "admin.brand_identity" ? <div className="configuration-empty-state" role="status"><h3>{t("admin.no_configurable_settings")}</h3><p>{t("admin.manage_access_credentials_in_system_settings")}</p><button className="button button-primary" type="button" onClick={() => selectConfigurationGroup("admin.system_settings", "access")}>{t("admin.open_access_credentials")}</button></div> : null}
           </div>
-          <div className="configuration-save-region">
+          <div className="configuration-save-region" hidden={activeSection?.id === "codex-ticket" && !dirtyFields.length && !saveError && !saveMutation.isError}>
             {saveMutation.isError && !confirmOpen ? <p className="form-error" role="alert">{saveMutation.error instanceof Error ? saveMutation.error.message : t("admin.configuration_was_not_saved")}</p> : null}
             {saveError ? <p className="form-error" role="alert">{saveError}</p> : null}
             <div className="configuration-actions"><div className="configuration-change-summary"><span className={`status-chip ${dirtyFields.length ? "warning" : "neutral"}`} role="status">{dirtyFields.length ? t("admin.unsaved_changes", [dirtyFields.length]) : t("admin.no_changes")}</span>{dirtyCategories.size > 1 ? <small>{t("admin.across")} {dirtyCategories.size} {t("admin.categories")}</small> : null}<div className="configuration-impact-summary">{dirtyModes.size ? [...dirtyModes.entries()].map(([label, count]) => <span key={label}><strong>{count}</strong>{label}</span>) : <span>{t("admin.save_changes_together")}</span>}</div></div><div className="configuration-action-buttons"><button className="button button-quiet" type="button" disabled={!dirtyFields.length || saveMutation.isPending} onClick={() => { setDraft(configurationDraft(catalog.data)); setSaveError(""); saveMutation.reset(); }}>{t("admin.discard_unsaved_changes")}</button><button className="button button-primary" type="submit" disabled={!dirtyFields.length || saveMutation.isPending}>{saveMutation.isPending ? t("admin.saving") : t("admin.save_configuration")}</button></div></div>
@@ -727,6 +743,8 @@ function ConfigurationControl({ field, value, onChange }: { field: Configuration
   const id = `configuration-${field.key}`;
   const error = validateDraftValue(field, value);
   const errorId = error ? `${id}-error` : undefined;
+  if (field.key === "plugins.codex_ticket.models") return <Select id={id} mode="tags" aria-label={field.label} aria-invalid={Boolean(error)} aria-describedby={errorId} value={ticketAccountIDs(String(value ?? ""))} disabled={disabled} tokenSeparators={[","]} open={false} style={{ width: "100%" }} onChange={(models: string[]) => onChange(models.join(","))} />;
+  if (field.key === "plugins.codex_ticket.proxy_source") return <div id={id} role="radiogroup" aria-label={field.label} className="ticket-proxy-options">{field.choices?.map(choice => <label key={choice.value}><input type="radio" name={id} value={choice.value} checked={value === choice.value} disabled={disabled} onChange={() => onChange(choice.value)} /><span>{choice.label}</span></label>)}</div>;
   if (field.type === "timezone") return <TimezoneSelect id={id} value={String(value ?? "")} disabled={disabled} ariaInvalid={Boolean(error)} ariaDescribedBy={errorId} onChange={onChange} />;
   if (field.type === "duration" || field.key === "portal.session_ttl_seconds") return <ConfigurationDurationControl field={field} value={value} onChange={onChange} />;
   if (field.type === "boolean") return <div className="configuration-field-control boolean-control"><label><input id={id} type="checkbox" checked={Boolean(value)} disabled={disabled} onChange={(event) => onChange(event.target.checked)} /><span>{value ? t("common.enabled") : t("common.off")}</span></label></div>;
@@ -1029,12 +1047,9 @@ function BackupsPanel({ count, latest }: { count: number; latest: string }) { re
 function StoragePanel({ rows, onRefresh }: { rows: Array<{ label: string; path: string; exists: boolean; mode: string }>; onRefresh: () => Promise<void> }) {
   const createdCount = rows.filter((item) => item.exists).length;
   return (
-    <section className="settings-secondary-panel settings-data-panel" aria-labelledby="settings-storage-title">
-      <SettingsDataPanelHeader
-        id="settings-storage-title"
-        eyebrow="TARGET STORAGE"
+    <section className="settings-secondary-panel settings-data-panel" aria-label={t("admin.persistent_data")}>
+      <SettingsDataPanelSummary
         title={t("admin.persistent_data")}
-        description={t("admin.view_data_paths_status_and_permissions")}
         summary={`${createdCount}/${rows.length}`}
         summaryLabel={t("admin.created")}
       />
@@ -1064,12 +1079,9 @@ function StoragePanel({ rows, onRefresh }: { rows: Array<{ label: string; path: 
 
 function AuditPanel({ rows, onRefresh }: { rows: Array<{ timestamp: number; action: string; target: string; outcome: string }>; onRefresh: () => Promise<void> }) {
   return (
-    <section className="settings-secondary-panel settings-data-panel" aria-labelledby="settings-audit-title">
-      <SettingsDataPanelHeader
-        id="settings-audit-title"
-        eyebrow="ADMIN ACTIVITY"
+    <section className="settings-secondary-panel settings-data-panel" aria-label={t("admin.recent_admin_activity")}>
+      <SettingsDataPanelSummary
         title={t("admin.recent_admin_activity")}
-        description={t("admin.view_operation_times_targets_and_results")}
         summary={String(rows.length)}
         summaryLabel={t("admin.records")}
       />
@@ -1103,8 +1115,8 @@ function AuditPanel({ rows, onRefresh }: { rows: Array<{ timestamp: number; acti
   );
 }
 
-function SettingsDataPanelHeader({ id, eyebrow, title, description, summary, summaryLabel }: { id: string; eyebrow: string; title: string; description: string; summary: string; summaryLabel: string }) {
-  return <header className="settings-data-panel-header"><div className="settings-data-panel-copy"><span>{eyebrow}</span><h2 id={id}>{title}</h2><p>{description}</p></div><div className="settings-data-panel-summary" aria-label={`${title}：${summary} ${summaryLabel}`}><strong>{summary}</strong><span>{summaryLabel}</span></div></header>;
+function SettingsDataPanelSummary({ title, summary, summaryLabel }: { title: string; summary: string; summaryLabel: string }) {
+  return <div className="settings-panel-meta" aria-label={`${title}：${summary} ${summaryLabel}`}><strong>{summary} {summaryLabel}</strong></div>;
 }
 
 function SettingsPanelEmptyState({ icon, title, description, actionLabel, onAction }: { icon: string; title: string; description: string; actionLabel?: string; onAction?: () => Promise<void> }) {

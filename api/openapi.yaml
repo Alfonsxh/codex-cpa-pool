@@ -2907,7 +2907,7 @@ components:
       properties:
         id: { type: string }
         name: { type: string }
-        action: { type: string, enum: [start, stop, restart, login, image-pull, image-update] }
+        action: { type: string, enum: [start, stop, restart, login, image-pull, image-update, health, verify-routing, render, version-check, plugin-update] }
         target: { type: string }
         status:
           type: string

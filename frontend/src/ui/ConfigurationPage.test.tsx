@@ -304,12 +304,12 @@ describe("ConfigurationPage", () => {
     const storageButton = screen.getByRole("button", { name: /本地数据/ });
     await user.click(storageButton);
     expect(storageButton).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("heading", { name: "持久化数据" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "持久化数据" })).toBeInTheDocument();
     expect(screen.getByText("state/control-plane.sqlite3")).toBeInTheDocument();
     const auditButton = screen.getByRole("button", { name: /审计记录/ });
     await user.click(auditButton);
     expect(auditButton).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("heading", { name: "最近管理操作" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "最近管理操作" })).toBeInTheDocument();
     expect(screen.getByText("configuration.update")).toBeInTheDocument();
     await selectConfigurationItem(user, "系统设置", "访问凭据");
     await user.click(screen.getByRole("button", { name: "更换管理密钥" }));
@@ -351,7 +351,7 @@ describe("ConfigurationPage", () => {
 
     expect(await screen.findByRole("button", { name: "数据与审计" })).toHaveAttribute("aria-expanded", "true");
     await user.click(screen.getByRole("button", { name: /审计记录/ }));
-    expect(screen.getByRole("heading", { name: "最近管理操作" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "最近管理操作" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "暂无管理操作" })).toBeInTheDocument();
     expect(screen.getByText("配置与维护操作将在此记录。")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "刷新审计记录" }));
@@ -443,7 +443,7 @@ describe("ConfigurationPage", () => {
     renderConfiguration(<ConfigurationPage csrfToken="csrf-test" />, "/configuration");
     const navigation = within(await screen.findByRole("navigation", { name: "配置分类" }));
     expect(navigation.getAllByRole("button").filter((button) => button.hasAttribute("aria-expanded")).map((button) => button.textContent)).toEqual([
-      "品牌与身份", "系统设置", "请求与账号", "用量与额度", "通知设置", "数据与审计"
+      "品牌与身份", "系统设置", "CPA 容器", "请求与账号", "用量与额度", "通知设置", "数据与审计"
     ]);
     const product = await screen.findByLabelText("产品名称");
     expect(navigation.getByRole("button", { name: "站点品牌" })).toHaveAttribute("aria-current", "page");

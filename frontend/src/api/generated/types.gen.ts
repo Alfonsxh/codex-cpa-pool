@@ -533,7 +533,7 @@ export type RuntimeOperationResult = {
 export type RuntimeJob = {
     id: string;
     name: string;
-    action: 'start' | 'stop' | 'restart' | 'login' | 'image-pull' | 'image-update';
+    action: 'start' | 'stop' | 'restart' | 'login' | 'image-pull' | 'image-update' | 'health' | 'verify-routing' | 'render' | 'version-check' | 'plugin-update';
     target: string;
     status: 'queued' | 'running' | 'cancelling' | 'succeeded' | 'failed' | 'cancelled';
     created_at: number;

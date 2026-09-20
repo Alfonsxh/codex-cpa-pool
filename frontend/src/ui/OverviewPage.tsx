@@ -842,7 +842,12 @@ function actionLabel(action: RuntimeJob["action"]) {
     restart: t("admin.restart_service"),
     login: t("admin.oauth_authorization"),
     "image-pull": t("admin.pull_image"),
-    "image-update": t("admin.update_cpa_image")
+    "image-update": t("admin.update_cpa_image"),
+    health: t("admin.health_check"),
+    "verify-routing": t("admin.software_verify_routing"),
+    render: t("admin.software_render_configuration"),
+    "version-check": t("admin.software_check_task"),
+    "plugin-update": t("admin.software_install")
   };
   return labels[action];
 }

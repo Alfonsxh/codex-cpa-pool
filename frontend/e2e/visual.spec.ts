@@ -377,7 +377,7 @@ test("首次管理登录进入独立配置页，状态接口失败时不阻塞�
 });
 
 for (const viewport of [viewports[0], viewports[1], viewports[2]]) {
-  test(`配置中心六类导航保留全部字段、草稿与固定保存栏 ${viewport.name}`, async ({ page }, testInfo) => {
+  test(`配置中心七类导航保留全部字段、草稿与固定保存栏 ${viewport.name}`, async ({ page }, testInfo) => {
     await page.setViewportSize(viewport);
     await setTheme(page, "dark");
     await login(page, "/admin/configuration", "保存配置");
@@ -385,7 +385,7 @@ for (const viewport of [viewports[0], viewports[1], viewports[2]]) {
     const catalog = await response.json();
     const expectedKeys = catalog.groups.flatMap((group: { fields: Array<{ key: string }> }) => group.fields.map((field) => field.key));
     const seen: string[] = [];
-    const categories = ["品牌与身份", "系统设置", "请求与账号", "用量与额度", "通知设置", "数据与审计"];
+    const categories = ["品牌与身份", "系统设置", "CPA 容器", "请求与账号", "用量与额度", "通知设置", "数据与审计"];
     const expandCategory = async (category: string) => {
       if (viewport.width <= 1120) {
         const toggle = page.getByRole("button", { name: "选择配置子项", exact: true });
@@ -407,6 +407,7 @@ for (const viewport of [viewports[0], viewports[1], viewports[2]]) {
         await expect(page.getByRole("heading", { level: 1 })).toHaveText(`配置中心/${category}/${section}`);
         await expect(page.locator(".configuration-section")).toHaveCount(1);
         await expect(page.locator(".configuration-category-intro, .configuration-section-heading")).toHaveCount(0);
+        if (section === "Codex Ticket 插件") await page.locator(".ticket-advanced > summary").click();
         const keys = await page.locator("[data-configuration-field]").evaluateAll((elements) => elements.map((element) => (element as HTMLElement).dataset.configurationField!));
         seen.push(...keys.filter((key) => expectedKeys.includes(key)));
         for (const key of keys.filter((key) => expectedKeys.includes(key))) {
@@ -414,7 +415,8 @@ for (const viewport of [viewports[0], viewports[1], viewports[2]]) {
         }
         expect(await page.evaluate(() => document.body.scrollWidth)).toBeLessThanOrEqual(viewport.width);
         const geometry = await page.locator(".configuration-save-region").boundingBox();
-        expect(geometry!.y + geometry!.height).toBeLessThanOrEqual(viewport.height);
+        if (section === "Codex Ticket 插件") expect(geometry).toBeNull();
+        else expect(geometry!.y + geometry!.height).toBeLessThanOrEqual(viewport.height);
       }
       await page.screenshot({ path: testInfo.outputPath(`configuration-${categories.indexOf(category)}-${viewport.name}.png`), animations: "disabled" });
     }
@@ -462,7 +464,7 @@ test("配置中心本地数据与审计记录沿用统一信息卡片", async ({
   await expect(storageButton).toHaveAttribute("aria-current", "page");
   await expect(page.locator(".configuration-navigation .active")).toHaveCount(1);
   await expect(systemNavigation.locator(".active")).toHaveCount(1);
-  await expect(page.getByRole("heading", { name: "持久化数据" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "持久化数据" })).toBeVisible();
   await expect(page.getByText("用户用量数据库", { exact: true })).toBeVisible();
   const storageRows = page.getByLabel("存储状态表格").getByRole("row");
   await expect(storageRows).toHaveCount(5);

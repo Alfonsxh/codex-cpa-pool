@@ -24,7 +24,7 @@ for (const viewport of [
     await page.goto("/admin/configuration?key=gateway.max_reasoning_effort");
     await page.locator('input[type="password"]').fill("visual-preview");
     await page.getByRole("button", { name: "验证并进入" }).click();
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("配置中心/请求与账号/请求与代理");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("配置中心/请求与账号/请求策略");
     const row = page.locator('article[data-configuration-field="gateway.max_reasoning_effort"]');
     await expect(row).toContainText("max、ultra 映射为 xhigh");
     await expect(row).toContainText("较低等级保持原值");

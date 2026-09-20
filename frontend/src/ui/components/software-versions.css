@@ -1,0 +1,72 @@
+.ticket-settings { min-width: 0; color: var(--ink); overflow-wrap: anywhere; }
+.configuration-save-region[hidden] { display: none; }
+.ticket-advanced { border-bottom: 1px solid var(--line); }
+.ticket-advanced > summary { padding: 16px 18px; color: var(--muted); font-size: 12px; cursor: pointer; }
+.ticket-advanced > summary:hover { color: var(--accent); }
+.ticket-version-settings { border-bottom: 1px solid var(--line); }
+.software-release-inline { display: flex; align-items: center; gap: 16px; padding: 14px 18px; min-width: 0; }
+.software-release-summary { display: flex; flex: 1; flex-wrap: wrap; align-items: baseline; gap: 5px 12px; min-width: 0; color: var(--muted); font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+.software-release-summary a { color: var(--accent); font-family: var(--mono); }
+.software-release-summary time { font-size: 11px; }
+.software-release-warning { flex-basis: 100%; color: var(--warning); }
+.software-release-inline .ant-btn { flex: 0 0 auto; }
+.cpa-release-status { border-bottom: 1px solid var(--line); }
+.ticket-accounts { min-width: 0; padding: 18px; }
+.ticket-account-tools { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.ticket-account-tools > .ant-input-affix-wrapper { flex: 1; max-width: 360px; }
+.ticket-account-tools > .ant-select { min-width: 140px; margin-left: auto; }
+.ticket-save-hint { margin: 0 0 14px; color: var(--warning); font-size: 12px; line-height: 1.6; }
+.ticket-account-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 12px; }
+.ticket-account-table th, .ticket-account-table td { padding: 15px 10px; text-align: left; vertical-align: middle; overflow-wrap: anywhere; border-bottom: 1px solid var(--line); }
+.ticket-account-table thead { position: sticky; top: 0; z-index: 1; background: var(--surface-2); color: var(--muted); }
+.ticket-account-table thead th { font-size: 11px; font-weight: 500; padding-block: 12px; }
+.ticket-account-table thead th:first-child { width: 44px; }
+.ticket-account-table thead th:last-child { width: 110px; text-align: right; }
+.ticket-account-name { font-weight: 600; }
+.ticket-account-select input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.ticket-account-version { font: 12px/1.6 var(--mono); }
+.ticket-account-table .ticket-account-action { text-align: right; }
+.ticket-account-status small { display: block; margin-top: 6px; color: var(--warning); line-height: 1.6; }
+.ticket-current { color: var(--muted); font-size: 11px; }
+.software-state { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 4px 7px; border-radius: 4px; font-size: 11px; line-height: 1.5; font-weight: 500; }
+.software-state.is-muted { color: var(--muted); background: var(--surface-3); }
+.software-state.is-ready { color: var(--accent-strong); background: var(--accent-soft); }
+.ticket-empty { padding: 24px 0; color: var(--muted); text-align: center; font-size: 12px; line-height: 1.6; }
+.ticket-missing-account { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; color: var(--muted); font-size: 12px; }
+.software-task { padding: 12px 18px; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.ticket-account-task > td { padding-top: 0; background: var(--surface-2); }
+.ticket-account-task .software-task { padding: 8px 0; }
+.software-task.has-error { color: var(--danger); }
+.software-task-summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.software-task-details { margin-top: 8px; }
+.software-task-details summary { width: fit-content; color: var(--muted); font-size: 11px; cursor: pointer; }
+.software-task-output { margin: 10px 0 0; color: var(--muted); font: 11px/1.7 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.ticket-settings :is(summary, a, input):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.ticket-settings .ant-select-multiple { min-width: 0; }
+.ticket-settings .ant-select-selection-overflow-item { max-width: 100%; }
+.ticket-settings .ant-select-selection-item-content { white-space: normal; overflow-wrap: anywhere; }
+@container configuration-content (max-width: 720px) {
+  .ticket-account-table, .ticket-account-table tbody { display: block; }
+  .ticket-account-table thead { display: none; }
+  .ticket-account-row { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+  .ticket-account-row > :is(th, td) { padding: 0; border: 0; }
+  .ticket-account-select { grid-column: 1; grid-row: 1; align-self: center; }
+  .ticket-account-name { grid-column: 2; grid-row: 1; font-size: 13px; }
+  .ticket-account-version, .ticket-account-status, .ticket-account-action { grid-column: 2; }
+  .ticket-account-version::before, .ticket-account-status::before { content: attr(data-label); display: inline-block; margin-right: 12px; color: var(--muted); font: 11px/1.6 var(--sans); }
+  .ticket-account-table .ticket-account-action { text-align: left; }
+  .ticket-account-task, .ticket-account-task > td { display: block; }
+  .software-release-inline { flex-wrap: wrap; }
+  .software-release-summary { flex-basis: 100%; }
+  .software-release-inline .ant-btn { margin-left: auto; }
+}
+@container configuration-content (max-width: 420px) {
+  .ticket-account-tools { flex-wrap: wrap; gap: 10px; }
+  .ticket-account-tools > .ant-input-affix-wrapper { flex-basis: 100%; max-width: none; }
+  .ticket-account-tools > .ant-select { width: 100%; }
+  .software-task-summary, .ticket-missing-account { flex-wrap: wrap; }
+}
+.ticket-proxy-options { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; width: 100%; min-height: 36px; padding-inline-start: var(--configuration-control-inset); }
+.ticket-proxy-options label { display: inline-flex; flex: 0 1 auto; max-width: 100%; align-items: center; gap: 6px; font-size: 12px; line-height: 1.6; cursor: pointer; }
+.ticket-proxy-options span { min-width: 0; }
+.configuration-field-value .ticket-proxy-options input[type="radio"] { flex: 0 0 16px; width: 16px; height: 16px; min-height: 16px; margin: 0; padding: 0; accent-color: var(--accent); }

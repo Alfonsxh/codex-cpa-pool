@@ -1119,28 +1119,43 @@ func (e ReleaseStatusStatus) Valid() bool {
 
 // Defines values for RuntimeJobAction.
 const (
-	RuntimeJobActionImagePull   RuntimeJobAction = "image-pull"
-	RuntimeJobActionImageUpdate RuntimeJobAction = "image-update"
-	RuntimeJobActionLogin       RuntimeJobAction = "login"
-	RuntimeJobActionRestart     RuntimeJobAction = "restart"
-	RuntimeJobActionStart       RuntimeJobAction = "start"
-	RuntimeJobActionStop        RuntimeJobAction = "stop"
+	RuntimeJobActionHealth        RuntimeJobAction = "health"
+	RuntimeJobActionImagePull     RuntimeJobAction = "image-pull"
+	RuntimeJobActionImageUpdate   RuntimeJobAction = "image-update"
+	RuntimeJobActionLogin         RuntimeJobAction = "login"
+	RuntimeJobActionPluginUpdate  RuntimeJobAction = "plugin-update"
+	RuntimeJobActionRender        RuntimeJobAction = "render"
+	RuntimeJobActionRestart       RuntimeJobAction = "restart"
+	RuntimeJobActionStart         RuntimeJobAction = "start"
+	RuntimeJobActionStop          RuntimeJobAction = "stop"
+	RuntimeJobActionVerifyRouting RuntimeJobAction = "verify-routing"
+	RuntimeJobActionVersionCheck  RuntimeJobAction = "version-check"
 )
 
 // Valid indicates whether the value is a known member of the RuntimeJobAction enum.
 func (e RuntimeJobAction) Valid() bool {
 	switch e {
+	case RuntimeJobActionHealth:
+		return true
 	case RuntimeJobActionImagePull:
 		return true
 	case RuntimeJobActionImageUpdate:
 		return true
 	case RuntimeJobActionLogin:
 		return true
+	case RuntimeJobActionPluginUpdate:
+		return true
+	case RuntimeJobActionRender:
+		return true
 	case RuntimeJobActionRestart:
 		return true
 	case RuntimeJobActionStart:
 		return true
 	case RuntimeJobActionStop:
+		return true
+	case RuntimeJobActionVerifyRouting:
+		return true
+	case RuntimeJobActionVersionCheck:
 		return true
 	default:
 		return false

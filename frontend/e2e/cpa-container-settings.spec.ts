@@ -26,7 +26,7 @@ for (const viewport of [
     await page.goto("/admin/configuration?key=cpa.passthrough_headers");
     await page.locator('input[type="password"]').fill("visual-preview");
     await page.getByRole("button", { name: "验证并进入" }).click();
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("配置中心/请求与账号/CPA 容器参数");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("配置中心/CPA 容器/CPA 容器参数");
     const fields = [
       ["cpa.debug", "调试日志", "debug"],
       ["cpa.logging_to_file", "写入 CPA 日志文件", "logging-to-file"],
@@ -35,7 +35,7 @@ for (const viewport of [
       ["cpa.session_affinity", "会话亲和", "routing.session-affinity"],
       ["cpa.session_affinity_ttl", "会话亲和有效期", "routing.session-affinity-ttl"]
     ] as const;
-    await expect(page.locator("article[data-configuration-field]")).toHaveCount(6);
+    await expect(page.locator("article[data-configuration-field]")).toHaveCount(7);
     expect(catalog!.groups.flatMap((g) => g.fields).some((f) => f.key.startsWith("cpa.codex_default_"))).toBe(false);
     for (const [key, label, yamlKey] of fields) {
       const row = page.locator(`article[data-configuration-field="${key}"]`);
@@ -67,6 +67,6 @@ for (const viewport of [
     await page.locator('article[data-configuration-field="cpa.passthrough_headers"]').scrollIntoViewIfNeeded();
     await page.screenshot({ path: testInfo.outputPath(`cpa-container-${viewport.name}.png`), animations: "disabled" });
     await page.goto("/admin/configuration?section=affinity");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("配置中心/请求与账号/CPA 容器参数");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("配置中心/CPA 容器/CPA 容器参数");
   });
 }
