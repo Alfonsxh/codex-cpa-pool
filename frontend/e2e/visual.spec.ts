@@ -1903,12 +1903,14 @@ test("30 天图表 Tooltip 为单列 Top 10 且无滚动条", async ({ page }) =
   await login(page, "/admin/overview", "Token 使用");
 
   const responsePromise = page.waitForResponse((response) => response.url().includes("window=2592000"));
-  const started = Date.now();
   await page.getByRole("button", { name: "30 天", exact: true }).click();
-  await responsePromise;
-  // This is the browser-visible round trip through Vite plus the deterministic mock proxy.
-  // The SQLite query itself keeps the stricter 500 ms gate in tests.test_usage_store.
-  expect(Date.now() - started).toBeLessThan(1_000);
+  const response = await responsePromise;
+  await response.finished();
+  // Measure the complete request through Vite and the deterministic mock proxy;
+  // Playwright's button actionability waits are not part of network latency.
+  const elapsed = response.request().timing().responseEnd;
+  expect(elapsed).toBeGreaterThanOrEqual(0);
+  expect(elapsed).toBeLessThan(1_000);
 
   await page.getByRole("tab", { name: "用户 Token 统计" }).click();
   const chart = page.locator(".overview-legacy-chart").first();
