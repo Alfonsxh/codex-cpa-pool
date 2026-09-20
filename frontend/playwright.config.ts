@@ -17,7 +17,9 @@ const webPreviewCommand = (port: number) => `go run ./cmd/web --address 127.0.0.
 
 export default defineConfig({
   testDir: "./e2e",
-  timeout: 30_000,
+  // Twelve CI workers share four CPU cores. Keep the whole-journey budget
+  // separate from the 10-second UI assertions and explicit performance checks.
+  timeout: 60_000,
   expect: {
     timeout: 10_000,
     toHaveScreenshot: {
