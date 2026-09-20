@@ -514,12 +514,14 @@ const (
 	LegacyRuntimeJobRequestActionImagePull     LegacyRuntimeJobRequestAction = "image-pull"
 	LegacyRuntimeJobRequestActionImageUpdate   LegacyRuntimeJobRequestAction = "image-update"
 	LegacyRuntimeJobRequestActionLogin         LegacyRuntimeJobRequestAction = "login"
+	LegacyRuntimeJobRequestActionPluginUpdate  LegacyRuntimeJobRequestAction = "plugin-update"
 	LegacyRuntimeJobRequestActionRender        LegacyRuntimeJobRequestAction = "render"
 	LegacyRuntimeJobRequestActionRestart       LegacyRuntimeJobRequestAction = "restart"
 	LegacyRuntimeJobRequestActionStart         LegacyRuntimeJobRequestAction = "start"
 	LegacyRuntimeJobRequestActionStop          LegacyRuntimeJobRequestAction = "stop"
 	LegacyRuntimeJobRequestActionUp            LegacyRuntimeJobRequestAction = "up"
 	LegacyRuntimeJobRequestActionVerifyRouting LegacyRuntimeJobRequestAction = "verify-routing"
+	LegacyRuntimeJobRequestActionVersionCheck  LegacyRuntimeJobRequestAction = "version-check"
 )
 
 // Valid indicates whether the value is a known member of the LegacyRuntimeJobRequestAction enum.
@@ -533,6 +535,8 @@ func (e LegacyRuntimeJobRequestAction) Valid() bool {
 		return true
 	case LegacyRuntimeJobRequestActionLogin:
 		return true
+	case LegacyRuntimeJobRequestActionPluginUpdate:
+		return true
 	case LegacyRuntimeJobRequestActionRender:
 		return true
 	case LegacyRuntimeJobRequestActionRestart:
@@ -544,6 +548,8 @@ func (e LegacyRuntimeJobRequestAction) Valid() bool {
 	case LegacyRuntimeJobRequestActionUp:
 		return true
 	case LegacyRuntimeJobRequestActionVerifyRouting:
+		return true
+	case LegacyRuntimeJobRequestActionVersionCheck:
 		return true
 	default:
 		return false
@@ -1177,12 +1183,14 @@ const (
 	RuntimeJobRequestActionImagePull     RuntimeJobRequestAction = "image-pull"
 	RuntimeJobRequestActionImageUpdate   RuntimeJobRequestAction = "image-update"
 	RuntimeJobRequestActionLogin         RuntimeJobRequestAction = "login"
+	RuntimeJobRequestActionPluginUpdate  RuntimeJobRequestAction = "plugin-update"
 	RuntimeJobRequestActionRender        RuntimeJobRequestAction = "render"
 	RuntimeJobRequestActionRestart       RuntimeJobRequestAction = "restart"
 	RuntimeJobRequestActionStart         RuntimeJobRequestAction = "start"
 	RuntimeJobRequestActionStop          RuntimeJobRequestAction = "stop"
 	RuntimeJobRequestActionUp            RuntimeJobRequestAction = "up"
 	RuntimeJobRequestActionVerifyRouting RuntimeJobRequestAction = "verify-routing"
+	RuntimeJobRequestActionVersionCheck  RuntimeJobRequestAction = "version-check"
 )
 
 // Valid indicates whether the value is a known member of the RuntimeJobRequestAction enum.
@@ -1196,6 +1204,8 @@ func (e RuntimeJobRequestAction) Valid() bool {
 		return true
 	case RuntimeJobRequestActionLogin:
 		return true
+	case RuntimeJobRequestActionPluginUpdate:
+		return true
 	case RuntimeJobRequestActionRender:
 		return true
 	case RuntimeJobRequestActionRestart:
@@ -1207,6 +1217,8 @@ func (e RuntimeJobRequestAction) Valid() bool {
 	case RuntimeJobRequestActionUp:
 		return true
 	case RuntimeJobRequestActionVerifyRouting:
+		return true
+	case RuntimeJobRequestActionVersionCheck:
 		return true
 	default:
 		return false
@@ -1234,11 +1246,13 @@ const (
 	RuntimeOperationResultActionImagePull     RuntimeOperationResultAction = "image-pull"
 	RuntimeOperationResultActionImageUpdate   RuntimeOperationResultAction = "image-update"
 	RuntimeOperationResultActionLogin         RuntimeOperationResultAction = "login"
+	RuntimeOperationResultActionPluginUpdate  RuntimeOperationResultAction = "plugin-update"
 	RuntimeOperationResultActionRender        RuntimeOperationResultAction = "render"
 	RuntimeOperationResultActionRestart       RuntimeOperationResultAction = "restart"
 	RuntimeOperationResultActionStart         RuntimeOperationResultAction = "start"
 	RuntimeOperationResultActionStop          RuntimeOperationResultAction = "stop"
 	RuntimeOperationResultActionVerifyRouting RuntimeOperationResultAction = "verify-routing"
+	RuntimeOperationResultActionVersionCheck  RuntimeOperationResultAction = "version-check"
 )
 
 // Valid indicates whether the value is a known member of the RuntimeOperationResultAction enum.
@@ -1252,6 +1266,8 @@ func (e RuntimeOperationResultAction) Valid() bool {
 		return true
 	case RuntimeOperationResultActionLogin:
 		return true
+	case RuntimeOperationResultActionPluginUpdate:
+		return true
 	case RuntimeOperationResultActionRender:
 		return true
 	case RuntimeOperationResultActionRestart:
@@ -1261,6 +1277,8 @@ func (e RuntimeOperationResultAction) Valid() bool {
 	case RuntimeOperationResultActionStop:
 		return true
 	case RuntimeOperationResultActionVerifyRouting:
+		return true
+	case RuntimeOperationResultActionVersionCheck:
 		return true
 	default:
 		return false
@@ -2436,6 +2454,31 @@ type ErrorDetail struct {
 // ErrorEnvelope defines model for ErrorEnvelope.
 type ErrorEnvelope struct {
 	Error ErrorDetail `json:"error"`
+}
+
+// ExtensionStatus defines model for ExtensionStatus.
+type ExtensionStatus struct {
+	Accounts []struct {
+		Account      string `json:"account"`
+		Enabled      bool   `json:"enabled"`
+		Installation struct {
+			InstalledAt int64  `json:"installed_at"`
+			Sha256      string `json:"sha256"`
+			Staging     bool   `json:"staging"`
+			Version     string `json:"version"`
+		} `json:"installation"`
+		Running  bool `json:"running"`
+		Selected bool `json:"selected"`
+	} `json:"accounts"`
+	BundledVersion string `json:"bundled_version"`
+	Checks         map[string]struct {
+		AttemptedAt int64   `json:"attempted_at"`
+		CheckedAt   int64   `json:"checked_at"`
+		Error       *string `json:"error,omitempty"`
+		Url         string  `json:"url"`
+		Version     string  `json:"version"`
+	} `json:"checks"`
+	DesiredVersion string `json:"desired_version"`
 }
 
 // GeneralSettings defines model for GeneralSettings.

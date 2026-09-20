@@ -69,6 +69,7 @@ var componentInputs = map[string][]string{
 		"cmd/admin", "cmd/bootstrap", "cmd/collector", "cmd/failover",
 		"cmd/log-maintenance", "cmd/notifications", "cmd/ownership", "cmd/quota",
 		"cmd/releasectl",
+		"internal/cpaplugin", "plugins/codex-ticket", "scripts/build-codex-plugin.sh",
 		"internal/accountconfig", "internal/accountlifecycle", "internal/accountprojection", "internal/accountstatus",
 		"internal/admin", "internal/branding", "internal/collector", "internal/contract",
 		"internal/bootstrap", "internal/controlplane", "internal/failover",
@@ -106,7 +107,7 @@ var (
 var allowedDomainSuffixes = []string{
 	"alpinelinux.org", "aliyun.com", "chatgpt.com", "daocloud.io", "debian.org",
 	"docker.io", "dotenvx.com", "example.com", "example.net", "example.org",
-	"github.com", "ghcr.io", "golang.google.cn", "goproxy.cn", "invalid",
+	"github.com", "githubusercontent.com", "ghcr.io", "golang.google.cn", "goproxy.cn", "invalid",
 	"mcr.microsoft.com",
 	"npmmirror.com", "openai.com", "opencollective.com", "paulmillr.com",
 	"shields.io", "test", "tidelift.com", "w3.org", "weixin.qq.com",

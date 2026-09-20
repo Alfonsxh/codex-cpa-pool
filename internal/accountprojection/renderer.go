@@ -15,6 +15,7 @@ import (
 
 	"github.com/Alfonsxh/codex-cpa-pool/internal/accountconfig"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/controlplane"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/cpaplugin"
 	"github.com/google/renameio/v2"
 	"gopkg.in/yaml.v3"
 )
@@ -162,7 +163,15 @@ func (renderer *Renderer) buildFiles(
 		if err != nil {
 			return nil, err
 		}
-		payload, err := renderCPAConfig(account, keys, managementKey, proxyURL, settings)
+		var installed cpaplugin.Installation
+		if state, ok := renderer.Store.(interface {
+			ReadRuntimeState(context.Context, string, any) (bool, error)
+		}); ok {
+			if _, err := state.ReadRuntimeState(ctx, cpaplugin.StatePrefix+account.ID, &installed); err != nil {
+				return nil, err
+			}
+		}
+		payload, err := renderCPAConfig(account, keys, managementKey, proxyURL, settings, installed)
 		if err != nil {
 			return nil, fmt.Errorf("render CPA config for %s: %w", account.ID, err)
 		}
@@ -172,6 +181,21 @@ func (renderer *Renderer) buildFiles(
 			mode:          0o600,
 			accountConfig: true,
 		})
+		if installed.Version != "" {
+			plugin, err := cpaplugin.Parse(settings)
+			if err != nil {
+				return nil, err
+			}
+			if plugin.Selected(account.ID) && plugin.ProxySource == "direct" {
+				proxyURL = "direct"
+			} else if proxyURL == "direct" {
+				proxyURL = ""
+			}
+			if proxyURL == "direct" && installed.Version != cpaplugin.BundledVersion {
+				return nil, errors.New("explicit direct requires the bundled plugin compatibility version")
+			}
+			files = append(files, renderedFile{relative: filepath.ToSlash(filepath.Join("configs", account.ID, "codex-ticket-proxy.url")), payload: []byte(proxyURL), mode: 0o600})
+		}
 	}
 	keyMap, err := renderGatewayKeyMap(accounts, routes, records)
 	if err != nil {
@@ -237,6 +261,8 @@ func (renderer *Renderer) effectiveProxyURL(
 }
 
 type cpaConfig struct {
+	CommercialMode               bool                `yaml:"commercial-mode,omitempty"`
+	Plugins                      map[string]any      `yaml:"plugins,omitempty"`
 	Host                         string              `yaml:"host"`
 	Port                         int                 `yaml:"port"`
 	TLS                          cpaTLS              `yaml:"tls"`
@@ -284,7 +310,12 @@ func renderCPAConfig(
 	managementKey string,
 	proxyURL string,
 	settings map[string]any,
+	installation ...cpaplugin.Installation,
 ) ([]byte, error) {
+	plugin, err := cpaplugin.Parse(settings)
+	if err != nil {
+		return nil, err
+	}
 	disableImages, err := disableImageSetting(settings)
 	if err != nil {
 		return nil, err
@@ -336,6 +367,10 @@ func renderCPAConfig(
 			settings, "cpa.transient_error_cooldown_seconds", defaultCooldownSeconds, 1, 300,
 		),
 		Routing: cpaRouting{Strategy: "round-robin", SessionAffinity: affinity, AffinityTTL: affinityTTL},
+	}
+	if len(installation) > 0 && installation[0].Version != "" {
+		config.CommercialMode = true
+		config.Plugins = plugin.YAML(account.ID, account.GroupEnabled, installation[0])
 	}
 	for _, value := range []struct {
 		name  string

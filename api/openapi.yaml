@@ -1315,6 +1315,20 @@ paths:
               schema: { $ref: "#/components/schemas/ResetAccountQuotaResponse" }
         default:
           $ref: "#/components/responses/ErrorResponse"
+  /admin/api/extensions:
+    get:
+      operationId: getAdminExtensions
+      tags: [admin-runtime]
+      security:
+        - adminSession: []
+      responses:
+        "200":
+          description: Scheduled version checks and pinned per-account plugin installations
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ExtensionStatus" }
+        default:
+          $ref: "#/components/responses/ErrorResponse"
   /admin/api/images/cliproxy:
     get:
       operationId: getAdminCPAImageStatus
@@ -2881,7 +2895,7 @@ components:
       additionalProperties: false
       required: [action, target, services]
       properties:
-        action: { type: string, enum: [start, stop, restart, login, image-pull, image-update, health, verify-routing, render] }
+        action: { type: string, enum: [start, stop, restart, login, image-pull, image-update, health, verify-routing, render, version-check, plugin-update] }
         target: { type: string }
         services:
           type: array
@@ -2912,12 +2926,47 @@ components:
         jobs:
           type: array
           items: { $ref: "#/components/schemas/RuntimeJob" }
+    ExtensionStatus:
+      type: object
+      required: [checks, accounts, desired_version, bundled_version]
+      properties:
+        desired_version: { type: string }
+        bundled_version: { type: string }
+        checks:
+          type: object
+          additionalProperties:
+            type: object
+            required: [version, url, attempted_at, checked_at]
+            properties:
+              version: { type: string }
+              url: { type: string }
+              attempted_at: { type: integer, format: int64 }
+              checked_at: { type: integer, format: int64 }
+              error: { type: string }
+        accounts:
+          type: array
+          items:
+            type: object
+            required: [account, running, selected, enabled, installation]
+            properties:
+              account: { type: string }
+              running: { type: boolean }
+              selected: { type: boolean }
+              enabled: { type: boolean }
+              installation:
+                type: object
+                required: [version, sha256, installed_at, staging]
+                properties:
+                  version: { type: string }
+                  sha256: { type: string }
+                  installed_at: { type: integer, format: int64 }
+                  staging: { type: boolean }
     RuntimeJobRequest:
       type: object
       additionalProperties: false
       required: [action, target, confirm]
       properties:
-        action: { type: string, enum: [start, up, stop, restart, login, image-pull, image-update, health, verify-routing, render] }
+        action: { type: string, enum: [start, up, stop, restart, login, image-pull, image-update, health, verify-routing, render, version-check, plugin-update] }
         target: { type: string, minLength: 1 }
         confirm:
           type: string
@@ -4675,7 +4724,7 @@ components:
       additionalProperties: false
       required: [action]
       properties:
-        action: { type: string, enum: [start, up, stop, restart, login, image-pull, image-update, health, verify-routing, render] }
+        action: { type: string, enum: [start, up, stop, restart, login, image-pull, image-update, health, verify-routing, render, version-check, plugin-update] }
         target: { type: string, default: all }
     LegacyRuntimeJobCancelRequest:
       type: object

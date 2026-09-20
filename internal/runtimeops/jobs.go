@@ -49,6 +49,16 @@ type ImageController interface {
 	UpdateImage(context.Context, string, io.Writer) (OperationResult, error)
 }
 
+type ExtensionController interface {
+	CheckVersions(context.Context, io.Writer) (OperationResult, error)
+	UpdatePlugin(context.Context, string, io.Writer) (OperationResult, error)
+}
+
+// SetExtensions is called during startup, before jobs can be submitted.
+func (manager *JobManager) SetExtensions(controller ExtensionController) {
+	manager.extensions = controller
+}
+
 type Job struct {
 	ID         string           `json:"id"`
 	Name       string           `json:"name"`
@@ -73,6 +83,7 @@ type JobManager struct {
 	controller    Controller
 	login         LoginController
 	images        ImageController
+	extensions    ExtensionController
 	diagnostics   DiagnosticController
 	operationLock sync.Locker
 	pool          pond.Pool
@@ -171,8 +182,19 @@ func (manager *JobManager) Submit(action string, target string) (JobSubmission, 
 	target = normalizeTarget(target)
 	if action != "start" && action != "up" && action != "stop" && action != "restart" && action != "login" &&
 		action != "image-pull" && action != "image-update" && action != "health" &&
-		action != "verify-routing" && action != "render" {
+		action != "verify-routing" && action != "render" && action != "version-check" && action != "plugin-update" {
 		return JobSubmission{}, fmt.Errorf("%w: unsupported action %s", ErrRuntimeTarget, action)
+	}
+	if action == "version-check" || action == "plugin-update" {
+		if manager.extensions == nil {
+			return JobSubmission{}, fmt.Errorf("%w: extensions unavailable", ErrRuntimeTarget)
+		}
+		if action == "version-check" && target != "all" {
+			return JobSubmission{}, fmt.Errorf("%w: version check target must be all", ErrRuntimeTarget)
+		}
+		if action == "plugin-update" && target == "all" {
+			return JobSubmission{}, fmt.Errorf("%w: select exactly one plugin account", ErrRuntimeTarget)
+		}
 	}
 	if action == "login" && manager.login == nil {
 		return JobSubmission{}, fmt.Errorf("%w: OAuth device login is unavailable", ErrRuntimeTarget)
@@ -318,6 +340,18 @@ func (manager *JobManager) execute(ctx context.Context, id string) error {
 		err    error
 	)
 	switch action {
+	case "version-check", "plugin-update":
+		output := &jobOutputWriter{manager: manager, id: id}
+		if manager.operationLock != nil {
+			manager.operationLock.Lock()
+			defer manager.operationLock.Unlock()
+		}
+		if action == "version-check" {
+			result, err = manager.extensions.CheckVersions(ctx, output)
+		} else {
+			result, err = manager.extensions.UpdatePlugin(ctx, target, output)
+		}
+		output.Flush()
 	case "start":
 		result, err = manager.controller.Start(ctx, target)
 	case "stop":

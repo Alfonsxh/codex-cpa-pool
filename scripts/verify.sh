@@ -5,6 +5,7 @@ ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 
 printf '%s\n' '[1/7] 语法、格式与生成代码'
 sh -n \
+  "$ROOT_DIR/scripts/build-codex-plugin.sh" \
   "$ROOT_DIR/scripts/check-generated-api.sh" \
   "$ROOT_DIR/scripts/check-product-name.sh" \
   "$ROOT_DIR/scripts/test-product-name.sh" \

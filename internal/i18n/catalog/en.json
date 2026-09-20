@@ -2735,5 +2735,141 @@
   {
     "id": "usagereport.weighted_tokens_use_values_saved_when_requests_were_collected_historical",
     "other": "Weighted tokens use values saved when requests were collected. Historical records are not recalculated using current multipliers. Legacy records without weighted values use raw tokens."
+  },
+  {
+    "id": "configuration.cpa_auto_check",
+    "other": "Automatically check CPA versions"
+  },
+  {
+    "id": "configuration.cpa_auto_check_description",
+    "other": "Check official releases without pulling or upgrading images."
+  },
+  {
+    "id": "configuration.plugin_auto_check",
+    "other": "Automatically check plugin versions"
+  },
+  {
+    "id": "configuration.plugin_auto_check_description",
+    "other": "Check Codex Ticket releases without installing them."
+  },
+  {
+    "id": "configuration.check_interval_hours",
+    "other": "Version check interval (hours)"
+  },
+  {
+    "id": "configuration.check_interval_hours_description",
+    "other": "Scheduled by Admin even when the browser is closed."
+  },
+  {
+    "id": "configuration.ticket_enabled",
+    "other": "Enable Codex Ticket"
+  },
+  {
+    "id": "configuration.ticket_enabled_description",
+    "other": "Experimental HTTP/SSE plugin; no WebSocket support or quality guarantee. Install before first use."
+  },
+  {
+    "id": "configuration.ticket_accounts",
+    "other": "Plugin account IDs"
+  },
+  {
+    "id": "configuration.ticket_accounts_description",
+    "other": "Comma-separated account IDs. Stopped or disabled accounts are never started."
+  },
+  {
+    "id": "configuration.ticket_version",
+    "other": "Plugin version to install"
+  },
+  {
+    "id": "configuration.ticket_version_description",
+    "other": "Save then install/upgrade a selected account. Installed versions remain pinned."
+  },
+  {
+    "id": "configuration.ticket_harvest",
+    "other": "Allow background harvesting"
+  },
+  {
+    "id": "configuration.ticket_harvest_description",
+    "other": "Produces additional upstream requests through the selected exit. Concurrency is 1 per CPA."
+  },
+  {
+    "id": "configuration.ticket_inject",
+    "other": "Allow cached turn-state injection"
+  },
+  {
+    "id": "configuration.ticket_inject_description",
+    "other": "Only fills missing client state. Existing state is preserved; cache is lost on restart."
+  },
+  {
+    "id": "configuration.ticket_models",
+    "other": "Allowed models"
+  },
+  {
+    "id": "configuration.ticket_models_description",
+    "other": "Comma-separated final upstream model IDs. Start validation with one model."
+  },
+  {
+    "id": "configuration.ticket_ttl",
+    "other": "Cache lifetime (seconds)"
+  },
+  {
+    "id": "configuration.ticket_ttl_description",
+    "other": "Local cache lifetime does not prove upstream validity."
+  },
+  {
+    "id": "configuration.ticket_refresh",
+    "other": "Refresh ahead (seconds)"
+  },
+  {
+    "id": "configuration.ticket_refresh_description",
+    "other": "Must be shorter than the cache lifetime."
+  },
+  {
+    "id": "configuration.ticket_scan",
+    "other": "Harvest scan interval (seconds)"
+  },
+  {
+    "id": "configuration.ticket_scan_description",
+    "other": "Only active when harvesting is enabled."
+  },
+  {
+    "id": "configuration.ticket_timeout",
+    "other": "Harvest timeout (seconds)"
+  },
+  {
+    "id": "configuration.ticket_timeout_description",
+    "other": "Times out without blocking business requests."
+  },
+  {
+    "id": "configuration.ticket_retry",
+    "other": "Initial retry delay (seconds)"
+  },
+  {
+    "id": "configuration.ticket_retry_description",
+    "other": "Exponential backoff after failures."
+  },
+  {
+    "id": "configuration.ticket_retry_max",
+    "other": "Maximum retry delay (seconds)"
+  },
+  {
+    "id": "configuration.ticket_retry_max_description",
+    "other": "Must be at least the initial retry delay."
+  },
+  {
+    "id": "configuration.ticket_proxy_source",
+    "other": "Harvest proxy source"
+  },
+  {
+    "id": "configuration.ticket_proxy_source_description",
+    "other": "Use the account proxy or explicitly connect directly. Business request routing is unchanged. Direct mode requires the bundled compatibility build."
+  },
+  {
+    "id": "configuration.ticket_proxy_account",
+    "other": "Account proxy"
+  },
+  {
+    "id": "configuration.ticket_proxy_direct",
+    "other": "Explicit direct (bundled build)"
   }
 ]

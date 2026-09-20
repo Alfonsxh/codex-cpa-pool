@@ -19,6 +19,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/Alfonsxh/codex-cpa-pool/internal/cpaplugin"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/httpi18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/identity"
@@ -179,6 +180,22 @@ func buildConfigurationDefinitions() []configurationDefinition {
 		boolean("cpa.session_affinity", "admin.session_affinity", true, "accounts"),
 		boolean("cpa.passthrough_headers", "configuration.passthrough_headers", false, "live"),
 		simple("cpa.session_affinity_ttl", "admin.session_affinity_duration", "duration", "1h", "accounts"),
+		boolean("software.cpa_auto_check", "configuration.cpa_auto_check", true, "live"),
+		boolean("software.plugin_auto_check", "configuration.plugin_auto_check", true, "live"),
+		integer("software.check_interval_hours", "configuration.check_interval_hours", 6, 1, 168, "live"),
+		choice(cpaplugin.Prefix+"proxy_source", "configuration.ticket_proxy_source", "account", "live", "account", "direct"),
+		boolean(cpaplugin.Prefix+"enabled", "configuration.ticket_enabled", false, "live"),
+		text(cpaplugin.Prefix+"accounts", "configuration.ticket_accounts", "", 0, 2048, "live", true),
+		text(cpaplugin.Prefix+"version", "configuration.ticket_version", cpaplugin.BundledVersion, 5, 32, "live", false),
+		boolean(cpaplugin.Prefix+"harvest_enabled", "configuration.ticket_harvest", false, "live"),
+		boolean(cpaplugin.Prefix+"inject_enabled", "configuration.ticket_inject", false, "live"),
+		text(cpaplugin.Prefix+"models", "configuration.ticket_models", "gpt-6-astra", 1, 2048, "live", false),
+		integer(cpaplugin.Prefix+"ttl_seconds", "configuration.ticket_ttl", 3600, 300, 86400, "live"),
+		integer(cpaplugin.Prefix+"refresh_before_seconds", "configuration.ticket_refresh", 600, 0, 86399, "live"),
+		integer(cpaplugin.Prefix+"scan_interval_seconds", "configuration.ticket_scan", 60, 30, 3600, "live"),
+		integer(cpaplugin.Prefix+"timeout_seconds", "configuration.ticket_timeout", 25, 1, 60, "live"),
+		integer(cpaplugin.Prefix+"retry_base_seconds", "configuration.ticket_retry", 300, 60, 86400, "live"),
+		integer(cpaplugin.Prefix+"retry_max_seconds", "configuration.ticket_retry_max", 3600, 60, 86400, "live"),
 		boolean("cpa.debug", "admin.debug_logging", false, "accounts"),
 		boolean("cpa.logging_to_file", "admin.write_cpa_log_files", true, "accounts"),
 		integer("cpa.logs_max_total_size_mb", "admin.log_capacity_per_cpa", 64, 16, 1024, "accounts"),
@@ -712,6 +729,9 @@ func normalizeConfigurationTimes(definition configurationDefinition, value strin
 }
 
 func validateConfiguration(values map[string]any) error {
+	if _, err := cpaplugin.Parse(values); err != nil {
+		return err
+	}
 	for _, key := range []string{"accounts.listen_address"} {
 		address, _ := values[key].(string)
 		parsed := net.ParseIP(address)

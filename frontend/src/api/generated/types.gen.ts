@@ -525,7 +525,7 @@ export type RuntimeLogs = {
 };
 
 export type RuntimeOperationResult = {
-    action: 'start' | 'stop' | 'restart' | 'login' | 'image-pull' | 'image-update' | 'health' | 'verify-routing' | 'render';
+    action: 'start' | 'stop' | 'restart' | 'login' | 'image-pull' | 'image-update' | 'health' | 'verify-routing' | 'render' | 'version-check' | 'plugin-update';
     target: string;
     services: Array<RuntimeService>;
 };
@@ -548,8 +548,34 @@ export type RuntimeJobCatalog = {
     jobs: Array<RuntimeJob>;
 };
 
+export type ExtensionStatus = {
+    desired_version: string;
+    bundled_version: string;
+    checks: {
+        [key: string]: {
+            version: string;
+            url: string;
+            attempted_at: number;
+            checked_at: number;
+            error?: string;
+        };
+    };
+    accounts: Array<{
+        account: string;
+        running: boolean;
+        selected: boolean;
+        enabled: boolean;
+        installation: {
+            version: string;
+            sha256: string;
+            installed_at: number;
+            staging: boolean;
+        };
+    }>;
+};
+
 export type RuntimeJobRequest = {
-    action: 'start' | 'up' | 'stop' | 'restart' | 'login' | 'image-pull' | 'image-update' | 'health' | 'verify-routing' | 'render';
+    action: 'start' | 'up' | 'stop' | 'restart' | 'login' | 'image-pull' | 'image-update' | 'health' | 'verify-routing' | 'render' | 'version-check' | 'plugin-update';
     target: string;
     /**
      * Exact lowercase action and target separated by a colon
@@ -1772,7 +1798,7 @@ export type ManagementKeyRotationResponse = {
 };
 
 export type LegacyRuntimeJobRequest = {
-    action: 'start' | 'up' | 'stop' | 'restart' | 'login' | 'image-pull' | 'image-update' | 'health' | 'verify-routing' | 'render';
+    action: 'start' | 'up' | 'stop' | 'restart' | 'login' | 'image-pull' | 'image-update' | 'health' | 'verify-routing' | 'render' | 'version-check' | 'plugin-update';
     target?: string;
 };
 
@@ -3757,6 +3783,31 @@ export type ResetAdminAccountQuotaResponses = {
 };
 
 export type ResetAdminAccountQuotaResponse = ResetAdminAccountQuotaResponses[keyof ResetAdminAccountQuotaResponses];
+
+export type GetAdminExtensionsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/api/extensions';
+};
+
+export type GetAdminExtensionsErrors = {
+    /**
+     * Safe JSON error envelope
+     */
+    default: ErrorEnvelope;
+};
+
+export type GetAdminExtensionsError = GetAdminExtensionsErrors[keyof GetAdminExtensionsErrors];
+
+export type GetAdminExtensionsResponses = {
+    /**
+     * Scheduled version checks and pinned per-account plugin installations
+     */
+    200: ExtensionStatus;
+};
+
+export type GetAdminExtensionsResponse = GetAdminExtensionsResponses[keyof GetAdminExtensionsResponses];
 
 export type GetAdminCpaImageStatusData = {
     body?: never;

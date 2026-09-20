@@ -9,8 +9,40 @@ import (
 	"time"
 
 	"github.com/Alfonsxh/codex-cpa-pool/internal/controlplane"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/cpaplugin"
 	"gopkg.in/yaml.v3"
 )
+
+func TestPluginProjectionUsesExplicitDirectAndStagesWithoutTraffic(t *testing.T) {
+	root := t.TempDir()
+	store := newProjectionStore(t, root)
+	ctx := context.Background()
+	settings := map[string]any{cpaplugin.Prefix + "enabled": true, cpaplugin.Prefix + "accounts": "alpha", cpaplugin.Prefix + "proxy_source": "direct", cpaplugin.Prefix + "harvest_enabled": true, cpaplugin.Prefix + "inject_enabled": true}
+	if err := store.UpdateSettings(ctx, settings); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.WriteRuntimeState(ctx, cpaplugin.StatePrefix+"alpha", cpaplugin.Installation{Version: cpaplugin.BundledVersion, Staging: true}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := (&Renderer{Root: root, Store: store}).Render(ctx); err != nil {
+		t.Fatal(err)
+	}
+	var config cpaConfig
+	if err := yaml.Unmarshal([]byte(readProjectionFile(t, root, "configs/alpha/config.yaml")), &config); err != nil {
+		t.Fatal(err)
+	}
+	plugin := config.Plugins["configs"].(map[string]any)["codex-ticket"].(map[string]any)
+	if !config.CommercialMode || plugin["harvest_enabled"] != false || plugin["inject_enabled"] != false || plugin["replace_existing"] != false {
+		t.Fatalf("unsafe staged plugin: %#v", plugin)
+	}
+	if got := readProjectionFile(t, root, "configs/alpha/codex-ticket-proxy.url"); got != "direct" {
+		t.Fatalf("exit=%q", got)
+	}
+	assertMode(t, filepath.Join(root, "configs/alpha/codex-ticket-proxy.url"), 0o600)
+	if strings.Contains(readProjectionFile(t, root, "configs/beta/config.yaml"), "codex-ticket") {
+		t.Fatal("unselected account changed")
+	}
+}
 
 func TestRendererBuildsCompatibleAtomicAccountProjectionsWithoutChangingExternalKeys(t *testing.T) {
 	root := t.TempDir()

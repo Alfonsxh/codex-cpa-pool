@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/Alfonsxh/codex-cpa-pool/internal/controlplane"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/cpaplugin"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/identity"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/reasoningpolicy"
 	"github.com/google/renameio/v2"
@@ -63,6 +64,25 @@ func (applier *ConfigurationRuntimeApplier) ApplyConfiguration(
 	_, collectorChanged := modes["collector"]
 	_, quotaChanged := modes["quota"]
 	liveCPAChanged := configurationLiveCPAChanged(change)
+	if liveCPAChanged && applier.Accounts != nil {
+		plugin, err := cpaplugin.Parse(change.After)
+		if err != nil {
+			return err
+		}
+		accounts, err := applier.Accounts.ReadAccounts(ctx)
+		if err != nil {
+			return err
+		}
+		known := map[string]bool{}
+		for _, account := range accounts {
+			known[account.ID] = true
+		}
+		for _, id := range plugin.Accounts {
+			if !known[id] {
+				return fmt.Errorf("unknown plugin account %s", id)
+			}
+		}
+	}
 	gatewayChanged := configurationGatewayPolicyChanged(change)
 	if gatewayChanged && applier.GatewaySnapshots == nil {
 		return errors.New("gateway policy publisher is unavailable")
@@ -137,7 +157,7 @@ func configurationGatewayPolicyChanged(change ConfigurationChange) bool {
 
 func configurationLiveCPAChanged(change ConfigurationChange) bool {
 	for _, key := range change.Changed {
-		if key == "cpa.passthrough_headers" {
+		if key == "cpa.passthrough_headers" || strings.HasPrefix(key, cpaplugin.Prefix) {
 			return true
 		}
 	}

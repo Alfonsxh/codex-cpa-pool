@@ -1,7 +1,7 @@
 {
   "version": 2,
   "generated_at": 1787500800,
-  "field_count": 80,
+  "field_count": 96,
   "groups": [
     {
       "name": "品牌与身份",
@@ -352,6 +352,196 @@
           "default": false,
           "apply_mode": "live",
           "editable": true
+        },
+        {
+          "key": "software.cpa_auto_check",
+          "label": "自动检查 CPA 版本",
+          "description": "定期读取官方发布信息，不自动拉取或升级镜像。",
+          "type": "boolean",
+          "value": true,
+          "default": true,
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "software.plugin_auto_check",
+          "label": "自动检查插件版本",
+          "description": "定期检查 Codex Ticket 插件发布信息，不自动安装。",
+          "type": "boolean",
+          "value": true,
+          "default": true,
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "software.check_interval_hours",
+          "label": "版本检查间隔（小时）",
+          "description": "由 Admin 统一调度；关闭浏览器后仍会检查。",
+          "type": "integer",
+          "value": 6,
+          "default": 6,
+          "apply_mode": "live",
+          "editable": true,
+          "min": 1,
+          "max": 168
+        },
+        {
+          "key": "plugins.codex_ticket.proxy_source",
+          "label": "采票代理来源",
+          "description": "复用账号代理或显式直连，不改变业务请求出口。直连需要随控制平面提供的适配版插件。",
+          "type": "choice",
+          "value": "account",
+          "default": "account",
+          "apply_mode": "live",
+          "editable": true,
+          "choices": [
+            {
+              "value": "account",
+              "label": "账号代理"
+            },
+            {
+              "value": "direct",
+              "label": "显式直连（适配版）"
+            }
+          ]
+        },
+        {
+          "key": "plugins.codex_ticket.enabled",
+          "label": "启用 Codex Ticket",
+          "description": "实验性 HTTP/SSE 插件；不支持 WebSocket，不能保证模型质量。首次使用需执行安装。",
+          "type": "boolean",
+          "value": false,
+          "default": false,
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "plugins.codex_ticket.accounts",
+          "label": "启用插件的账号 ID",
+          "description": "用英文逗号分隔；仅作用于指定账号。停止或禁用的账号不会被启动。",
+          "type": "optional_text",
+          "value": "",
+          "default": "",
+          "apply_mode": "live",
+          "editable": true,
+          "min_length": 0,
+          "max_length": 2048
+        },
+        {
+          "key": "plugins.codex_ticket.version",
+          "label": "待安装插件版本",
+          "description": "保存后点击对应账号的安装/升级；已安装版本保持固定。",
+          "type": "text",
+          "value": "v0.2.0-ccpa.1",
+          "default": "v0.2.0-ccpa.1",
+          "apply_mode": "live",
+          "editable": true,
+          "min_length": 5,
+          "max_length": 32
+        },
+        {
+          "key": "plugins.codex_ticket.harvest_enabled",
+          "label": "允许后台采票",
+          "description": "会通过选定出口产生额外上游请求；每个 CPA 并发固定为 1。",
+          "type": "boolean",
+          "value": false,
+          "default": false,
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "plugins.codex_ticket.inject_enabled",
+          "label": "允许注入缓存 turn state",
+          "description": "仅补充缺失的客户端状态；已有状态不覆盖。缓存重启后失效。",
+          "type": "boolean",
+          "value": false,
+          "default": false,
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "plugins.codex_ticket.models",
+          "label": "适用模型",
+          "description": "最终上游模型名，以英文逗号分隔。建议先选择一个模型验证。",
+          "type": "text",
+          "value": "gpt-6-astra",
+          "default": "gpt-6-astra",
+          "apply_mode": "live",
+          "editable": true,
+          "min_length": 1,
+          "max_length": 2048
+        },
+        {
+          "key": "plugins.codex_ticket.ttl_seconds",
+          "label": "缓存有效期（秒）",
+          "description": "本地缓存期限，不能证明上游状态仍然有效。",
+          "type": "integer",
+          "value": 3600,
+          "default": 3600,
+          "apply_mode": "live",
+          "editable": true,
+          "min": 300,
+          "max": 86400
+        },
+        {
+          "key": "plugins.codex_ticket.refresh_before_seconds",
+          "label": "提前刷新时间（秒）",
+          "description": "必须小于缓存有效期。",
+          "type": "integer",
+          "value": 600,
+          "default": 600,
+          "apply_mode": "live",
+          "editable": true,
+          "min": 0,
+          "max": 86399
+        },
+        {
+          "key": "plugins.codex_ticket.scan_interval_seconds",
+          "label": "采票扫描间隔（秒）",
+          "description": "仅在开启采票时生效。",
+          "type": "integer",
+          "value": 60,
+          "default": 60,
+          "apply_mode": "live",
+          "editable": true,
+          "min": 30,
+          "max": 3600
+        },
+        {
+          "key": "plugins.codex_ticket.timeout_seconds",
+          "label": "单次采票超时（秒）",
+          "description": "超时后回退，业务请求不等待采票。",
+          "type": "integer",
+          "value": 25,
+          "default": 25,
+          "apply_mode": "live",
+          "editable": true,
+          "min": 1,
+          "max": 60
+        },
+        {
+          "key": "plugins.codex_ticket.retry_base_seconds",
+          "label": "失败重试起始间隔（秒）",
+          "description": "失败后指数退避，不持续高频请求。",
+          "type": "integer",
+          "value": 300,
+          "default": 300,
+          "apply_mode": "live",
+          "editable": true,
+          "min": 60,
+          "max": 86400
+        },
+        {
+          "key": "plugins.codex_ticket.retry_max_seconds",
+          "label": "失败重试最大间隔（秒）",
+          "description": "必须不小于起始重试间隔。",
+          "type": "integer",
+          "value": 3600,
+          "default": 3600,
+          "apply_mode": "live",
+          "editable": true,
+          "min": 60,
+          "max": 86400
         }
       ]
     },
