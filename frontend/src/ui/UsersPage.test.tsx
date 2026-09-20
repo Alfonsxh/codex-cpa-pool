@@ -480,6 +480,8 @@ describe("UsersPage legacy parity", () => {
       weekly_tokens: 500
     });
 
+    // The saved notice can appear before the quota drawer's exit animation ends.
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     await user.click(screen.getByRole("checkbox", { name: "选择 alice@example.com" }));
     const selectionBar = screen.getByText("已选择 1 位用户").closest(".user-selection-bar");
     expect(selectionBar).not.toBeNull();
