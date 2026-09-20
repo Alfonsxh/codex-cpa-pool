@@ -549,6 +549,44 @@ func (runtime *AccountRuntime) PrepareDelete(
 	}, nil
 }
 
+// RestartRunningAccount never resurrects a stopped or disabled account.
+func (runtime *AccountRuntime) RestartRunningAccount(ctx context.Context, accountID string) error {
+	accounts, err := runtime.accounts.ReadAccounts(ctx)
+	if err != nil {
+		return err
+	}
+	enabled := false
+	for _, account := range accounts {
+		if account.ID == accountID && account.GroupEnabled {
+			enabled = true
+		}
+	}
+	if !enabled {
+		return errors.New("account is disabled or missing")
+	}
+	container, found, err := runtime.findAccountContainer(ctx, accountID)
+	if err != nil {
+		return err
+	}
+	if !found || container.State != "running" {
+		return errors.New("account is stopped; plugin operation cancelled")
+	}
+	if runtime.drainer == nil {
+		return accountlifecycle.ErrRouteEvacuationUnavailable
+	}
+	if err := runtime.drainer.WaitAccountDrained(ctx, accountID); err != nil {
+		return err
+	}
+	container, found, err = runtime.findAccountContainer(ctx, accountID)
+	if err != nil {
+		return err
+	}
+	if !found || container.State != "running" {
+		return errors.New("account stopped while draining")
+	}
+	return runtime.RestartAccount(ctx, accountID)
+}
+
 func (runtime *AccountRuntime) RestartAccount(ctx context.Context, accountID string) error {
 	container, found, err := runtime.findAccountContainer(ctx, accountID)
 	if err != nil {

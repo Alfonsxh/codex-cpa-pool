@@ -62,6 +62,7 @@ COPYFILE_DISABLE=1 tar --no-xattrs \
   go.mod \
   go.sum \
   internal \
+  plugins/codex-ticket \
   scripts \
   testdata/preview \
   testdata/runtime \

@@ -20,6 +20,7 @@ import (
 	"github.com/Alfonsxh/codex-cpa-pool/internal/i18n"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/notifications"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/quota"
+	"github.com/Alfonsxh/codex-cpa-pool/internal/runtimeops"
 	"github.com/Alfonsxh/codex-cpa-pool/internal/usage"
 	"github.com/alexedwards/scs/v2"
 	"github.com/gin-gonic/gin"
@@ -87,6 +88,7 @@ type Config struct {
 	Users                UserLifecycleService
 	Runtime              RuntimeCatalog
 	Images               ImageCatalog
+	Extensions           *runtimeops.Extensions
 	Release              ReleaseCatalog
 	RuntimeJobs          RuntimeJobService
 	AccountLifecycle     AccountLifecycleService
@@ -176,6 +178,7 @@ type Server struct {
 	users                   UserLifecycleService
 	runtime                 RuntimeCatalog
 	images                  ImageCatalog
+	extensions              *runtimeops.Extensions
 	release                 ReleaseCatalog
 	runtimeJobs             RuntimeJobService
 	accountLifecycle        AccountLifecycleService
@@ -276,6 +279,7 @@ func New(config Config) (*Server, error) {
 		users:                config.Users,
 		runtime:              config.Runtime,
 		images:               config.Images,
+		extensions:           config.Extensions,
 		release:              config.Release,
 		runtimeJobs:          config.RuntimeJobs,
 		accountLifecycle:     config.AccountLifecycle,
@@ -393,6 +397,7 @@ func (server *Server) registerRoutes() {
 	authenticated.GET("/onboarding", server.readOnboarding)
 	authenticated.PUT("/onboarding/preferences", server.limitBody(defaultBodyLimit), server.updateOnboardingPreferences)
 	authenticated.GET("/images/cliproxy", server.readCPAImageStatus)
+	authenticated.GET("/extensions", server.readExtensions)
 	authenticated.GET("/release", server.readReleaseStatus)
 	authenticated.GET("/settings/general", server.readGeneralSettings)
 	authenticated.PUT("/settings/general", server.limitBody(defaultBodyLimit), server.updateGeneralSettings)

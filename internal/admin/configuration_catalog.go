@@ -171,6 +171,22 @@ var configurationGroupDescriptions = map[string]string{
 }
 
 var configurationPresentationByKey = map[string]configurationPresentation{
+	"plugins.codex_ticket.proxy_source":                  {Group: "admin.cpa_requests", Description: "configuration.ticket_proxy_source_description", ChoiceLabels: map[string]string{"account": "configuration.ticket_proxy_account", "direct": "configuration.ticket_proxy_direct"}},
+	"software.cpa_auto_check":                            {Group: "admin.cpa_requests", Description: "configuration.cpa_auto_check_description"},
+	"software.plugin_auto_check":                         {Group: "admin.cpa_requests", Description: "configuration.plugin_auto_check_description"},
+	"software.check_interval_hours":                      {Group: "admin.cpa_requests", Description: "configuration.check_interval_hours_description"},
+	"plugins.codex_ticket.enabled":                       {Group: "admin.cpa_requests", Description: "configuration.ticket_enabled_description"},
+	"plugins.codex_ticket.accounts":                      {Group: "admin.cpa_requests", Description: "configuration.ticket_accounts_description"},
+	"plugins.codex_ticket.version":                       {Group: "admin.cpa_requests", Description: "configuration.ticket_version_description"},
+	"plugins.codex_ticket.harvest_enabled":               {Group: "admin.cpa_requests", Description: "configuration.ticket_harvest_description"},
+	"plugins.codex_ticket.inject_enabled":                {Group: "admin.cpa_requests", Description: "configuration.ticket_inject_description"},
+	"plugins.codex_ticket.models":                        {Group: "admin.cpa_requests", Description: "configuration.ticket_models_description"},
+	"plugins.codex_ticket.ttl_seconds":                   {Group: "admin.cpa_requests", Description: "configuration.ticket_ttl_description"},
+	"plugins.codex_ticket.refresh_before_seconds":        {Group: "admin.cpa_requests", Description: "configuration.ticket_refresh_description"},
+	"plugins.codex_ticket.scan_interval_seconds":         {Group: "admin.cpa_requests", Description: "configuration.ticket_scan_description"},
+	"plugins.codex_ticket.timeout_seconds":               {Group: "admin.cpa_requests", Description: "configuration.ticket_timeout_description"},
+	"plugins.codex_ticket.retry_base_seconds":            {Group: "admin.cpa_requests", Description: "configuration.ticket_retry_description"},
+	"plugins.codex_ticket.retry_max_seconds":             {Group: "admin.cpa_requests", Description: "configuration.ticket_retry_max_description"},
 	i18n.SettingKey:                                      {Group: "admin.system_settings", Description: "configuration.system_language_description", ChoiceLabels: map[string]string{"en": "configuration.language_english", "zh-CN": "configuration.language_chinese"}},
 	"branding.product_name":                              {Group: "admin.brand_identity", Description: "admin.product_name_shown_on_pages"},
 	"branding.short_name":                                {Group: "admin.brand_identity", Description: "admin.short_name_displayed_in_clients"},

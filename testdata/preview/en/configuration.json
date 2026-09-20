@@ -1,7 +1,7 @@
 {
   "version": 2,
   "generated_at": 1787500800,
-  "field_count": 80,
+  "field_count": 96,
   "groups": [
     {
       "name": "Brand & identity",
@@ -352,6 +352,196 @@
           "default": false,
           "apply_mode": "live",
           "editable": true
+        },
+        {
+          "key": "software.cpa_auto_check",
+          "label": "Automatically check CPA versions",
+          "description": "Check official releases without pulling or upgrading images.",
+          "type": "boolean",
+          "value": true,
+          "default": true,
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "software.plugin_auto_check",
+          "label": "Automatically check plugin versions",
+          "description": "Check Codex Ticket releases without installing them.",
+          "type": "boolean",
+          "value": true,
+          "default": true,
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "software.check_interval_hours",
+          "label": "Version check interval (hours)",
+          "description": "Scheduled by Admin even when the browser is closed.",
+          "type": "integer",
+          "value": 6,
+          "default": 6,
+          "apply_mode": "live",
+          "editable": true,
+          "min": 1,
+          "max": 168
+        },
+        {
+          "key": "plugins.codex_ticket.proxy_source",
+          "label": "Harvest proxy source",
+          "description": "Use the account proxy or explicitly connect directly. Business request routing is unchanged. Direct mode requires the bundled compatibility build.",
+          "type": "choice",
+          "value": "account",
+          "default": "account",
+          "apply_mode": "live",
+          "editable": true,
+          "choices": [
+            {
+              "value": "account",
+              "label": "Account proxy"
+            },
+            {
+              "value": "direct",
+              "label": "Explicit direct (bundled build)"
+            }
+          ]
+        },
+        {
+          "key": "plugins.codex_ticket.enabled",
+          "label": "Enable Codex Ticket",
+          "description": "Experimental HTTP/SSE plugin; no WebSocket support or quality guarantee. Install before first use.",
+          "type": "boolean",
+          "value": false,
+          "default": false,
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "plugins.codex_ticket.accounts",
+          "label": "Plugin account IDs",
+          "description": "Comma-separated account IDs. Stopped or disabled accounts are never started.",
+          "type": "optional_text",
+          "value": "",
+          "default": "",
+          "apply_mode": "live",
+          "editable": true,
+          "min_length": 0,
+          "max_length": 2048
+        },
+        {
+          "key": "plugins.codex_ticket.version",
+          "label": "Plugin version to install",
+          "description": "Save then install/upgrade a selected account. Installed versions remain pinned.",
+          "type": "text",
+          "value": "v0.2.0-ccpa.1",
+          "default": "v0.2.0-ccpa.1",
+          "apply_mode": "live",
+          "editable": true,
+          "min_length": 5,
+          "max_length": 32
+        },
+        {
+          "key": "plugins.codex_ticket.harvest_enabled",
+          "label": "Allow background harvesting",
+          "description": "Produces additional upstream requests through the selected exit. Concurrency is 1 per CPA.",
+          "type": "boolean",
+          "value": false,
+          "default": false,
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "plugins.codex_ticket.inject_enabled",
+          "label": "Allow cached turn-state injection",
+          "description": "Only fills missing client state. Existing state is preserved; cache is lost on restart.",
+          "type": "boolean",
+          "value": false,
+          "default": false,
+          "apply_mode": "live",
+          "editable": true
+        },
+        {
+          "key": "plugins.codex_ticket.models",
+          "label": "Allowed models",
+          "description": "Comma-separated final upstream model IDs. Start validation with one model.",
+          "type": "text",
+          "value": "gpt-6-astra",
+          "default": "gpt-6-astra",
+          "apply_mode": "live",
+          "editable": true,
+          "min_length": 1,
+          "max_length": 2048
+        },
+        {
+          "key": "plugins.codex_ticket.ttl_seconds",
+          "label": "Cache lifetime (seconds)",
+          "description": "Local cache lifetime does not prove upstream validity.",
+          "type": "integer",
+          "value": 3600,
+          "default": 3600,
+          "apply_mode": "live",
+          "editable": true,
+          "min": 300,
+          "max": 86400
+        },
+        {
+          "key": "plugins.codex_ticket.refresh_before_seconds",
+          "label": "Refresh ahead (seconds)",
+          "description": "Must be shorter than the cache lifetime.",
+          "type": "integer",
+          "value": 600,
+          "default": 600,
+          "apply_mode": "live",
+          "editable": true,
+          "min": 0,
+          "max": 86399
+        },
+        {
+          "key": "plugins.codex_ticket.scan_interval_seconds",
+          "label": "Harvest scan interval (seconds)",
+          "description": "Only active when harvesting is enabled.",
+          "type": "integer",
+          "value": 60,
+          "default": 60,
+          "apply_mode": "live",
+          "editable": true,
+          "min": 30,
+          "max": 3600
+        },
+        {
+          "key": "plugins.codex_ticket.timeout_seconds",
+          "label": "Harvest timeout (seconds)",
+          "description": "Times out without blocking business requests.",
+          "type": "integer",
+          "value": 25,
+          "default": 25,
+          "apply_mode": "live",
+          "editable": true,
+          "min": 1,
+          "max": 60
+        },
+        {
+          "key": "plugins.codex_ticket.retry_base_seconds",
+          "label": "Initial retry delay (seconds)",
+          "description": "Exponential backoff after failures.",
+          "type": "integer",
+          "value": 300,
+          "default": 300,
+          "apply_mode": "live",
+          "editable": true,
+          "min": 60,
+          "max": 86400
+        },
+        {
+          "key": "plugins.codex_ticket.retry_max_seconds",
+          "label": "Maximum retry delay (seconds)",
+          "description": "Must be at least the initial retry delay.",
+          "type": "integer",
+          "value": 3600,
+          "default": 3600,
+          "apply_mode": "live",
+          "editable": true,
+          "min": 60,
+          "max": 86400
         }
       ]
     },

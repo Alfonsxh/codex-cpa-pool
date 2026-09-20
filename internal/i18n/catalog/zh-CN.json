@@ -2722,5 +2722,141 @@
   {
     "id": "usagereport.weighted_tokens_use_values_saved_when_requests_were_collected_historical",
     "other": "加权 Token 沿用请求采集时保存的结果；历史记录不按当前倍率重算，旧版无加权值的记录沿用原始值。"
+  },
+  {
+    "id": "configuration.cpa_auto_check",
+    "other": "自动检查 CPA 版本"
+  },
+  {
+    "id": "configuration.cpa_auto_check_description",
+    "other": "定期读取官方发布信息，不自动拉取或升级镜像。"
+  },
+  {
+    "id": "configuration.plugin_auto_check",
+    "other": "自动检查插件版本"
+  },
+  {
+    "id": "configuration.plugin_auto_check_description",
+    "other": "定期检查 Codex Ticket 插件发布信息，不自动安装。"
+  },
+  {
+    "id": "configuration.check_interval_hours",
+    "other": "版本检查间隔（小时）"
+  },
+  {
+    "id": "configuration.check_interval_hours_description",
+    "other": "由 Admin 统一调度；关闭浏览器后仍会检查。"
+  },
+  {
+    "id": "configuration.ticket_enabled",
+    "other": "启用 Codex Ticket"
+  },
+  {
+    "id": "configuration.ticket_enabled_description",
+    "other": "实验性 HTTP/SSE 插件；不支持 WebSocket，不能保证模型质量。首次使用需执行安装。"
+  },
+  {
+    "id": "configuration.ticket_accounts",
+    "other": "启用插件的账号 ID"
+  },
+  {
+    "id": "configuration.ticket_accounts_description",
+    "other": "用英文逗号分隔；仅作用于指定账号。停止或禁用的账号不会被启动。"
+  },
+  {
+    "id": "configuration.ticket_version",
+    "other": "待安装插件版本"
+  },
+  {
+    "id": "configuration.ticket_version_description",
+    "other": "保存后点击对应账号的安装/升级；已安装版本保持固定。"
+  },
+  {
+    "id": "configuration.ticket_harvest",
+    "other": "允许后台采票"
+  },
+  {
+    "id": "configuration.ticket_harvest_description",
+    "other": "会通过选定出口产生额外上游请求；每个 CPA 并发固定为 1。"
+  },
+  {
+    "id": "configuration.ticket_inject",
+    "other": "允许注入缓存 turn state"
+  },
+  {
+    "id": "configuration.ticket_inject_description",
+    "other": "仅补充缺失的客户端状态；已有状态不覆盖。缓存重启后失效。"
+  },
+  {
+    "id": "configuration.ticket_models",
+    "other": "适用模型"
+  },
+  {
+    "id": "configuration.ticket_models_description",
+    "other": "最终上游模型名，以英文逗号分隔。建议先选择一个模型验证。"
+  },
+  {
+    "id": "configuration.ticket_ttl",
+    "other": "缓存有效期（秒）"
+  },
+  {
+    "id": "configuration.ticket_ttl_description",
+    "other": "本地缓存期限，不能证明上游状态仍然有效。"
+  },
+  {
+    "id": "configuration.ticket_refresh",
+    "other": "提前刷新时间（秒）"
+  },
+  {
+    "id": "configuration.ticket_refresh_description",
+    "other": "必须小于缓存有效期。"
+  },
+  {
+    "id": "configuration.ticket_scan",
+    "other": "采票扫描间隔（秒）"
+  },
+  {
+    "id": "configuration.ticket_scan_description",
+    "other": "仅在开启采票时生效。"
+  },
+  {
+    "id": "configuration.ticket_timeout",
+    "other": "单次采票超时（秒）"
+  },
+  {
+    "id": "configuration.ticket_timeout_description",
+    "other": "超时后回退，业务请求不等待采票。"
+  },
+  {
+    "id": "configuration.ticket_retry",
+    "other": "失败重试起始间隔（秒）"
+  },
+  {
+    "id": "configuration.ticket_retry_description",
+    "other": "失败后指数退避，不持续高频请求。"
+  },
+  {
+    "id": "configuration.ticket_retry_max",
+    "other": "失败重试最大间隔（秒）"
+  },
+  {
+    "id": "configuration.ticket_retry_max_description",
+    "other": "必须不小于起始重试间隔。"
+  },
+  {
+    "id": "configuration.ticket_proxy_source",
+    "other": "采票代理来源"
+  },
+  {
+    "id": "configuration.ticket_proxy_source_description",
+    "other": "复用账号代理或显式直连，不改变业务请求出口。直连需要随控制平面提供的适配版插件。"
+  },
+  {
+    "id": "configuration.ticket_proxy_account",
+    "other": "账号代理"
+  },
+  {
+    "id": "configuration.ticket_proxy_direct",
+    "other": "显式直连（适配版）"
   }
 ]

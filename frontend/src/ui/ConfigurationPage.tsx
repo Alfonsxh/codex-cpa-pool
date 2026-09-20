@@ -59,6 +59,7 @@ import { useTheme } from "./ThemeProvider";
 
 import { configurationCategories, configurationControlWidth, configurationSections, configurationSectionFor, legacyConfigurationSection, type ConfigurationCategory } from "./configuration-layout";
 import "./configuration-page.css";
+import { SoftwareVersions } from "./components/SoftwareVersions";
 
 type DraftValue = string | number | boolean | null;
 type Draft = Record<string, DraftValue>;
@@ -506,6 +507,7 @@ export function ConfigurationPage({
                 const ordinaryFields = sectionFields.filter((field) => !specialized(field));
                 return <section className="configuration-section" key={section.id} aria-label={section.title} data-configuration-field={section.id}>
                   <div id={`configuration-section-${section.id}`}>
+                    {section.id === "software" ? <SoftwareVersions csrfToken={csrfToken} /> : null}
                     {section.id === "brand" ? <BrandingLogoEditor custom={general.data.branding.custom_logo} sha256={general.data.branding.logo_sha256} pending={logoMutation.isPending || logoResetMutation.isPending} error={logoError} onFile={(file) => { const error = validateLogoFile(file); setLogoError(error); if (!error) logoMutation.mutate(file); }} onReset={() => setLogoResetOpen(true)} /> : null}
                     {ordinaryFields.length ? <div className="configuration-fields">
                       <ConfigurationTableHeader />

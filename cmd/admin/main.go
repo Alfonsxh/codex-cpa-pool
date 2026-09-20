@@ -420,6 +420,16 @@ func runOwnedAdmin(
 		}
 		defer runtimeJobs.Close()
 	}
+	var extensions *runtimeops.Extensions
+	if accountRuntime != nil && runtimeJobs != nil {
+		extensions = runtimeops.NewExtensions(config.Root, store, extensionRuntimeAdapter{manager: runtimeManager, accounts: accountRuntime}, configurationProjectionAdapter{renderer: projectionRenderer})
+		runtimeJobs.SetExtensions(extensions)
+		extensionContext, stopExtensions := context.WithCancel(fenceContext)
+		extensions.Lifetime = extensionContext
+		extensionDone := make(chan struct{})
+		go func() { defer close(extensionDone); extensions.Run(extensionContext) }()
+		defer func() { stopExtensions(); <-extensionDone }()
+	}
 	configurationApplier := &adminapi.ConfigurationRuntimeApplier{
 		GatewaySnapshots:   snapshotPublisher,
 		Accounts:           store,
@@ -456,6 +466,7 @@ func runOwnedAdmin(
 		Portal:               portalServer,
 		Users:                userManager,
 		Runtime:              runtimeManager,
+		Extensions:           extensions,
 		Images:               runtimeManager,
 		Release:              adminapi.NewGitHubReleaseCatalog(nil),
 		RuntimeJobs:          runtimeJobs,
@@ -650,4 +661,21 @@ func newLogger(level string) (*zap.Logger, error) {
 	config := zap.NewProductionConfig()
 	config.Level = zap.NewAtomicLevelAt(parsedLevel)
 	return config.Build()
+}
+
+// The runtime remains scoped to this Admin Compose project.
+type extensionRuntimeAdapter struct {
+	manager  *runtimeops.Manager
+	accounts *runtimeops.AccountRuntime
+}
+
+func (a extensionRuntimeAdapter) List(ctx context.Context) ([]runtimeops.Service, error) {
+	return a.manager.List(ctx)
+}
+func (a extensionRuntimeAdapter) RestartRunningAccount(ctx context.Context, id string) error {
+	return a.accounts.RestartRunningAccount(ctx, id)
+}
+
+func (a extensionRuntimeAdapter) ValidatePlugin(ctx context.Context, id, version string) error {
+	return a.accounts.ValidatePlugin(ctx, id, version)
 }

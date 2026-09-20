@@ -38,6 +38,7 @@ export const configurationSections: Array<{
   { id: "access", category: "admin.system_settings", title: t("admin.access_credentials"), description: t("admin.management_key_initial_user_password") },
   { id: "appearance", category: "admin.system_settings", title: t("admin.display_preferences"), description: t("admin.reasoning_effort_colors_in_account_details") },
   { id: "requests", category: "admin.requests_accounts", title: t("admin.requests_proxies"), description: t("admin.default_upstream_proxy_retries_image_tools") },
+  { id: "software", category: "admin.requests_accounts", title: t("admin.software_title"), description: t("admin.software_description") },
   { id: "cpa-container", category: "admin.requests_accounts", title: t("admin.cpa_container_settings"), description: t("admin.cpa_container_settings_description") },
   { id: "failover", category: "admin.requests_accounts", title: t("admin.automatic_account_switching"), description: t("admin.migration_policy_when_official_quotas_are_exhausted") },
   { id: "provisioning", category: "admin.requests_accounts", title: t("admin.provisioning_runtime"), description: t("admin.new_account_ports_listen_address_update_image") },
@@ -77,7 +78,7 @@ const legacySections: Record<string, string> = {
 
 export function configurationSectionFor(field: Pick<ConfigurationField, "key">, originalGroup: string) {
   const key = field.key;
-  const id = ["cpa.debug", "cpa.logging_to_file", "cpa.usage_statistics_enabled", "cpa.passthrough_headers", "cpa.session_affinity", "cpa.session_affinity_ttl"].includes(key) ? "cpa-container"
+  const id = key.startsWith("plugins.") || key.startsWith("software.") ? "software" : ["cpa.debug", "cpa.logging_to_file", "cpa.usage_statistics_enabled", "cpa.passthrough_headers", "cpa.session_affinity", "cpa.session_affinity_ttl"].includes(key) ? "cpa-container"
     : key.startsWith("branding.") ? "brand"
     : key.startsWith("identity.") ? "identity"
     : key === "portal.session_ttl_seconds" || key.startsWith("system.") ? "general"

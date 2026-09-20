@@ -383,3 +383,11 @@ form.configuration-panel .settings-workspace-content { flex: 1; height: auto; mi
   .settings-data-panel-header { align-items: flex-start; flex-direction: column; gap: 12px; padding: 16px; }
   .settings-data-panel-summary { width: 100%; grid-template-columns: auto auto; align-items: baseline; justify-content: space-between; justify-items: auto; }
 }
+
+.software-versions { padding: 18px; margin-bottom: 24px; overflow-wrap: anywhere; }
+.software-release-list > div { display: grid; grid-template-columns: minmax(100px, 140px) minmax(0, 1fr); gap: 12px; padding-block: 8px; }
+.software-release-list dd { margin: 0; }
+.software-account-list { padding: 0; list-style: none; }
+.software-account-list li { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-block: 12px; }
+.software-account-list p { margin-block: 4px; }
+.software-task-output { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 320px; overflow: auto; }
