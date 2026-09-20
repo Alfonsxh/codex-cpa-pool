@@ -1,7 +1,7 @@
 {
   "version": 2,
   "generated_at": 1787500800,
-  "field_count": 96,
+  "field_count": 97,
   "groups": [
     {
       "name": "Brand & identity",
@@ -388,22 +388,33 @@
         {
           "key": "plugins.codex_ticket.proxy_source",
           "label": "Harvest proxy source",
-          "description": "Use the account proxy or explicitly connect directly. Business request routing is unchanged. Direct mode requires the bundled compatibility build.",
+          "description": "Choose a dedicated Ticket proxy or reuse the account business proxy. The upstream plugin requires a proxy.",
           "type": "choice",
-          "value": "account",
-          "default": "account",
+          "value": "custom",
+          "default": "custom",
           "apply_mode": "live",
           "editable": true,
           "choices": [
             {
-              "value": "account",
-              "label": "Account proxy"
+              "value": "custom",
+              "label": "Dedicated Ticket proxy"
             },
             {
-              "value": "direct",
-              "label": "Explicit direct (bundled build)"
+              "value": "account",
+              "label": "Reuse account proxy"
             }
           ]
+        },
+        {
+          "key": "plugins.codex_ticket.proxy_url",
+          "label": "Dedicated Ticket proxy URL",
+          "description": "Used only in dedicated proxy mode; does not change the account business exit. Supports HTTP, HTTPS, SOCKS5 and SOCKS5h with authentication. Stored encrypted; leave blank to keep the saved URL.",
+          "type": "proxy_url_secret",
+          "value": "",
+          "default": "",
+          "configured": false,
+          "apply_mode": "live",
+          "editable": true
         },
         {
           "key": "plugins.codex_ticket.enabled",
@@ -432,8 +443,8 @@
           "label": "Plugin version to install",
           "description": "Save then install/upgrade a selected account. Installed versions remain pinned.",
           "type": "text",
-          "value": "v0.2.0-ccpa.1",
-          "default": "v0.2.0-ccpa.1",
+          "value": "v0.2.0",
+          "default": "v0.2.0",
           "apply_mode": "live",
           "editable": true,
           "min_length": 5,

@@ -170,9 +170,6 @@ func (e *Extensions) Status(ctx context.Context) (ExtensionStatus, error) {
 		return s, err
 	}
 	s.DesiredVersion = c.Version
-	if _, err := os.Stat("/usr/share/ccpa/plugins/codex-ticket/release.json"); err == nil {
-		s.BundledVersion = cpaplugin.BundledVersion
-	}
 	if _, err = e.Store.ReadRuntimeState(ctx, extensionChecksKey, &s.Checks); err != nil {
 		return s, err
 	}
@@ -264,9 +261,6 @@ func (e *Extensions) fetch(ctx context.Context, address string, limit int64) ([]
 }
 
 func (e *Extensions) pluginArtifact(ctx context.Context, version string) ([]byte, string, error) {
-	if version == cpaplugin.BundledVersion {
-		return e.bundledArtifact()
-	}
 	release, err := e.release(ctx, cpaplugin.Repository, version)
 	if err != nil {
 		return nil, "", err
@@ -359,9 +353,6 @@ func (e *Extensions) UpdatePlugin(ctx context.Context, target string, output io.
 		if a.Account == target && a.Enabled && a.Running && a.Selected {
 			eligible = true
 		}
-	}
-	if config.ProxySource == "direct" && config.Version != cpaplugin.BundledVersion {
-		return result, errors.New("explicit direct requires the bundled compatibility build")
 	}
 	if !eligible {
 		return result, errors.New("select an enabled, running account in plugin configuration")
@@ -533,30 +524,4 @@ func (e *Extensions) operationContext(parent context.Context) (context.Context, 
 		cancel()
 	}
 	return ctx, func() { stop(); cancel() }
-}
-
-func (e *Extensions) bundledArtifact() ([]byte, string, error) {
-	const root = "/usr/share/ccpa/plugins/codex-ticket"
-	data, err := os.ReadFile(filepath.Join(root, "release.json"))
-	if err != nil {
-		return nil, "", errors.New("bundled plugin unavailable in this control image")
-	}
-	var record cpaplugin.Installation
-	if json.Unmarshal(data, &record) != nil || record.Version != cpaplugin.BundledVersion {
-		return nil, "", errors.New("invalid bundled plugin metadata")
-	}
-	file, err := os.Open(filepath.Join(root, "codex-ticket.so"))
-	if err != nil {
-		return nil, "", err
-	}
-	defer file.Close()
-	library, err := io.ReadAll(io.LimitReader(file, 64<<20+1))
-	if err != nil || len(library) > 64<<20 {
-		return nil, "", errors.New("invalid bundled plugin size")
-	}
-	sum := sha256.Sum256(library)
-	if hex.EncodeToString(sum[:]) != record.SHA256 {
-		return nil, "", errors.New("bundled plugin checksum mismatch")
-	}
-	return library, record.SHA256, nil
 }

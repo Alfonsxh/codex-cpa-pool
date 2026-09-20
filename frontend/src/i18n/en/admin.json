@@ -1231,5 +1231,7 @@
   "admin.ticket_remove_selection": "Remove selection",
   "admin.ticket_account_running": "Running",
   "admin.ticket_models_help": "Type a model name and press Enter to add it.",
-  "admin.ticket_shared_interval": "CLIProxyAPI and Ticket share this check interval."
+  "admin.ticket_shared_interval": "CLIProxyAPI and Ticket share this check interval.",
+  "admin.software_check_running": "Checking",
+  "admin.software_check_completed": "Check complete"
 }

@@ -1,7 +1,7 @@
 {
   "version": 2,
   "generated_at": 1787500800,
-  "field_count": 96,
+  "field_count": 97,
   "groups": [
     {
       "name": "品牌与身份",
@@ -388,22 +388,33 @@
         {
           "key": "plugins.codex_ticket.proxy_source",
           "label": "采票代理来源",
-          "description": "复用账号代理或显式直连，不改变业务请求出口。直连需要随控制平面提供的适配版插件。",
+          "description": "选择独立的 Ticket 专用代理，或复用账号业务代理。原版插件需要代理，不支持直连。",
           "type": "choice",
-          "value": "account",
-          "default": "account",
+          "value": "custom",
+          "default": "custom",
           "apply_mode": "live",
           "editable": true,
           "choices": [
             {
-              "value": "account",
-              "label": "账号代理"
+              "value": "custom",
+              "label": "Ticket 专用代理"
             },
             {
-              "value": "direct",
-              "label": "显式直连（适配版）"
+              "value": "account",
+              "label": "复用账号代理"
             }
           ]
+        },
+        {
+          "key": "plugins.codex_ticket.proxy_url",
+          "label": "Ticket 专用代理地址",
+          "description": "仅专用代理模式使用，不改变账号业务出口。支持 HTTP、HTTPS、SOCKS5、SOCKS5h 及认证；加密保存，留空保留已保存的地址。",
+          "type": "proxy_url_secret",
+          "value": "",
+          "default": "",
+          "configured": false,
+          "apply_mode": "live",
+          "editable": true
         },
         {
           "key": "plugins.codex_ticket.enabled",
@@ -432,8 +443,8 @@
           "label": "待安装插件版本",
           "description": "保存后点击对应账号的安装/升级；已安装版本保持固定。",
           "type": "text",
-          "value": "v0.2.0-ccpa.1",
-          "default": "v0.2.0-ccpa.1",
+          "value": "v0.2.0",
+          "default": "v0.2.0",
           "apply_mode": "live",
           "editable": true,
           "min_length": 5,

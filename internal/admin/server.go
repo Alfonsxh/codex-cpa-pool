@@ -54,6 +54,7 @@ type ControlPlaneStore interface {
 	ReadSettings(context.Context) (map[string]any, error)
 	UpdateSettings(context.Context, map[string]any) error
 	ReplaceSettingsAndSecret(context.Context, map[string]any, string, *string) error
+	ReplaceSettingsAndSecrets(context.Context, map[string]any, map[string]*string) error
 	ReadRuntimeState(context.Context, string, any) (bool, error)
 	WriteRuntimeState(context.Context, string, any) error
 	PatchRuntimeState(context.Context, string, map[string]any) error

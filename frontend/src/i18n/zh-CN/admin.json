@@ -1231,5 +1231,7 @@
   "admin.ticket_remove_selection": "移除选择",
   "admin.ticket_account_running": "运行中",
   "admin.ticket_models_help": "输入模型名称，按回车添加。",
-  "admin.ticket_shared_interval": "CLIProxyAPI 与 Ticket 共用此检查间隔。"
+  "admin.ticket_shared_interval": "CLIProxyAPI 与 Ticket 共用此检查间隔。",
+  "admin.software_check_running": "正在检查",
+  "admin.software_check_completed": "检查完成"
 }

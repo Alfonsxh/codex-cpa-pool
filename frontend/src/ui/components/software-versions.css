@@ -1,15 +1,26 @@
 .ticket-settings { min-width: 0; color: var(--ink); overflow-wrap: anywhere; }
 .configuration-save-region[hidden] { display: none; }
 .ticket-advanced { border-bottom: 1px solid var(--line); }
-.ticket-advanced > summary { padding: 16px 18px; color: var(--muted); font-size: 12px; cursor: pointer; }
-.ticket-advanced > summary:hover { color: var(--accent); }
+.ticket-advanced > summary { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 15px 18px 15px 15px; border-left: 3px solid var(--accent); background: var(--accent-soft); color: var(--accent-strong); font-size: 13px; font-weight: 650; list-style: none; cursor: pointer; }
+.ticket-advanced > summary::-webkit-details-marker { display: none; }
+.ticket-advanced > summary::before { content: ""; flex: 0 0 7px; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); }
+.ticket-advanced[open] > summary::before { transform: rotate(45deg); }
+.ticket-advanced > summary:hover { background: color-mix(in srgb, var(--accent-soft) 85%, var(--accent)); }
 .ticket-version-settings { border-bottom: 1px solid var(--line); }
 .software-release-inline { display: flex; align-items: center; gap: 16px; padding: 14px 18px; min-width: 0; }
 .software-release-summary { display: flex; flex: 1; flex-wrap: wrap; align-items: baseline; gap: 5px 12px; min-width: 0; color: var(--muted); font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
 .software-release-summary a { color: var(--accent); font-family: var(--mono); }
 .software-release-summary time { font-size: 11px; }
+.ticket-version-settings .software-release-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; color: var(--ink); font-size: 13px; font-weight: 600; }
+.ticket-version-settings .software-release-heading a { display: inline-block; max-width: 100%; padding: 3px 10px; border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line)); border-radius: 6px; background: var(--accent-soft); color: var(--accent-strong); font-size: 14px; font-weight: 650; text-decoration: none; }
+.ticket-version-settings .software-release-heading a:hover { border-color: var(--accent); text-decoration: underline; }
+.ticket-version-settings .software-release-summary time { flex-basis: 100%; }
 .software-release-warning { flex-basis: 100%; color: var(--warning); }
 .software-release-inline .ant-btn { flex: 0 0 auto; }
+.software-check-controls { display: flex; flex: 0 1 auto; flex-direction: column; align-items: flex-end; gap: 8px; max-width: min(100%, 320px); }
+.software-check-feedback { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 4px 6px; max-width: 100%; color: var(--accent-strong); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.software-check-feedback.has-error { color: var(--danger); }
+.software-check-error { flex-basis: 100%; text-align: right; }
 .cpa-release-status { border-bottom: 1px solid var(--line); }
 .ticket-accounts { min-width: 0; padding: 18px; }
 .ticket-account-tools { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
@@ -59,6 +70,7 @@
   .software-release-inline { flex-wrap: wrap; }
   .software-release-summary { flex-basis: 100%; }
   .software-release-inline .ant-btn { margin-left: auto; }
+  .software-check-controls { margin-left: auto; }
 }
 @container configuration-content (max-width: 420px) {
   .ticket-account-tools { flex-wrap: wrap; gap: 10px; }

@@ -28,3 +28,20 @@ func TestInvalidPluginConfiguration(t *testing.T) {
 		}
 	}
 }
+
+func TestUpstreamDefaultsAndProxyValidation(t *testing.T) {
+	c, err := Parse(nil)
+	if err != nil || c.Version != DefaultVersion || c.ProxySource != "custom" || c.Enabled || c.Harvest || c.Inject {
+		t.Fatal("unsafe upstream defaults")
+	}
+	for _, scheme := range []string{"http", "https", "socks5", "socks5h"} {
+		if _, err := NormalizeProxyURL(scheme + "://user:pass@proxy.example.com:1080"); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, raw := range []string{"", "direct", "socks5://", "http://proxy.example.com:0", "http://proxy.example.com?", "http://user:secret@proxy.example.com/path", "file:///tmp/proxy"} {
+		if _, err := NormalizeProxyURL(raw); err == nil {
+			t.Fatalf("invalid URL accepted: %q", raw)
+		}
+	}
+}

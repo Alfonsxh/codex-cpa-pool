@@ -92,6 +92,11 @@ type configurationUpdateResponse struct {
 
 var configurationDefinitions = buildConfigurationDefinitions()
 
+var configurationSecretNames = map[string]string{
+	"cpa.proxy_url":       defaultProxySecretName,
+	cpaplugin.ProxyURLKey: cpaplugin.ProxySecretName,
+}
+
 var configurationDefinitionByKey = func() map[string]configurationDefinition {
 	result := make(map[string]configurationDefinition, len(configurationDefinitions))
 	for _, definition := range configurationDefinitions {
@@ -183,10 +188,11 @@ func buildConfigurationDefinitions() []configurationDefinition {
 		boolean("software.cpa_auto_check", "configuration.cpa_auto_check", true, "live"),
 		boolean("software.plugin_auto_check", "configuration.plugin_auto_check", true, "live"),
 		integer("software.check_interval_hours", "configuration.check_interval_hours", 6, 1, 168, "live"),
-		choice(cpaplugin.Prefix+"proxy_source", "configuration.ticket_proxy_source", "account", "live", "account", "direct"),
+		choice(cpaplugin.Prefix+"proxy_source", "configuration.ticket_proxy_source", "custom", "live", "custom", "account"),
+		simple(cpaplugin.ProxyURLKey, "configuration.ticket_proxy_url", "proxy_url_secret", "", "live"),
 		boolean(cpaplugin.Prefix+"enabled", "configuration.ticket_enabled", false, "live"),
 		text(cpaplugin.Prefix+"accounts", "configuration.ticket_accounts", "", 0, 2048, "live", true),
-		text(cpaplugin.Prefix+"version", "configuration.ticket_version", cpaplugin.BundledVersion, 5, 32, "live", false),
+		text(cpaplugin.Prefix+"version", "configuration.ticket_version", cpaplugin.DefaultVersion, 5, 32, "live", false),
 		boolean(cpaplugin.Prefix+"harvest_enabled", "configuration.ticket_harvest", false, "live"),
 		boolean(cpaplugin.Prefix+"inject_enabled", "configuration.ticket_inject", false, "live"),
 		text(cpaplugin.Prefix+"models", "configuration.ticket_models", "gpt-6-astra", 1, 2048, "live", false),
@@ -290,8 +296,10 @@ func (server *Server) updateConfiguration(c *gin.Context) {
 	}
 	// v1 deliberately treats an empty proxy field as "leave unchanged" so a
 	// masked secret rendered by the browser cannot accidentally clear it.
-	if raw, found := changes["cpa.proxy_url"]; found && strings.TrimSpace(valueString(raw)) == "" {
-		delete(changes, "cpa.proxy_url")
+	for key := range configurationSecretNames {
+		if raw, found := changes[key]; found && strings.TrimSpace(valueString(raw)) == "" {
+			delete(changes, key)
+		}
 	}
 	if len(changes) == 0 {
 		httpi18n.JSON(c, http.StatusOK, noConfigurationChanges(httpi18n.Locale(c)))
@@ -301,7 +309,7 @@ func (server *Server) updateConfiguration(c *gin.Context) {
 	server.configurationLock.Lock()
 	defer server.configurationLock.Unlock()
 	ctx := c.Request.Context()
-	storedBefore, current, proxyBefore, proxyFound, err := server.currentConfiguration(ctx)
+	storedBefore, current, _, _, err := server.currentConfiguration(ctx)
 	if err != nil {
 		server.internalError(c, "read configuration", err)
 		return
@@ -349,28 +357,25 @@ func (server *Server) updateConfiguration(c *gin.Context) {
 	}
 	storedAfter := cloneConfiguration(storedBefore)
 	for _, key := range changed {
-		if key != "cpa.proxy_url" {
+		if _, secret := configurationSecretNames[key]; !secret {
 			storedAfter[key] = updated[key]
+		}
+		if strings.HasPrefix(key, cpaplugin.Prefix) {
+			storedAfter[cpaplugin.Prefix+"proxy_source"] = updated[cpaplugin.Prefix+"proxy_source"]
 		}
 	}
 	for key := range retiredConfigurationKeys {
 		delete(storedAfter, key)
 	}
-	proxyAfter := optionalSecretValue(updated["cpa.proxy_url"])
-	if err := server.store.ReplaceSettingsAndSecret(ctx, storedAfter, defaultProxySecretName, proxyAfter); err != nil {
+	if err := server.store.ReplaceSettingsAndSecrets(ctx, storedAfter, configurationSecrets(updated)); err != nil {
 		server.internalError(c, "save configuration", err)
 		return
 	}
 	modes := configurationModes(changed)
 	change := ConfigurationChange{Before: current, After: updated, Changed: changed, Modes: modes}
 	if err := server.applyConfiguration(ctx, change); err != nil {
-		proxyRestore := (*string)(nil)
-		if proxyFound {
-			value := proxyBefore
-			proxyRestore = &value
-		}
-		storeRollbackError := server.store.ReplaceSettingsAndSecret(
-			context.WithoutCancel(ctx), storedBefore, defaultProxySecretName, proxyRestore,
+		storeRollbackError := server.store.ReplaceSettingsAndSecrets(
+			context.WithoutCancel(ctx), storedBefore, configurationSecrets(current),
 		)
 		rollback := ConfigurationChange{
 			Before: updated, After: current, Changed: changed, Modes: modes, Rollback: true,
@@ -442,7 +447,8 @@ func (server *Server) currentConfiguration(
 	if err := sitetime.Migrate(stored); err != nil {
 		return nil, nil, "", false, err
 	}
-	legacyProxy := ""
+	cpaplugin.MigrateSettings(stored)
+	legacySecrets := map[string]string{}
 	cleaned := make(map[string]any, len(stored))
 	for key, value := range stored {
 		if _, retired := retiredConfigurationKeys[key]; retired {
@@ -455,8 +461,8 @@ func (server *Server) currentConfiguration(
 		if _, found := configurationDefinitionByKey[key]; !found {
 			return nil, nil, "", false, i18n.M("admin.unknown_configuration_parameter", i18n.Params{"Key": key})
 		}
-		if key == "cpa.proxy_url" {
-			legacyProxy = strings.TrimSpace(valueString(value))
+		if _, secret := configurationSecretNames[key]; secret {
+			legacySecrets[key] = strings.TrimSpace(valueString(value))
 			continue
 		}
 		cleaned[key] = value
@@ -470,19 +476,24 @@ func (server *Server) currentConfiguration(
 			stored[key] = "127.0.0.1"
 		}
 	}
-	proxy, proxyFound, err = server.store.ReadSecret(ctx, defaultProxySecretName)
-	if err != nil {
-		return nil, nil, "", false, err
+	secretValues := map[string]string{}
+	for key, name := range configurationSecretNames {
+		value, found, readError := server.store.ReadSecret(ctx, name)
+		if readError != nil {
+			return nil, nil, "", false, readError
+		}
+		if !found {
+			value = legacySecrets[key]
+		}
+		secretValues[key] = value
 	}
-	if !proxyFound && legacyProxy != "" {
-		proxy = legacyProxy
-		proxyFound = true
-	}
+	proxy = secretValues["cpa.proxy_url"]
+	proxyFound = proxy != ""
 	effective = make(map[string]any, len(configurationDefinitions))
 	for _, definition := range configurationDefinitions {
 		raw := definition.Default
-		if definition.Key == "cpa.proxy_url" {
-			raw = proxy
+		if value, secret := secretValues[definition.Key]; secret {
+			raw = value
 		} else if value, found := stored[definition.Key]; found {
 			raw = value
 		}
@@ -496,16 +507,10 @@ func (server *Server) currentConfiguration(
 		return nil, nil, "", false, validationError
 	}
 	if !reflect.DeepEqual(originalStored, stored) {
-		var proxyValue *string
-		if proxyFound {
-			value := proxy
-			proxyValue = &value
-		}
-		if err := server.store.ReplaceSettingsAndSecret(
+		if err := server.store.ReplaceSettingsAndSecrets(
 			ctx,
 			stored,
-			defaultProxySecretName,
-			proxyValue,
+			configurationSecrets(effective),
 		); err != nil {
 			return nil, nil, "", false, fmt.Errorf("normalize stored configuration: %w", err)
 		}
@@ -556,6 +561,9 @@ func normalizeConfigurationValue(definition configurationDefinition, raw any) (a
 	}
 
 	value := strings.TrimSpace(valueString(raw))
+	if definition.Key == cpaplugin.Prefix+"version" && !cpaplugin.VersionPattern.MatchString(value) {
+		return nil, i18n.M("configuration.ticket_upstream_version_required")
+	}
 	if definition.Key == "branding.product_name" {
 		value = normalizeProductName(value)
 	}
@@ -668,6 +676,13 @@ func normalizeConfigurationURL(definition configurationDefinition, value string)
 	if value == "" {
 		return "", nil
 	}
+	if definition.Key == cpaplugin.ProxyURLKey {
+		proxy, err := cpaplugin.NormalizeProxyURL(value)
+		if err != nil {
+			return "", i18n.M("configuration.ticket_proxy_url_invalid")
+		}
+		return proxy, nil
+	}
 	for _, character := range value {
 		if unicode.IsSpace(character) || unicode.IsControl(character) {
 			return "", i18n.M("admin.must_not_contain_whitespace_or_control_characters", i18n.Params{"Field": definition.label()})
@@ -729,8 +744,12 @@ func normalizeConfigurationTimes(definition configurationDefinition, value strin
 }
 
 func validateConfiguration(values map[string]any) error {
-	if _, err := cpaplugin.Parse(values); err != nil {
+	plugin, err := cpaplugin.Parse(values)
+	if err != nil {
 		return err
+	}
+	if plugin.Enabled && (plugin.Harvest || plugin.Inject) && len(plugin.Accounts) > 0 && plugin.ProxySource == "custom" && strings.TrimSpace(valueString(values[cpaplugin.ProxyURLKey])) == "" {
+		return i18n.M("configuration.ticket_proxy_required")
 	}
 	for _, key := range []string{"accounts.listen_address"} {
 		address, _ := values[key].(string)
@@ -797,6 +816,14 @@ func optionalSecretValue(raw any) *string {
 		return nil
 	}
 	return &value
+}
+
+func configurationSecrets(values map[string]any) map[string]*string {
+	secrets := make(map[string]*string, len(configurationSecretNames))
+	for key, name := range configurationSecretNames {
+		secrets[name] = optionalSecretValue(values[key])
+	}
+	return secrets
 }
 
 func cloneConfiguration(values map[string]any) map[string]any {

@@ -13,15 +13,18 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func TestPluginProjectionUsesExplicitDirectAndStagesWithoutTraffic(t *testing.T) {
+func TestPluginDedicatedProxyPreservesBusinessExitAndStagesWithoutTraffic(t *testing.T) {
 	root := t.TempDir()
 	store := newProjectionStore(t, root)
 	ctx := context.Background()
-	settings := map[string]any{cpaplugin.Prefix + "enabled": true, cpaplugin.Prefix + "accounts": "alpha", cpaplugin.Prefix + "proxy_source": "direct", cpaplugin.Prefix + "harvest_enabled": true, cpaplugin.Prefix + "inject_enabled": true}
+	if err := store.WriteSecret(ctx, cpaplugin.ProxySecretName, "socks5h://ticket:private@ticket.example.com:1080"); err != nil {
+		t.Fatal(err)
+	}
+	settings := map[string]any{cpaplugin.Prefix + "enabled": true, cpaplugin.Prefix + "accounts": "alpha", cpaplugin.Prefix + "proxy_source": "custom", cpaplugin.Prefix + "harvest_enabled": true, cpaplugin.Prefix + "inject_enabled": true}
 	if err := store.UpdateSettings(ctx, settings); err != nil {
 		t.Fatal(err)
 	}
-	if err := store.WriteRuntimeState(ctx, cpaplugin.StatePrefix+"alpha", cpaplugin.Installation{Version: cpaplugin.BundledVersion, Staging: true}); err != nil {
+	if err := store.WriteRuntimeState(ctx, cpaplugin.StatePrefix+"alpha", cpaplugin.Installation{Version: cpaplugin.DefaultVersion, Staging: true}); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := (&Renderer{Root: root, Store: store}).Render(ctx); err != nil {
@@ -35,10 +38,13 @@ func TestPluginProjectionUsesExplicitDirectAndStagesWithoutTraffic(t *testing.T)
 	if !config.CommercialMode || plugin["harvest_enabled"] != false || plugin["inject_enabled"] != false || plugin["replace_existing"] != false {
 		t.Fatalf("unsafe staged plugin: %#v", plugin)
 	}
-	if got := readProjectionFile(t, root, "configs/alpha/codex-ticket-proxy.url"); got != "direct" {
+	if got := readProjectionFile(t, root, "configs/alpha/codex-ticket-proxy.url"); got != "socks5h://ticket:private@ticket.example.com:1080" {
 		t.Fatalf("exit=%q", got)
 	}
 	assertMode(t, filepath.Join(root, "configs/alpha/codex-ticket-proxy.url"), 0o600)
+	if config.ProxyURL != "direct" || strings.Contains(readProjectionFile(t, root, "configs/alpha/config.yaml"), "ticket:private") {
+		t.Fatal("Ticket proxy changed or leaked into business configuration")
+	}
 	if strings.Contains(readProjectionFile(t, root, "configs/beta/config.yaml"), "codex-ticket") {
 		t.Fatal("unselected account changed")
 	}

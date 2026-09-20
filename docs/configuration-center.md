@@ -61,8 +61,8 @@
 
 - 自动检查默认每 6 小时执行一次，由持有写入租约的 Admin 调度，关闭网页后仍然运行。`software.cpa_auto_check`、`software.plugin_auto_check` 可分别关闭；`software.check_interval_hours` 范围为 1–168 小时。检查只读取发布元数据，不拉镜像、不安装插件、不调用模型。失败保留上次成功结果并显示失败状态。
 - 先在“Codex Ticket 插件”账号表格勾选适用账号并设置模型，保存后在同一行安装或升级。账号选择仍持久化为 `plugins.codex_ticket.accounts`；查询刷新和筛选不会覆盖未保存选择，暂时不在账号列表中的已选 ID 保留并提供显式移除操作。仅允许处理已启用且运行中的账号，停止账号不会被启动。镜像需提供原生插件接口；当前支持 linux/amd64 glibc。
-- 插件默认关闭，采票与注入分别由 `enabled`、`harvest_enabled`、`inject_enabled` 控制。这些键均位于 `plugins.codex_ticket.` 下。`proxy_source=account` 复用账号代理；`direct` 显式直连，不改变业务请求代理，也不读取系统代理环境变量。
-- 直连使用随 Control 镜像构建的 `v0.2.0-ccpa.1` 适配版，基于上游 `v0.2.0` 的最小补丁。原版插件强制要求代理，不能直接用于直连采票。构建来源、校验和测试见 [插件构建说明](../plugins/codex-ticket/README.md)。
+- 插件默认关闭，采票与注入分别由 `enabled`、`harvest_enabled`、`inject_enabled` 控制。这些键均位于 `plugins.codex_ticket.` 下。`proxy_source=custom` 使用独立的 Ticket 专用代理地址，不改变账号业务请求代理；`account` 复用账号已有代理。专用地址支持 HTTP、HTTPS、SOCKS5、SOCKS5h 及认证，加密保存，接口不回显，留空保留。未配置代理时不能启用所选账号的采票或注入，不会回退为直连。
+- 默认安装上游原版 `v0.2.0`，下载原始发布包并校验 SHA256，不再构建或内置直连补丁版。旧目标版本迁移到 `v0.2.0`；旧直连配置改为专用代理模式并暂停采票和注入，等待用户配置。已安装版本继续保留，必须手动安装原版；停止账号不会被启动。来源与接入说明见 [插件说明](../plugins/codex-ticket/README.md)。
 - `version` 是待安装版本，修改后不会自动升级。安装时校验摘要，并在目标账号的精确镜像中执行无凭据、无网络的隔离加载检查；通过后等待请求结束并重启该账号 CPA，可能短暂中断。失败尝试恢复旧配置。已安装版本固定在运行状态中，Control 升级不会自动替换它。
 - TTL、提前刷新、扫描间隔、超时和失败退避均可配置。并发固定为每个 CPA 1 个；客户端已有 turn state 不覆盖。安装阶段暂停采票和注入，并在 `commercial-mode` 已随进程启动后再启用。
 

@@ -69,7 +69,7 @@ var componentInputs = map[string][]string{
 		"cmd/admin", "cmd/bootstrap", "cmd/collector", "cmd/failover",
 		"cmd/log-maintenance", "cmd/notifications", "cmd/ownership", "cmd/quota",
 		"cmd/releasectl",
-		"internal/cpaplugin", "plugins/codex-ticket", "scripts/build-codex-plugin.sh",
+		"internal/cpaplugin", "plugins/codex-ticket",
 		"internal/accountconfig", "internal/accountlifecycle", "internal/accountprojection", "internal/accountstatus",
 		"internal/admin", "internal/branding", "internal/collector", "internal/contract",
 		"internal/bootstrap", "internal/controlplane", "internal/failover",

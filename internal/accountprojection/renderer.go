@@ -186,15 +186,27 @@ func (renderer *Renderer) buildFiles(
 			if err != nil {
 				return nil, err
 			}
-			if plugin.Selected(account.ID) && plugin.ProxySource == "direct" {
-				proxyURL = "direct"
-			} else if proxyURL == "direct" {
-				proxyURL = ""
+			ticketProxy := ""
+			if plugin.Selected(account.ID) {
+				if plugin.ProxySource == "custom" {
+					ticketProxy, _, err = renderer.Store.ReadSecret(ctx, cpaplugin.ProxySecretName)
+					if err != nil {
+						return nil, fmt.Errorf("read Ticket proxy: %w", err)
+					}
+				} else if proxyURL != "direct" {
+					ticketProxy = proxyURL
+				}
 			}
-			if proxyURL == "direct" && installed.Version != cpaplugin.BundledVersion {
-				return nil, errors.New("explicit direct requires the bundled plugin compatibility version")
+			if ticketProxy != "" {
+				ticketProxy, err = cpaplugin.NormalizeProxyURL(ticketProxy)
+				if err != nil {
+					return nil, fmt.Errorf("%w: invalid Ticket proxy for %s", ErrInvalidProjection, account.ID)
+				}
 			}
-			files = append(files, renderedFile{relative: filepath.ToSlash(filepath.Join("configs", account.ID, "codex-ticket-proxy.url")), payload: []byte(proxyURL), mode: 0o600})
+			if ticketProxy == "" && plugin.Enabled && plugin.Selected(account.ID) && account.GroupEnabled && !installed.Staging && (plugin.Harvest || plugin.Inject) {
+				return nil, fmt.Errorf("%w: configure a Ticket proxy for %s before enabling harvesting or injection", ErrInvalidProjection, account.ID)
+			}
+			files = append(files, renderedFile{relative: filepath.ToSlash(filepath.Join("configs", account.ID, "codex-ticket-proxy.url")), payload: []byte(ticketProxy), mode: 0o600})
 		}
 	}
 	keyMap, err := renderGatewayKeyMap(accounts, routes, records)

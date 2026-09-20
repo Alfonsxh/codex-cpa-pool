@@ -2849,14 +2849,34 @@
   },
   {
     "id": "configuration.ticket_proxy_source_description",
-    "other": "复用账号代理或显式直连，不改变业务请求出口。直连需要随控制平面提供的适配版插件。"
+    "other": "选择独立的 Ticket 专用代理，或复用账号业务代理。原版插件需要代理，不支持直连。"
   },
   {
     "id": "configuration.ticket_proxy_account",
-    "other": "账号代理"
+    "other": "复用账号代理"
   },
   {
-    "id": "configuration.ticket_proxy_direct",
-    "other": "显式直连（适配版）"
+    "id": "configuration.ticket_proxy_custom",
+    "other": "Ticket 专用代理"
+  },
+  {
+    "id": "configuration.ticket_proxy_url",
+    "other": "Ticket 专用代理地址"
+  },
+  {
+    "id": "configuration.ticket_proxy_url_description",
+    "other": "仅专用代理模式使用，不改变账号业务出口。支持 HTTP、HTTPS、SOCKS5、SOCKS5h 及认证；加密保存，留空保留已保存的地址。"
+  },
+  {
+    "id": "configuration.ticket_proxy_url_invalid",
+    "other": "请输入有效的 HTTP、HTTPS、SOCKS5 或 SOCKS5h 代理地址，不含路径、查询参数或片段。"
+  },
+  {
+    "id": "configuration.ticket_proxy_required",
+    "other": "开启 Ticket 采票或注入前，请先配置 Ticket 专用代理地址。"
+  },
+  {
+    "id": "configuration.ticket_upstream_version_required",
+    "other": "请选择上游正式版本，例如 v0.2.0；不再安装 ccpa 直连适配版。"
   }
 ]

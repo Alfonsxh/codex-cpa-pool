@@ -981,9 +981,16 @@ func (store *Store) ReplaceSettingsAndSecret(
 	secretName string,
 	secretValue *string,
 ) error {
-	secretName = strings.TrimSpace(secretName)
-	if secretName == "" {
-		return errors.New("control-plane secret name is required")
+	return store.ReplaceSettingsAndSecrets(ctx, values, map[string]*string{strings.TrimSpace(secretName): secretValue})
+}
+
+// ReplaceSettingsAndSecrets commits the settings and named encrypted secrets in
+// one transaction. Omitted secrets are preserved; nil values explicitly delete.
+func (store *Store) ReplaceSettingsAndSecrets(ctx context.Context, values map[string]any, secrets map[string]*string) error {
+	for name := range secrets {
+		if name == "" || name != strings.TrimSpace(name) {
+			return errors.New("control-plane secret name is required and must be normalized")
+		}
 	}
 	keys := make([]string, 0, len(values))
 	encoded := make(map[string][]byte, len(values))
@@ -1001,17 +1008,23 @@ func (store *Store) ReplaceSettingsAndSecret(
 	}
 	sort.Strings(keys)
 
-	var nonce, ciphertext []byte
-	var digest string
-	if secretValue != nil {
+	type encryptedValue struct {
+		nonce, ciphertext []byte
+		digest            string
+	}
+	encrypted := make(map[string]encryptedValue, len(secrets))
+	for secretName, secretValue := range secrets {
+		if secretValue == nil {
+			continue
+		}
 		if *secretValue == "" {
 			return fmt.Errorf("control-plane secret %s cannot be empty", secretName)
 		}
-		var err error
-		nonce, ciphertext, digest, err = store.encryptSecret(ctx, secretName, *secretValue)
+		nonce, ciphertext, digest, err := store.encryptSecret(ctx, secretName, *secretValue)
 		if err != nil {
 			return err
 		}
+		encrypted[secretName] = encryptedValue{nonce, ciphertext, digest}
 	}
 
 	return store.writeTransaction(ctx, func(transaction *sqlx.Tx) error {
@@ -1030,17 +1043,19 @@ func (store *Store) ReplaceSettingsAndSecret(
 				return fmt.Errorf("write control-plane setting %s: %w", key, err)
 			}
 		}
-		if secretValue == nil {
-			if _, err := transaction.ExecContext(
-				ctx,
-				"DELETE FROM encrypted_secrets WHERE name = ?",
-				secretName,
-			); err != nil {
-				return fmt.Errorf("delete control-plane secret %s: %w", secretName, err)
+		for secretName, secretValue := range secrets {
+			if secretValue == nil {
+				if _, err := transaction.ExecContext(
+					ctx,
+					"DELETE FROM encrypted_secrets WHERE name = ?",
+					secretName,
+				); err != nil {
+					return fmt.Errorf("delete control-plane secret %s: %w", secretName, err)
+				}
+				continue
 			}
-			return nil
-		}
-		if _, err := transaction.ExecContext(ctx, `
+			value := encrypted[secretName]
+			if _, err := transaction.ExecContext(ctx, `
             INSERT INTO encrypted_secrets(name, nonce, ciphertext, value_sha256, updated_at)
             VALUES (?, ?, ?, ?, ?)
             ON CONFLICT(name) DO UPDATE SET
@@ -1048,9 +1063,10 @@ func (store *Store) ReplaceSettingsAndSecret(
                 ciphertext = excluded.ciphertext,
                 value_sha256 = excluded.value_sha256,
                 updated_at = excluded.updated_at`,
-			secretName, nonce, ciphertext, digest, updatedAt,
-		); err != nil {
-			return fmt.Errorf("write control-plane secret %s: %w", secretName, err)
+				secretName, value.nonce, value.ciphertext, value.digest, updatedAt,
+			); err != nil {
+				return fmt.Errorf("write control-plane secret %s: %w", secretName, err)
+			}
 		}
 		return nil
 	})

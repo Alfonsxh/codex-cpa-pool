@@ -2862,14 +2862,34 @@
   },
   {
     "id": "configuration.ticket_proxy_source_description",
-    "other": "Use the account proxy or explicitly connect directly. Business request routing is unchanged. Direct mode requires the bundled compatibility build."
+    "other": "Choose a dedicated Ticket proxy or reuse the account business proxy. The upstream plugin requires a proxy."
   },
   {
     "id": "configuration.ticket_proxy_account",
-    "other": "Account proxy"
+    "other": "Reuse account proxy"
   },
   {
-    "id": "configuration.ticket_proxy_direct",
-    "other": "Explicit direct (bundled build)"
+    "id": "configuration.ticket_proxy_custom",
+    "other": "Dedicated Ticket proxy"
+  },
+  {
+    "id": "configuration.ticket_proxy_url",
+    "other": "Dedicated Ticket proxy URL"
+  },
+  {
+    "id": "configuration.ticket_proxy_url_description",
+    "other": "Used only in dedicated proxy mode; does not change the account business exit. Supports HTTP, HTTPS, SOCKS5 and SOCKS5h with authentication. Stored encrypted; leave blank to keep the saved URL."
+  },
+  {
+    "id": "configuration.ticket_proxy_url_invalid",
+    "other": "Enter a valid HTTP, HTTPS, SOCKS5 or SOCKS5h proxy URL without a path, query or fragment."
+  },
+  {
+    "id": "configuration.ticket_proxy_required",
+    "other": "Configure the dedicated Ticket proxy before enabling harvesting or injection."
+  },
+  {
+    "id": "configuration.ticket_upstream_version_required",
+    "other": "Choose an upstream release such as v0.2.0; ccpa direct compatibility builds can no longer be installed."
   }
 ]

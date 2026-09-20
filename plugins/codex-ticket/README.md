@@ -1,30 +1,27 @@
-# Codex Ticket direct-exit compatibility build
+# Upstream Codex Ticket plugin
 
-The bundled `v0.2.0-ccpa.1` is derived from
-[Su-cyber-art/cpa-plugin-codex-ticket v0.2.0](https://github.com/Su-cyber-art/cpa-plugin-codex-ticket/tree/v0.2.0),
-commit `482ade49bd169f0ef05fec67f297ce636c6fa7e9` (MIT).
-The build script verifies the source archive SHA256, applies `direct.patch`,
-runs the upstream suite plus the direct-exit test, and copies all upstream notices.
+The default target is the unmodified upstream [Su-cyber-art/cpa-plugin-codex-ticket v0.2.0](https://github.com/Su-cyber-art/cpa-plugin-codex-ticket/releases/tag/v0.2.0).
+The installer downloads the original Linux amd64 ZIP from its exact GitHub release,
+checks the GitHub asset SHA256, and verifies native compatibility in the account's
+exact image before activating it. Control images no longer build or bundle a patched plugin.
+Linux amd64 with glibc and a plugin-capable CPA image are required.
 
-The patch adds an explicit `direct` value to the private exit-selection file.
-It never falls back to direct on absent/invalid proxy settings and ignores
-ambient HTTP proxy variables for the direct mode. No account/cache/injection
-logic changes. The plugin reports the distinct compatibility version.
+Configure the dedicated Ticket proxy in Configuration Center. Its URL, including
+optional credentials, is stored in the encrypted secret store and never returned
+by the catalog. Blank input preserves the existing value. HTTP, HTTPS, SOCKS5 and
+SOCKS5h are accepted. It is projected into a private 0600 proxy file for selected
+accounts, separately from the business proxy. The upstream plugin reads that file;
+manual edits or its own proxy settings page are overwritten by the next control-plane projection.
+Reusing the account proxy remains an explicit alternative. Neither mode falls back to direct.
 
-The control image builds and includes this artifact via the normal GitHub CI
-release pipeline. It is not loaded into Admin: it is installed into selected CPA
-containers only. Currently linux/amd64 with glibc is supported. Installation
-validates the native library against the account's exact image in an isolated
-container before touching live configuration.
+Legacy target version v0.2.0-ccpa.1 is normalized to v0.2.0. Existing direct settings
+become dedicated proxy mode with harvesting and injection disabled until the operator
+provides a proxy and explicitly enables them. Existing account-proxy settings remain
+account-proxy settings. Installed versions stay pinned; changing the target or
+upgrading Control does not install software or start stopped accounts.
 
-The configuration center selects `account` or `direct` as the harvesting exit.
-Upstream binary releases can also be installed using their exact version, but
-explicit direct mode requires the bundled compatibility build. Upgrading the
-control image makes its newer bundled plugin available; installation into an
-account remains a separate manual action. The scheduled task checks upstream
-CPA and plugin release metadata only.
-
-This is an experimental HTTP/SSE workaround. Existing client turn state is
-preserved. Cache keys include the credential identity and model; tickets are
-memory-only. A 292-character header is a candidate, not proof of model quality.
-WebSocket behavior is unchanged. Harvesting creates additional upstream requests.
+Existing account OAuth, plugin paths, host configuration and commercial-mode are
+managed by the control plane. Plugin installation remains a separate per-account
+action and restarts only the selected running account after compatibility checks.
+This experimental HTTP/SSE plugin does not handle WebSocket, and candidate tickets
+do not prove model quality. Harvesting creates additional upstream requests.

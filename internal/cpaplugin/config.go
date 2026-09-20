@@ -5,18 +5,24 @@ package cpaplugin
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
+	"unicode"
 )
 
 const (
-	Repository     = "Su-cyber-art/cpa-plugin-codex-ticket"
-	StatePrefix    = "codex_ticket:"
-	BundledVersion = "v0.2.0-ccpa.1"
-	Prefix         = "plugins.codex_ticket."
+	Repository      = "Su-cyber-art/cpa-plugin-codex-ticket"
+	StatePrefix     = "codex_ticket:"
+	DefaultVersion  = "v0.2.0"
+	LegacyVersion   = "v0.2.0-ccpa.1"
+	Prefix          = "plugins.codex_ticket."
+	ProxyURLKey     = Prefix + "proxy_url"
+	ProxySecretName = "codex_ticket_proxy_url"
 )
 
-var VersionPattern = regexp.MustCompile(`^v?[0-9]+\.[0-9]+\.[0-9]+(?:-ccpa\.[0-9]+)?$`)
+var VersionPattern = regexp.MustCompile(`^v?[0-9]+\.[0-9]+\.[0-9]+$`)
 var identifierPattern = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._-]{0,127}$`)
 
 type Installation struct {
@@ -39,7 +45,13 @@ type Config struct {
 }
 
 func Parse(values map[string]any) (Config, error) {
-	c := Config{ProxySource: "account", Version: BundledVersion, Models: "gpt-6-astra", TTL: 3600, RefreshBefore: 600, ScanInterval: 60, Timeout: 25, RetryBase: 300, RetryMax: 3600}
+	copyValues := make(map[string]any, len(values))
+	for key, value := range values {
+		copyValues[key] = value
+	}
+	MigrateSettings(copyValues)
+	values = copyValues
+	c := Config{ProxySource: "custom", Version: DefaultVersion, Models: "gpt-6-astra", TTL: 3600, RefreshBefore: 600, ScanInterval: 60, Timeout: 25, RetryBase: 300, RetryMax: 3600}
 	for key, ptr := range map[string]*bool{"enabled": &c.Enabled, "harvest_enabled": &c.Harvest, "inject_enabled": &c.Inject} {
 		if v, ok := values[Prefix+key]; ok {
 			b, valid := v.(bool)
@@ -58,7 +70,7 @@ func Parse(values map[string]any) (Config, error) {
 			*ptr = strings.TrimSpace(s)
 		}
 	}
-	if c.ProxySource != "account" && c.ProxySource != "direct" {
+	if c.ProxySource != "account" && c.ProxySource != "custom" {
 		return c, fmt.Errorf("invalid plugin proxy source")
 	}
 	if !VersionPattern.MatchString(c.Version) {
@@ -122,7 +134,7 @@ func (c Config) Selected(id string) bool {
 // YAML returns only cluster-owned paths and safety settings. Existing native
 // turn state is never replaced; probes are serialized within each account CPA.
 func (c Config) YAML(id string, groupEnabled bool, installed Installation) map[string]any {
-	if !VersionPattern.MatchString(installed.Version) {
+	if !VersionPattern.MatchString(installed.Version) && installed.Version != LegacyVersion {
 		return nil
 	}
 	enabled := c.Enabled && c.Selected(id) && groupEnabled
@@ -132,4 +144,52 @@ func (c Config) YAML(id string, groupEnabled bool, installed Installation) map[s
 		"models": c.Models, "target_length": 292, "ttl_seconds": c.TTL, "refresh_before_seconds": c.RefreshBefore, "scan_interval_seconds": c.ScanInterval,
 		"timeout_seconds": c.Timeout, "max_concurrency": 1, "retry_base_seconds": c.RetryBase, "retry_max_seconds": c.RetryMax, "replace_existing": false,
 	}}}
+}
+
+// Preserve installed versions separately; retired direct settings never silently
+// select a new network exit or start harvesting without operator configuration.
+func MigrateSettings(values map[string]any) {
+	if _, found := values[Prefix+"proxy_source"]; !found {
+		for key := range values {
+			if strings.HasPrefix(key, Prefix) {
+				values[Prefix+"proxy_source"] = "account"
+				break
+			}
+		}
+	}
+	if version, _ := values[Prefix+"version"].(string); "v"+strings.TrimPrefix(version, "v") == LegacyVersion {
+		values[Prefix+"version"] = DefaultVersion
+	}
+	if values[Prefix+"proxy_source"] == "direct" {
+		values[Prefix+"proxy_source"] = "custom"
+		values[Prefix+"harvest_enabled"] = false
+		values[Prefix+"inject_enabled"] = false
+	}
+}
+
+// NormalizeProxyURL matches the upstream plugin's accepted proxy schemes and
+// reports only a fixed error, never credentials from a malformed URL.
+func NormalizeProxyURL(value string) (string, error) {
+	value = strings.TrimSpace(value)
+	invalid := fmt.Errorf("invalid Ticket proxy URL")
+	if value == "" || len(value) > 4096 || strings.IndexFunc(value, func(r rune) bool { return unicode.IsSpace(r) || unicode.IsControl(r) }) >= 0 {
+		return "", invalid
+	}
+	u, err := url.Parse(value)
+	if err != nil || u.Hostname() == "" || u.Opaque != "" || u.RawQuery != "" || u.ForceQuery || u.Fragment != "" || (u.Path != "" && u.Path != "/") {
+		return "", invalid
+	}
+	switch u.Scheme {
+	case "http", "https", "socks5", "socks5h":
+	default:
+		return "", invalid
+	}
+	if u.Port() != "" {
+		port, err := strconv.Atoi(u.Port())
+		if err != nil || port < 1 || port > 65535 {
+			return "", invalid
+		}
+	}
+	u.Path = ""
+	return u.String(), nil
 }

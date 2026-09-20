@@ -11,7 +11,10 @@ async function setupTicket(page: Page) {
     if (route.request().method() === "POST") {
       const body = route.request().postDataJSON(); saves.push(body);
       for (const group of catalog.groups) for (const field of group.fields) {
-        if (Object.hasOwn(body.values, field.key)) field.value = body.values[field.key];
+        if (Object.hasOwn(body.values, field.key)) {
+          if (field.type === "proxy_url_secret") { field.value = ""; field.configured = Boolean(body.values[field.key]) || field.configured; }
+          else field.value = body.values[field.key];
+        }
       }
       await route.fulfill({ json: { message: "配置已保存", changed: Object.keys(body.values), applied: ["live"], pending_deployment: false } });
     } else {
@@ -24,9 +27,9 @@ async function setupTicket(page: Page) {
   });
   await page.route("**/admin/api/extensions", route => route.fulfill({ json: {
     checks: { cpa: { version: "v7.3.9", url: "https://github.com/router-for-me/CLIProxyAPI/releases/tag/v7.3.9", checked_at: 1789860000, attempted_at: 1789863600, error: "release_check_failed" }, "codex-ticket": { version: "v0.2.0", url: "https://github.com/Su-cyber-art/cpa-plugin-codex-ticket/releases/tag/v0.2.0", checked_at: 1789860000, attempted_at: 1789860000 } },
-    desired_version: setting("plugins.codex_ticket.version") ?? "v0.2.0-ccpa.1", bundled_version: "v0.2.0-ccpa.1",
+    desired_version: setting("plugins.codex_ticket.version") ?? "v0.2.0", bundled_version: "",
     accounts: [
-      { account: "qdata-new2", enabled: true, running: true, version: "v0.2.0-ccpa.1" },
+      { account: "qdata-new2", enabled: true, running: true, version: "v0.2.0" },
       { account: "alpha", enabled: true, running: true, version: "v0.1.0" },
       { account: "new-account", enabled: true, running: true, version: "" },
       { account: "stopped", enabled: true, running: false, version: "" },
@@ -65,6 +68,8 @@ for (const viewport of [{ name: "desktop", width: 1440, height: 1000 }, { name: 
       await expect(page.getByLabel("允许后台采票", { exact: true })).not.toBeChecked();
       await expect(page.locator(".ticket-advanced")).not.toHaveAttribute("open");
       await page.screenshot({ path: testInfo.outputPath(`ticket-settings-${viewport.name}-${theme}.png`), animations: "disabled" });
+      await page.locator('[data-configuration-field="plugins.codex_ticket.proxy_url"]').scrollIntoViewIfNeeded();
+      await page.screenshot({ path: testInfo.outputPath(`ticket-proxy-${viewport.name}-${theme}.png`), animations: "disabled" });
       const row = (account: string) => page.locator(`.ticket-account-row[data-account="${account}"]`);
       await expect(row("stopped").getByRole("button")).toBeDisabled();
       await expect(row("disabled").getByRole("button")).toBeDisabled();
@@ -77,6 +82,10 @@ for (const viewport of [{ name: "desktop", width: 1440, height: 1000 }, { name: 
       await page.getByRole("button", { name: "检查插件更新", exact: true }).click();
       await expect.poll(() => submitted.length).toBe(1);
       expect(submitted[0]).toEqual({ action: "version-check", target: "all", confirm: "version-check:all" });
+      await expect(page.locator(".software-check-feedback")).toHaveText("检查完成");
+      await expect(page.locator(".ticket-version-settings .software-task-details")).toHaveCount(0);
+      await expect(page.getByText("Version metadata checked; no software was installed.", { exact: true })).toHaveCount(0);
+      await page.locator(".ticket-version-settings .software-release-inline").screenshot({ path: testInfo.outputPath(`ticket-check-${viewport.name}-${theme}.png`), animations: "disabled" });
       await expect(row("new-account").getByRole("checkbox")).toBeChecked();
       await page.getByRole("button", { name: "保存配置", exact: true }).click();
       await expect.poll(() => saves.length).toBe(1);
@@ -84,7 +93,7 @@ for (const viewport of [{ name: "desktop", width: 1440, height: 1000 }, { name: 
       await expect(row("new-account").getByRole("button")).toBeEnabled();
       expect(submitted).toHaveLength(1);
       await row("new-account").getByRole("button").click();
-      await expect(page.getByRole("dialog")).toContainText("将为 new-account 安装 v0.2.0-ccpa.1");
+      await expect(page.getByRole("dialog")).toContainText("将为 new-account 安装 v0.2.0");
       await page.getByRole("button", { name: "取消", exact: true }).click();
       expect(submitted).toHaveLength(1);
       await page.getByRole("textbox", { name: "搜索账号", exact: true }).fill("alpha");
@@ -111,6 +120,46 @@ for (const viewport of [{ name: "desktop", width: 1440, height: 1000 }, { name: 
     });
   }
 }
+
+test("Ticket 原版专用代理加密字段保存后不回显，也不修改业务代理", async ({ page }) => {
+  const { saves, submitted } = await setupTicket(page);
+  await login(page);
+  await expect(page.getByLabel("待安装插件版本", { exact: true })).toHaveValue("v0.2.0");
+  await expect(page.getByRole("radio", { name: "Ticket 专用代理", exact: true })).toBeChecked();
+  await expect(page.getByRole("radio", { name: /直连/ })).toHaveCount(0);
+  const proxy = page.getByLabel("Ticket 专用代理地址", { exact: true });
+  await expect(proxy).toHaveAttribute("type", "password");
+  await proxy.fill("socks5h://fixture:ticket-test-secret@ticket.example.com:1080");
+  await page.getByRole("button", { name: "保存配置", exact: true }).click();
+  await expect.poll(() => saves.length).toBe(1);
+  expect(saves[0].values).toEqual({ "plugins.codex_ticket.proxy_url": "socks5h://fixture:ticket-test-secret@ticket.example.com:1080" });
+  await expect(proxy).toHaveValue("");
+  await expect(proxy).toHaveAttribute("placeholder", /已配置/);
+  await page.getByRole("radio", { name: "复用账号代理", exact: true }).check();
+  await page.getByRole("button", { name: "保存配置", exact: true }).click();
+  await expect.poll(() => saves.length).toBe(2);
+  expect(saves[1].values).toEqual({ "plugins.codex_ticket.proxy_source": "account" });
+  expect(submitted).toHaveLength(0);
+});
+
+test("Ticket 版本检查显示进度与失败原因，不展示诊断日志", async ({ page }) => {
+  await setupTicket(page);
+  let completed = false;
+  const job = () => ({ id: "check-feedback", action: "version-check", target: "all", status: completed ? "failed" : "running", created_at: 1789860000, error: completed ? "上游暂时无法访问，请稍后重试。" : undefined, output: "Internal version-check diagnostic output" });
+  await page.route("**/admin/api/runtime/jobs", route => route.fulfill({ json: { message: "Task submitted", reused: false, job: job() } }));
+  await page.route("**/admin/api/runtime/jobs/check-feedback", route => route.fulfill({ json: { job: job() } }));
+  await login(page);
+  const button = page.getByRole("button", { name: "检查插件更新", exact: true });
+  await button.click();
+  await expect(page.locator(".software-check-feedback")).toHaveText("正在检查");
+  await expect(button).toBeDisabled();
+  completed = true;
+  await expect(page.locator(".software-check-feedback")).toContainText("检查失败");
+  await expect(page.locator(".software-check-feedback")).toContainText("上游暂时无法访问，请稍后重试。");
+  await expect(button).toBeEnabled();
+  await expect(page.locator(".ticket-version-settings .software-task-details")).toHaveCount(0);
+  await expect(page.getByText("Internal version-check diagnostic output", { exact: true })).toHaveCount(0);
+});
 
 test("Ticket 高级字段旧链接与账号加载失败恢复", async ({ page }) => {
   await setupTicket(page);

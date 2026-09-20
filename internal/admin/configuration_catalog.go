@@ -63,7 +63,7 @@ func (server *Server) readConfiguration(c *gin.Context) {
 	server.configurationLock.Lock()
 	defer server.configurationLock.Unlock()
 
-	_, values, proxy, proxyFound, err := server.currentConfiguration(c.Request.Context())
+	_, values, _, _, err := server.currentConfiguration(c.Request.Context())
 	if err != nil {
 		server.internalError(c, "read configuration", err)
 		return
@@ -133,8 +133,8 @@ func (server *Server) readConfiguration(c *gin.Context) {
 				field.Choices = append(field.Choices, configurationCatalogChoice{Value: value, Label: label})
 			}
 		}
-		if definition.Key == "cpa.proxy_url" {
-			configured := proxyFound && strings.TrimSpace(proxy) != ""
+		if definition.ValueType == "proxy_url_secret" {
+			configured := strings.TrimSpace(valueString(values[definition.Key])) != ""
 			field.Value = ""
 			field.Configured = &configured
 		}
@@ -171,7 +171,8 @@ var configurationGroupDescriptions = map[string]string{
 }
 
 var configurationPresentationByKey = map[string]configurationPresentation{
-	"plugins.codex_ticket.proxy_source":                  {Group: "admin.cpa_requests", Description: "configuration.ticket_proxy_source_description", ChoiceLabels: map[string]string{"account": "configuration.ticket_proxy_account", "direct": "configuration.ticket_proxy_direct"}},
+	"plugins.codex_ticket.proxy_source":                  {Group: "admin.cpa_requests", Description: "configuration.ticket_proxy_source_description", ChoiceLabels: map[string]string{"account": "configuration.ticket_proxy_account", "custom": "configuration.ticket_proxy_custom"}},
+	"plugins.codex_ticket.proxy_url":                     {Group: "admin.cpa_requests", Description: "configuration.ticket_proxy_url_description"},
 	"software.cpa_auto_check":                            {Group: "admin.cpa_requests", Description: "configuration.cpa_auto_check_description"},
 	"software.plugin_auto_check":                         {Group: "admin.cpa_requests", Description: "configuration.plugin_auto_check_description"},
 	"software.check_interval_hours":                      {Group: "admin.cpa_requests", Description: "configuration.check_interval_hours_description"},
