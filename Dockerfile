@@ -14,7 +14,7 @@ COPY plugins/codex-ticket ./plugins/codex-ticket
 RUN --mount=type=cache,id=cpap-plugin-go-mod,target=/go/pkg/mod \
     --mount=type=cache,id=cpap-plugin-go-build,target=/root/.cache/go-build \
     if [ "$BUILDARCH" != amd64 ]; then \
-      apt-get update && apt-get install -y --no-install-recommends gcc-x86-64-linux-gnu \
+      apt-get update && apt-get install -y --no-install-recommends gcc-x86-64-linux-gnu libc6-dev-amd64-cross \
       && rm -rf /var/lib/apt/lists/* \
       && export PLUGIN_CC=x86_64-linux-gnu-gcc; \
     fi \
