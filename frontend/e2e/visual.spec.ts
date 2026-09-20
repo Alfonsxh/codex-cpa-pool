@@ -1,3 +1,4 @@
+import { screenshotExpect } from "./screenshot-expect";
 import { fulfillJSON, usageAccountsFixture, usageQuotaFixture, usageBreakdownFixture, usageTrendFixture, installUsageVisualBackend } from "./usage-fixtures";
 import path from "node:path";
 import { expect, test, type Page, type Route } from "@playwright/test";
@@ -118,6 +119,8 @@ for (const viewport of [viewports[0], viewports[2]]) {
       hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
     }).format(new Date(overview.collector.heartbeat_at * 1000));
     await expect(page.getByLabel("最近采集时间")).toContainText(expectedTime);
+    // Finish fixture reads before the test closes its browser context.
+    await page.unrouteAll({ behavior: "wait" });
   });
 }
 
@@ -172,7 +175,7 @@ for (const viewport of viewports) {
           await expect(page.getByRole("heading", { level: 1 })).toHaveText("配置中心/品牌与身份/站点品牌");
           expect(await page.evaluate(() => document.body.scrollWidth)).toBeLessThanOrEqual(viewport.width);
         }
-        await expect(page).toHaveScreenshot(
+        await screenshotExpect(page).toHaveScreenshot(
           `react-${route.slug}-${viewport.name}-${theme}.png`,
           {
             fullPage: false,
@@ -477,7 +480,7 @@ test("配置中心本地数据与审计记录沿用统一信息卡片", async ({
   expect(storageGeometry.tableHeight).toBeGreaterThan(200);
   expect(storageGeometry.viewportHeight).toBeGreaterThan(200);
   expect(storageGeometry.lastRowBottom).toBeLessThanOrEqual(storageGeometry.viewportBottom + 1);
-  await expect(page).toHaveScreenshot("react-configuration-storage-desktop-dark.png", { fullPage: false });
+  await screenshotExpect(page).toHaveScreenshot("react-configuration-storage-desktop-dark.png", { fullPage: false });
 
   await page.setViewportSize({ width: 390, height: 844 });
   const mobileStorageGeometry = await page.locator(".settings-workspace-content").evaluate((element) => ({
@@ -488,7 +491,7 @@ test("配置中心本地数据与审计记录沿用统一信息卡片", async ({
   }));
   expect(mobileStorageGeometry.scrollWidth).toBeGreaterThan(mobileStorageGeometry.clientWidth);
   expect(mobileStorageGeometry.bodyScrollWidth).toBeLessThanOrEqual(mobileStorageGeometry.viewportWidth);
-  await expect(page).toHaveScreenshot("react-configuration-storage-mobile-dark.png", {
+  await screenshotExpect(page).toHaveScreenshot("react-configuration-storage-mobile-dark.png", {
     fullPage: false,
     threshold: 0.3,
     maxDiffPixelRatio: 0.02
@@ -502,11 +505,11 @@ test("配置中心本地数据与审计记录沿用统一信息卡片", async ({
   await expect(auditButton).toHaveAttribute("aria-current", "page");
   await expect(page.getByRole("heading", { name: "暂无管理操作" })).toBeVisible();
   await expect(page.getByRole("button", { name: "刷新审计记录" })).toBeVisible();
-  await expect(page).toHaveScreenshot("react-configuration-audit-empty-desktop-dark.png", { fullPage: false });
+  await screenshotExpect(page).toHaveScreenshot("react-configuration-audit-empty-desktop-dark.png", { fullPage: false });
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.getByRole("heading", { name: "暂无管理操作" })).toBeVisible();
-  await expect(page).toHaveScreenshot("react-configuration-audit-empty-mobile-dark.png", {
+  await screenshotExpect(page).toHaveScreenshot("react-configuration-audit-empty-mobile-dark.png", {
     fullPage: false,
     threshold: 0.3,
     maxDiffPixelRatio: 0.02
@@ -530,7 +533,7 @@ for (const viewport of viewports) {
       await page.goto("/usage/");
       await expect(page.getByRole("tab", { name: "账号明细" })).toHaveAttribute("aria-selected", "true");
       await expect(page.getByRole("tab", { name: "每日用量" })).toHaveAttribute("aria-selected", "false");
-      await expect(page).toHaveScreenshot(`react-usage-${viewport.name}-${theme}.png`, {
+      await screenshotExpect(page).toHaveScreenshot(`react-usage-${viewport.name}-${theme}.png`, {
         fullPage: false,
         // Keep mobile baselines resilient to macOS glyph antialiasing drift.
         // Interaction, scrolling and layout geometry are asserted separately.
@@ -558,7 +561,7 @@ for (const state of ["loading", "empty", "error"] as const) {
     if (state === "loading") await expect(page.locator(".usage-skeleton-row").first()).toBeVisible();
     if (state === "empty") await expect(page.getByText("暂无可用账号", { exact: true })).toBeVisible();
     if (state === "error") await expect(page.getByText("账号与用量加载失败", { exact: true })).toBeVisible();
-    await expect(page).toHaveScreenshot(`react-usage-state-${state}.png`, { fullPage: false });
+    await screenshotExpect(page).toHaveScreenshot(`react-usage-state-${state}.png`, { fullPage: false });
     await context.close();
   });
 }
@@ -804,7 +807,7 @@ test("个人使用中心账号明细默认展开，按需加载趋势并保留�
   const tooltipRect = await tooltip.evaluate((element) => element.getBoundingClientRect());
   expect(tooltipRect.top).toBeGreaterThanOrEqual(0);
   expect(tooltipRect.bottom).toBeLessThanOrEqual(900);
-  await expect(tooltip).toHaveScreenshot("react-usage-trend-tooltip-model-reasoning.png");
+  await screenshotExpect(tooltip).toHaveScreenshot("react-usage-trend-tooltip-model-reasoning.png");
   await page.getByRole("button", { name: "加权", exact: true }).click();
   await expect(page.getByRole("button", { name: "加权", exact: true })).toHaveAttribute("aria-pressed", "true");
   expect(trendRequests.filter((path) => path.includes("dimension=model_reasoning"))).toHaveLength(1);
@@ -885,7 +888,7 @@ test("个人使用中心账号明细默认展开，按需加载趋势并保留�
   await expect(effortTooltip).toContainText("加权 Token652,500");
   const effortPopup = page.locator(".ant-tooltip:has(.usage-model-effort-tooltip)");
   await expect(effortPopup.getByRole("tooltip")).toHaveCSS("background-color", "rgb(23, 29, 43)");
-  await expect(effortPopup).toHaveScreenshot("react-usage-model-effort-tooltip.png", {
+  await screenshotExpect(effortPopup).toHaveScreenshot("react-usage-model-effort-tooltip.png", {
     maxDiffPixelRatio: 0.01
   });
 });
@@ -902,7 +905,7 @@ test("个人使用中心账号明细 Tab 视觉基准", async ({ page }) => {
   await expect(page.locator(".ant-tooltip")).toHaveCount(0);
   await expect(page.getByRole("img", { name: /个人每日 Token 用量趋势/ })).toHaveCount(0);
   await expect(page.getByRole("tab", { name: "账号明细" })).toHaveAttribute("aria-selected", "true");
-  await expect(page).toHaveScreenshot("react-usage-trend-collapsed-desktop-light.png", { fullPage: false });
+  await screenshotExpect(page).toHaveScreenshot("react-usage-trend-collapsed-desktop-light.png", { fullPage: false });
 });
 
 test("个人使用中心模型与推理强度组合趋势视觉基准", async ({ page }) => {
@@ -915,7 +918,7 @@ test("个人使用中心模型与推理强度组合趋势视觉基准", async ({
   await page.getByRole("button", { name: "模型 + 推理强度", exact: true }).click();
   await expect(page.getByText("主要组合", { exact: true })).toBeVisible();
   await expect(page.getByRole("img", { name: /个人每日 Token 用量趋势/ })).toBeVisible();
-  await expect(page).toHaveScreenshot("react-usage-trend-model-reasoning-desktop-light.png", { fullPage: false });
+  await screenshotExpect(page).toHaveScreenshot("react-usage-trend-model-reasoning-desktop-light.png", { fullPage: false });
 
   await page.setViewportSize({ width: 390, height: 844 });
   const compactCombination = await page.locator(".usage-trend-summary .combination-count").evaluate((card) => {
@@ -1023,7 +1026,7 @@ test("CPA 镜像更新任务按账号展示完整结果并适配窄屏", async (
   expect(Math.abs(desktopCards[0].top - desktopCards[1].top)).toBeLessThanOrEqual(1);
   expect(desktopCards[1].left).toBeGreaterThan(desktopCards[0].right);
   expect(desktopCards[0].width).toBeGreaterThan(300);
-  await expect(dialog).toHaveScreenshot("react-accounts-image-update-task-desktop-dark.png");
+  await screenshotExpect(dialog).toHaveScreenshot("react-accounts-image-update-task-desktop-dark.png");
 
   await dialog.getByText("查看原始输出").click();
   await expect(dialog.locator(".image-update-raw-output")).toHaveAttribute("open", "");
@@ -1045,7 +1048,7 @@ test("CPA 镜像更新任务按账号展示完整结果并适配窄屏", async (
   expect(Math.max(...mobileGeometry.cardLefts) - Math.min(...mobileGeometry.cardLefts)).toBeLessThanOrEqual(1);
   expect(new Set(mobileGeometry.cardTops).size).toBe(3);
   expect(mobileGeometry.cardsFit).toBe(true);
-  await expect(dialog).toHaveScreenshot("react-accounts-image-update-task-mobile-dark.png", {
+  await screenshotExpect(dialog).toHaveScreenshot("react-accounts-image-update-task-mobile-dark.png", {
     threshold: 0.3,
     maxDiffPixelRatio: 0.02
   });
@@ -1094,7 +1097,7 @@ test("账号展开区复用旧版四层信息结构", async ({ page }) => {
   await expect(page.getByRole("button", { name: "重启容器" })).toBeVisible();
   await expect(page.getByRole("button", { name: "迁移全部用户" })).toBeVisible();
 
-  await expect(page).toHaveScreenshot("react-accounts-expanded-desktop-dark.png", { fullPage: false });
+  await screenshotExpect(page).toHaveScreenshot("react-accounts-expanded-desktop-dark.png", { fullPage: false });
 });
 
 test("账号周额度卡片在窄屏与移动端不产生横向溢出", async ({ page }) => {
@@ -1295,7 +1298,7 @@ for (const stateCase of stateCases) {
       } else {
         await expect(page.locator(".top-bar-refresh-state")).toHaveText("正在刷新");
       }
-      await expect(page).toHaveScreenshot(`react-${stateCase.slug}-state-loading.png`, { fullPage: false });
+      await screenshotExpect(page).toHaveScreenshot(`react-${stateCase.slug}-state-loading.png`, { fullPage: false });
     } finally {
       releaseRequest();
     }
@@ -1309,7 +1312,7 @@ for (const stateCase of stateCases) {
       await page.route(matcher, async (route) => fulfillEmpty(route, stateCase.slug));
     }
     await login(page, stateCase.path, stateCase.empty);
-    await expect(page).toHaveScreenshot(`react-${stateCase.slug}-state-empty.png`, { fullPage: false });
+    await screenshotExpect(page).toHaveScreenshot(`react-${stateCase.slug}-state-empty.png`, { fullPage: false });
   });
 
   test(`${stateCase.slug} 错误状态`, async ({ page }) => {
@@ -1327,7 +1330,7 @@ for (const stateCase of stateCases) {
       await expect(page.locator(".top-bar-refresh-state")).toHaveText("刷新失败");
       await expect(page.getByText(stateCase.error, { exact: true }).first()).toBeVisible();
     }
-    await expect(page).toHaveScreenshot(`react-${stateCase.slug}-state-error.png`, { fullPage: false });
+    await screenshotExpect(page).toHaveScreenshot(`react-${stateCase.slug}-state-error.png`, { fullPage: false });
   });
 }
 
@@ -1933,7 +1936,7 @@ test("30 天图表 Tooltip 为单列 Top 10 且无滚动条", async ({ page }) =
     vertical: element.scrollHeight <= element.clientHeight,
     horizontal: element.scrollWidth <= element.clientWidth
   }))).toEqual({ vertical: true, horizontal: true });
-  await expect(page).toHaveScreenshot("react-overview-tooltip-top10.png", {
+  await screenshotExpect(page).toHaveScreenshot("react-overview-tooltip-top10.png", {
     fullPage: false,
     // Tooltip glyph antialiasing differs across supported macOS releases.
     // DOM shape, row count and overflow are asserted immediately above.
@@ -2062,7 +2065,7 @@ test("使用中心客户端配置弹框直接展示必要内容", async ({ page,
   await expect(switchDialog.locator(".portal-config-actions").getByRole("button", { name: "关闭" })).toBeVisible();
   const copyAndImport = switchDialog.locator(".portal-config-actions").getByRole("button", { name: "复制并导入" });
   await expect(copyAndImport).toBeVisible();
-  await expect(switchDialog).toHaveScreenshot("react-usage-ccswitch-config-dialog-dark.png");
+  await screenshotExpect(switchDialog).toHaveScreenshot("react-usage-ccswitch-config-dialog-dark.png");
   const expectedConfig = await switchDialog.locator(".portal-config-preview").first().innerText();
   await page.evaluate(() => navigator.clipboard.writeText("CPA_CLIPBOARD_SENTINEL"));
   await copyAndImport.click();
@@ -2109,7 +2112,7 @@ test("修改个人密码弹框统一边框、标签和输入框几何", async ({
   expect(desktopGeometry.labelAlignments).toEqual(["right", "right", "right"]);
   expect(desktopGeometry.modalBorderWidth).toBe("1px");
   expect(desktopGeometry.modalBorderStyle).toBe("solid");
-  await expect(dialog).toHaveScreenshot("react-usage-password-dialog-desktop-dark.png", {
+  await screenshotExpect(dialog).toHaveScreenshot("react-usage-password-dialog-desktop-dark.png", {
     threshold: 0.3,
     maxDiffPixelRatio: 0.02
   });
@@ -2128,7 +2131,7 @@ test("修改个人密码弹框统一边框、标签和输入框几何", async ({
   expect(Math.max(...mobileGeometry.fieldLefts) - Math.min(...mobileGeometry.fieldLefts)).toBeLessThanOrEqual(0.5);
   expect(Math.max(...mobileGeometry.fieldWidths) - Math.min(...mobileGeometry.fieldWidths)).toBeLessThanOrEqual(0.5);
   expect(mobileGeometry.labelAlignments).toEqual(["start", "start", "start"]);
-  await expect(dialog).toHaveScreenshot("react-usage-password-dialog-mobile-dark.png", {
+  await screenshotExpect(dialog).toHaveScreenshot("react-usage-password-dialog-mobile-dark.png", {
     threshold: 0.3,
     maxDiffPixelRatio: 0.02
   });

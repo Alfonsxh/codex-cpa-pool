@@ -1,3 +1,4 @@
+import { screenshotExpect } from "./screenshot-expect";
 import { installUsageVisualBackend } from "./usage-fixtures";
 import { expect, test, type Page } from "@playwright/test";
 
@@ -93,16 +94,16 @@ for (const viewport of [{ name: "desktop", width: 1440, height: 900 }, { name: "
         await fitsViewport(page);
         await expect(page.locator(".skeleton-table")).toHaveCount(0);
         residue[route] = (await page.locator("body").innerText()).split("\n").filter((line) => /\p{Script=Han}/u.test(line));
-        if (viewport.name !== "narrow") await expect(page).toHaveScreenshot(`english-${route}-${viewport.name}-${theme}.png`, { fullPage: false });
+        if (viewport.name !== "narrow") await screenshotExpect(page).toHaveScreenshot(`english-${route}-${viewport.name}-${theme}.png`, { fullPage: false });
       }
       await page.goto("http://127.0.0.1:5192/");
       await expect(page.getByRole("heading", { name: "Choose your workspace" })).toBeVisible();
       await fitsViewport(page);
-      if (viewport.name !== "narrow") await expect(page).toHaveScreenshot(`english-portal-${viewport.name}-${theme}.png`);
+      if (viewport.name !== "narrow") await screenshotExpect(page).toHaveScreenshot(`english-portal-${viewport.name}-${theme}.png`);
       await page.goto("http://127.0.0.1:5194/usage/");
       await expect(page.getByRole("heading", { name: "Sign in to Usage Center" })).toBeVisible();
       await fitsViewport(page);
-      if (viewport.name !== "narrow") await expect(page).toHaveScreenshot(`english-usage-login-${viewport.name}-${theme}.png`);
+      if (viewport.name !== "narrow") await screenshotExpect(page).toHaveScreenshot(`english-usage-login-${viewport.name}-${theme}.png`);
       await installUsageVisualBackend(page);
       await page.goto("http://127.0.0.1:5194/usage/");
       await expect(page.getByRole("tab", { name: "Account details", exact: true })).toBeVisible();
@@ -111,11 +112,11 @@ for (const viewport of [{ name: "desktop", width: 1440, height: 900 }, { name: "
       const actions = await page.locator(".usage-user-actions").boundingBox();
       expect(heading && actions && (heading.x + heading.width <= actions.x || heading.y + heading.height <= actions.y), "Usage heading must not overlap language and account controls").toBe(true);
       residue.usage = (await page.locator("body").innerText()).split("\n").filter((line) => /\p{Script=Han}/u.test(line));
-      if (viewport.name !== "narrow") await expect(page).toHaveScreenshot(`english-usage-${viewport.name}-${theme}.png`);
+      if (viewport.name !== "narrow") await screenshotExpect(page).toHaveScreenshot(`english-usage-${viewport.name}-${theme}.png`);
       await page.getByRole("tab", { name: "Daily usage", exact: true }).click();
       await page.getByRole("button", { name: "Model + reasoning effort", exact: true }).click();
       await expect(page.getByRole("img", { name: /Personal daily token trend/ })).toBeVisible();
-      if (viewport.name !== "narrow") await expect(page).toHaveScreenshot(`english-trend-${viewport.name}-${theme}.png`);
+      if (viewport.name !== "narrow") await screenshotExpect(page).toHaveScreenshot(`english-trend-${viewport.name}-${theme}.png`);
       await info.attach("untranslated-text-audit", { body: JSON.stringify(residue, null, 2), contentType: "application/json" });
       // These are the language's own name and user-authored synthetic team data.
       const preservedContent = new Set(["简体中文", "平台研发", "数据智能", "产品设计", "核心平台与基础设施", "数据产品与分析", "产品与体验设计"]);

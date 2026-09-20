@@ -38,7 +38,7 @@ export function validationIdentity(root, platform, run = execute) {
   const browser = require("@playwright/test").chromium.executablePath();
   const environment = Object.fromEntries([
     "CI", "TZ", "LANG", "LC_ALL", "NODE_ENV", "NODE_OPTIONS", "GOFLAGS", "GOEXPERIMENT", "GODEBUG", "CGO_ENABLED",
-    "CPAP_E2E_WORKERS", "PLAYWRIGHT_BROWSERS_PATH"
+    "CPAP_E2E_WORKERS", "CPAP_E2E_TRACE", "PLAYWRIGHT_BROWSERS_PATH"
   ].concat(Object.keys(process.env).filter((key) => /^(VITE_|CPA_)/.test(key))).sort().map((key) => [key, process.env[key] ?? ""]));
   return hash(JSON.stringify({
     schema: 1, tree: read("git", ["rev-parse", "HEAD^{tree}"]), platform,

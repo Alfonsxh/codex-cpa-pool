@@ -12,6 +12,8 @@ const frontendEnvironment = {
   VITE_DEV_USAGE_ORIGIN: "http://127.0.0.1:5194",
   VITE_DEV_PORTAL_ORIGIN: "http://127.0.0.1:5192"
 };
+const previewRoot = "frontend/node_modules/.cache/cpa-browser-preview";
+const webPreviewCommand = (port: number) => `go run ./cmd/web --address 127.0.0.1:${port} --admin-target http://127.0.0.1:8896 --portal-root ${previewRoot}/portal --admin-root ${previewRoot}/admin --usage-root ${previewRoot}/usage --log-level error`;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -38,36 +40,36 @@ export default defineConfig({
     timezoneId: "Asia/Shanghai",
     colorScheme: "light",
     screenshot: "only-on-failure",
-    trace: "retain-on-failure"
+    // DOM tracing on every successful action is expensive at high concurrency.
+    // Failure screenshots and visual assertions remain enabled; opt into traces.
+    trace: process.env.CPAP_E2E_TRACE === "1" ? "retain-on-failure" : "off"
   },
   webServer: [
     {
-      command: "go run ./cmd/test-preview --address 127.0.0.1:8896 --root .",
+      command: "npm --prefix frontend run build:browser-preview && go run ./cmd/test-preview --address 127.0.0.1:8896 --root .",
+      env: frontendEnvironment,
       cwd: repositoryRoot,
       url: "http://127.0.0.1:8896/healthz",
       reuseExistingServer: false,
-      timeout: 30_000
+      timeout: 120_000
     },
     {
-      command: "npm run dev -- --port 5193",
-      env: frontendEnvironment,
-      cwd: frontendRoot,
+      command: webPreviewCommand(5193),
+      cwd: repositoryRoot,
       url: "http://127.0.0.1:5193/admin/",
       reuseExistingServer: false,
       timeout: 30_000
     },
     {
-      command: "npm run dev:usage -- --port 5194",
-      env: frontendEnvironment,
-      cwd: frontendRoot,
+      command: webPreviewCommand(5194),
+      cwd: repositoryRoot,
       url: "http://127.0.0.1:5194/usage/",
       reuseExistingServer: false,
       timeout: 30_000
     },
     {
-      command: "npm run dev:portal -- --port 5192",
-      env: frontendEnvironment,
-      cwd: frontendRoot,
+      command: webPreviewCommand(5192),
+      cwd: repositoryRoot,
       url: "http://127.0.0.1:5192/",
       reuseExistingServer: false,
       timeout: 30_000

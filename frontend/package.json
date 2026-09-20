@@ -8,6 +8,7 @@
     "dev:portal": "vite --config vite.portal.config.ts",
     "dev:usage": "vite --config vite.usage.config.ts",
     "build": "tsc --noEmit && npm run build:portal && npm run build:admin && npm run build:usage && npm run check:dist",
+    "build:browser-preview": "node scripts/build-browser-preview.mjs",
     "build:portal": "vite build --config vite.portal.config.ts",
     "build:admin": "vite build",
     "build:usage": "vite build --config vite.usage.config.ts",

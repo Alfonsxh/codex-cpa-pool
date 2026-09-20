@@ -53,5 +53,5 @@ docker run --rm --init --shm-size=2g \
   --mount "type=bind,src=$BROWSER_TASK_ROOT/home,dst=/home/browser" \
   --env HOME=/home/browser --env GOMODCACHE=/go-mod --env GOCACHE=/go-build \
   --env PATH=/opt/node/bin:/opt/go/bin:/usr/local/bin:/usr/bin:/bin \
-  --env CI=true --env "CPAP_E2E_WORKERS=$E2E_WORKERS" --env CGO_ENABLED=0 \
+  --env CI=true --env "CPAP_E2E_WORKERS=$E2E_WORKERS" --env "CPAP_E2E_TRACE=${CPAP_E2E_TRACE:-0}" --env CGO_ENABLED=0 \
   "$PLAYWRIGHT_IMAGE" sh -c 'set -eu; go build -o /home/browser/test-preview ./cmd/test-preview; exec "$@"' sh "$@"
