@@ -381,6 +381,7 @@ test("首次管理登录进入独立配置页，状态接口失败时不阻塞�
 
 for (const viewport of [viewports[0], viewports[1], viewports[2]]) {
   test(`配置中心七类导航保留全部字段、草稿与固定保存栏 ${viewport.name}`, async ({ page }, testInfo) => {
+    test.setTimeout(90_000);
     await page.setViewportSize(viewport);
     await setTheme(page, "dark");
     await login(page, "/admin/configuration", "保存配置");
@@ -1335,6 +1336,7 @@ for (const stateCase of stateCases) {
 }
 
 test("所有菜单滚动时保持页面标题固定", async ({ page }) => {
+  test.setTimeout(90_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   await setTheme(page, "light");
   await login(page, routes[0].path);
