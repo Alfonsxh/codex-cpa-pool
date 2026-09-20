@@ -35,7 +35,7 @@ unset CPAP_E2E_WORKERS
 sh "$TEST_ROOT/source/scripts/browser-ci.sh" false
 grep -Fq -- "--user $(id -u):$(id -g)" "$TEST_ROOT/commands"
 grep -Fq -- '--shm-size=2g' "$TEST_ROOT/commands"
-grep -Fq -- '--env CPAP_E2E_WORKERS=2' "$TEST_ROOT/commands"
+grep -Fq -- '--env CPAP_E2E_WORKERS=12' "$TEST_ROOT/commands"
 grep -Fq -- "rm -f $(printf '%064d' 1)" "$TEST_ROOT/commands"
 grep -Fq -- '--update-snapshots=none' "$TEST_ROOT/commands"
 ! grep -Eq 'update-snapshots=all|docker.sock|--privileged|--network|prune' "$TEST_ROOT/commands"

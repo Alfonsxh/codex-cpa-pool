@@ -3,7 +3,7 @@ set -eu
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 UPDATE_SNAPSHOTS=${1:-false}
 SNAPSHOT_TEST_FILTER=${2:-}
-E2E_WORKERS=${CPAP_E2E_WORKERS:-2}
+E2E_WORKERS=${CPAP_E2E_WORKERS:-12}
 case "$UPDATE_SNAPSHOTS" in true|false) ;; *) echo 'snapshot update must be true or false' >&2; exit 1 ;; esac
 [ -z "$SNAPSHOT_TEST_FILTER" ] || [ "$UPDATE_SNAPSHOTS" = true ] || { echo 'Test filtering is allowed only for baseline generation' >&2; exit 1; }
 case "$E2E_WORKERS" in ''|*[!0-9]*) echo 'CPAP_E2E_WORKERS must be a positive integer' >&2; exit 1 ;; esac
@@ -41,7 +41,7 @@ else
 fi
 # Do not mount the Docker socket or join business Compose networks. Match the host
 # UID so generated evidence and snapshots remain writable by subsequent jobs.
-# Two isolated workers share the four-core Runner; permit a serial override.
+# Use the configured CI concurrency; permit a lower override on constrained hosts.
 docker run --rm --init --shm-size=2g \
   --cidfile "$BROWSER_TASK_ROOT/container-id" \
   --user "$(id -u):$(id -g)" --workdir /work \

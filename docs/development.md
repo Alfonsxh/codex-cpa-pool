@@ -42,7 +42,7 @@ npm --prefix frontend run test:e2e
 
 `verify` 包含生成契约、Shell/Go 检查、单元与竞态测试、前端类型/测试/构建、部署脚本、隐私和 Compose 校验。修改 OpenAPI 后先运行 `make -f scripts/build.mk generate-api`。
 
-Playwright 本地与 CI 默认两个 worker，资源紧张时设 `CPAP_E2E_WORKERS=1`。用例使用独立浏览器上下文与只读预览数据；CI 保存 `browser-timings-<SHA>` 附件，包含完整用例结果及耗时，便于比较性能。隔离数据面演练：
+Playwright 本地默认两个 worker，CI 默认 12 个，可用 `CPAP_E2E_WORKERS` 覆盖，例如资源紧张时设为 `1`。用例使用独立浏览器上下文与只读预览数据；CI 保存 `browser-timings-<SHA>` 附件，包含完整用例结果及耗时，便于比较性能。隔离数据面演练：
 
 ```sh
 make -f scripts/build.mk test-build
