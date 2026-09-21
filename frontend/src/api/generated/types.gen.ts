@@ -362,6 +362,7 @@ export type AccountCreateResponse = {
     message_params?: {
         [key: string]: unknown;
     };
+    ticket?: PluginJobStatus;
     account: AccountCreateResult;
 };
 
@@ -565,12 +566,42 @@ export type ExtensionStatus = {
         running: boolean;
         selected: boolean;
         enabled: boolean;
+        runtime?: TicketRuntimeStatus;
+        job?: PluginJobStatus;
         installation: {
             version: string;
             sha256: string;
             installed_at: number;
             staging: boolean;
+            managed?: boolean;
         };
+    }>;
+};
+
+export type PluginJobStatus = {
+    id: string;
+    status: string;
+    error?: string;
+};
+
+export type TicketRuntimeStatus = {
+    state: 'ready' | 'unavailable' | 'stopped' | 'not_loaded';
+    checked_at: number;
+    registered: boolean;
+    version: string;
+    harvest_active: boolean;
+    inject_active: boolean;
+    harvest_reason: string;
+    inject_reason: string;
+    cached_count: number;
+    inflight_count: number;
+    entries: Array<{
+        model: string;
+        last_http: number;
+        last_length: number;
+        reason: string;
+        backoff_seconds: number;
+        injected_count: number;
     }>;
 };
 
@@ -3787,7 +3818,12 @@ export type ResetAdminAccountQuotaResponse = ResetAdminAccountQuotaResponses[key
 export type GetAdminExtensionsData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Read sanitized live Ticket status for one catalogued account; never triggers harvesting.
+         */
+        account?: string;
+    };
     url: '/admin/api/extensions';
 };
 

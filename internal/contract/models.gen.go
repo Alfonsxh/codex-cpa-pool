@@ -1402,6 +1402,30 @@ func (e TeamUsageResponseAttribution) Valid() bool {
 	}
 }
 
+// Defines values for TicketRuntimeStatusState.
+const (
+	TicketRuntimeStatusStateNotLoaded   TicketRuntimeStatusState = "not_loaded"
+	TicketRuntimeStatusStateReady       TicketRuntimeStatusState = "ready"
+	TicketRuntimeStatusStateStopped     TicketRuntimeStatusState = "stopped"
+	TicketRuntimeStatusStateUnavailable TicketRuntimeStatusState = "unavailable"
+)
+
+// Valid indicates whether the value is a known member of the TicketRuntimeStatusState enum.
+func (e TicketRuntimeStatusState) Valid() bool {
+	switch e {
+	case TicketRuntimeStatusStateNotLoaded:
+		return true
+	case TicketRuntimeStatusStateReady:
+		return true
+	case TicketRuntimeStatusStateStopped:
+		return true
+	case TicketRuntimeStatusStateUnavailable:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for UsageWindow.
 const (
 	UsageWindowAll         UsageWindow = "all"
@@ -2014,6 +2038,7 @@ type AccountCreateResponse struct {
 	// MessageKey Stable authored message identifier
 	MessageKey    *string                 `json:"message_key,omitempty"`
 	MessageParams *map[string]interface{} `json:"message_params,omitempty"`
+	Ticket        *PluginJobStatus        `json:"ticket,omitempty"`
 }
 
 // AccountCreateResult defines model for AccountCreateResult.
@@ -2478,12 +2503,15 @@ type ExtensionStatus struct {
 		Enabled      bool   `json:"enabled"`
 		Installation struct {
 			InstalledAt int64  `json:"installed_at"`
+			Managed     *bool  `json:"managed,omitempty"`
 			Sha256      string `json:"sha256"`
 			Staging     bool   `json:"staging"`
 			Version     string `json:"version"`
 		} `json:"installation"`
-		Running  bool `json:"running"`
-		Selected bool `json:"selected"`
+		Job      *PluginJobStatus     `json:"job,omitempty"`
+		Running  bool                 `json:"running"`
+		Runtime  *TicketRuntimeStatus `json:"runtime,omitempty"`
+		Selected bool                 `json:"selected"`
 	} `json:"accounts"`
 	BundledVersion string `json:"bundled_version"`
 	Checks         map[string]struct {
@@ -2957,6 +2985,13 @@ type Pagination struct {
 	PageSize   int `json:"page_size"`
 	Total      int `json:"total"`
 	TotalPages int `json:"total_pages"`
+}
+
+// PluginJobStatus defines model for PluginJobStatus.
+type PluginJobStatus struct {
+	Error  *string `json:"error,omitempty"`
+	Id     string  `json:"id"`
+	Status string  `json:"status"`
 }
 
 // PortalAccount defines model for PortalAccount.
@@ -3765,6 +3800,31 @@ type TeamUserUsage struct {
 	WeightedTokens  int64               `json:"weighted_tokens"`
 }
 
+// TicketRuntimeStatus defines model for TicketRuntimeStatus.
+type TicketRuntimeStatus struct {
+	CachedCount int   `json:"cached_count"`
+	CheckedAt   int64 `json:"checked_at"`
+	Entries     []struct {
+		BackoffSeconds int    `json:"backoff_seconds"`
+		InjectedCount  int64  `json:"injected_count"`
+		LastHttp       int    `json:"last_http"`
+		LastLength     int    `json:"last_length"`
+		Model          string `json:"model"`
+		Reason         string `json:"reason"`
+	} `json:"entries"`
+	HarvestActive bool                     `json:"harvest_active"`
+	HarvestReason string                   `json:"harvest_reason"`
+	InflightCount int                      `json:"inflight_count"`
+	InjectActive  bool                     `json:"inject_active"`
+	InjectReason  string                   `json:"inject_reason"`
+	Registered    bool                     `json:"registered"`
+	State         TicketRuntimeStatusState `json:"state"`
+	Version       string                   `json:"version"`
+}
+
+// TicketRuntimeStatusState defines model for TicketRuntimeStatus.State.
+type TicketRuntimeStatusState string
+
 // TokenSeries defines model for TokenSeries.
 type TokenSeries struct {
 	Average         int64   `json:"average"`
@@ -4351,6 +4411,12 @@ type GetAdminAccountUsageBreakdownParams struct {
 	Window  *UsageWindowQuery  `form:"window,omitempty" json:"window,omitempty"`
 	StartAt *UsageStartAtQuery `form:"start_at,omitempty" json:"start_at,omitempty"`
 	EndAt   *UsageEndAtQuery   `form:"end_at,omitempty" json:"end_at,omitempty"`
+}
+
+// GetAdminExtensionsParams defines parameters for GetAdminExtensions.
+type GetAdminExtensionsParams struct {
+	// Account Read sanitized live Ticket status for one catalogued account; never triggers harvesting.
+	Account *string `form:"account,omitempty" json:"account,omitempty"`
 }
 
 // ListLegacyAdminRuntimeJobsParams defines parameters for ListLegacyAdminRuntimeJobs.

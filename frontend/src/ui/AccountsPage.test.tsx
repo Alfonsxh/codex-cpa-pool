@@ -1063,6 +1063,7 @@ function accountPageFetchMock(catalogPayload: typeof catalog, exactResponses: Re
     if (url.startsWith("/admin/api/accounts?")) return Promise.resolve(jsonResponse(catalogPayload));
     if (url.startsWith("/admin/api/accounts/usage-breakdown?")) return Promise.resolve(jsonResponse(accountBreakdown));
     if (url === "/admin/api/images/cliproxy") return Promise.resolve(jsonResponse(accountImages));
+    if (url.startsWith("/admin/api/extensions")) return Promise.resolve(jsonResponse({ checks: {}, desired_version: "v0.2.0", bundled_version: "", accounts: catalogPayload.accounts.map(account => ({ account: account.id, enabled: account.enabled, running: account.runtime_state === "running", selected: false, installation: { version: "", sha256: "", installed_at: 0, staging: false } })) }));
     return Promise.reject(new Error(`unexpected request: ${url}`));
   });
 }

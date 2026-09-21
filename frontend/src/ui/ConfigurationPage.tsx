@@ -149,7 +149,7 @@ export function ConfigurationPage({
     gcTime: 0,
     refetchOnWindowFocus: false
   });
-  const fields = useMemo(() => flattenConfiguration(catalog.data), [catalog.data]);
+  const fields = useMemo(() => flattenConfiguration(catalog.data).filter(field => field.key !== "plugins.codex_ticket.accounts"), [catalog.data]);
   const availableSections = useMemo(() => configurationSections.filter((section) =>
     fields.some((field) => field.section === section.id)
     || ["access", "backups", "storage", "audit", "quota", "notifications"].includes(section.id)
@@ -519,10 +519,7 @@ export function ConfigurationPage({
                 };
                 return <section className="configuration-section" key={section.id} aria-label={section.title} data-configuration-field={section.id}>
                   <div id={`configuration-section-${section.id}`}>
-                    {section.id === "codex-ticket" ? <TicketPluginSettings csrfToken={csrfToken} renderField={renderField} tableHeader={<ConfigurationTableHeader />} accounts={String(draft["plugins.codex_ticket.accounts"] ?? "")} accountsError={errors["plugins.codex_ticket.accounts"]} onAccountsChange={value => {
-                      const field = sectionFields.find(item => item.key === "plugins.codex_ticket.accounts");
-                      if (field) updateField(field, value);
-                    }} hasUnsavedChanges={dirtyFields.length > 0} saving={saveMutation.isPending} focusKey={focusKey} /> : null}
+                    {section.id === "codex-ticket" ? <TicketPluginSettings csrfToken={csrfToken} renderField={renderField} tableHeader={<ConfigurationTableHeader />} saving={saveMutation.isPending} focusKey={focusKey} /> : null}
                     {section.id === "provisioning" ? <CPAReleaseStatus csrfToken={csrfToken} /> : null}
                     {section.id === "brand" ? <BrandingLogoEditor custom={general.data.branding.custom_logo} sha256={general.data.branding.logo_sha256} pending={logoMutation.isPending || logoResetMutation.isPending} error={logoError} onFile={(file) => { const error = validateLogoFile(file); setLogoError(error); if (!error) logoMutation.mutate(file); }} onReset={() => setLogoResetOpen(true)} /> : null}
                     {ordinaryFields.length ? <div className="configuration-fields">

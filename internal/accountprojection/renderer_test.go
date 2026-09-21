@@ -50,6 +50,38 @@ func TestPluginDedicatedProxyPreservesBusinessExitAndStagesWithoutTraffic(t *tes
 	}
 }
 
+func TestManagedTicketEnrollmentProjectsProxyAndRejectsMissingProxy(t *testing.T) {
+	root := t.TempDir()
+	store := newProjectionStore(t, root)
+	ctx := context.Background()
+	settings := map[string]any{cpaplugin.Prefix + "enabled": true, cpaplugin.Prefix + "proxy_source": "custom", cpaplugin.Prefix + "harvest_enabled": true, cpaplugin.Prefix + "inject_enabled": true}
+	if err := store.UpdateSettings(ctx, settings); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.WriteRuntimeState(ctx, cpaplugin.StatePrefix+"alpha", cpaplugin.Installation{Version: cpaplugin.DefaultVersion, Managed: true}); err != nil {
+		t.Fatal(err)
+	}
+	renderer := &Renderer{Root: root, Store: store}
+	if _, err := renderer.Render(ctx); err == nil || !strings.Contains(err.Error(), "configure a Ticket proxy") {
+		t.Fatalf("missing proxy accepted: %v", err)
+	}
+	proxy := "socks5h://fixture:private@ticket.example.com:1080"
+	if err := store.WriteSecret(ctx, cpaplugin.ProxySecretName, proxy); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := renderer.Render(ctx); err != nil {
+		t.Fatal(err)
+	}
+	var config cpaConfig
+	if err := yaml.Unmarshal([]byte(readProjectionFile(t, root, "configs/alpha/config.yaml")), &config); err != nil {
+		t.Fatal(err)
+	}
+	plugin := config.Plugins["configs"].(map[string]any)["codex-ticket"].(map[string]any)
+	if plugin["harvest_enabled"] != true || plugin["inject_enabled"] != true || config.ProxyURL != "direct" || readProjectionFile(t, root, "configs/alpha/codex-ticket-proxy.url") != proxy {
+		t.Fatal("managed enrollment did not project independently of legacy selection")
+	}
+}
+
 func TestInstalledPluginWithoutProxyCanRenderWhileTrafficIsPaused(t *testing.T) {
 	for _, name := range []string{"legacy direct migration", "unselected", "staging", "disabled account", "active without proxy"} {
 		t.Run(name, func(t *testing.T) {

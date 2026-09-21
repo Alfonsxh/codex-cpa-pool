@@ -21,7 +21,11 @@ account-proxy settings. Installed versions stay pinned; changing the target or
 upgrading Control does not install software or start stopped accounts.
 
 Existing account OAuth, plugin paths, host configuration and commercial-mode are
-managed by the control plane. Plugin installation remains a separate per-account
-action and restarts only the selected running account after compatibility checks.
+managed by the control plane. Account creation queues a separate automatic installation
+job; a failed installation preserves the account and OAuth. Account management shows
+installation progress, retries and sanitized live cache/injection observations. Existing
+accounts install or upgrade from their account details. Installation enrolls that account
+and restarts only the selected running account after compatibility checks; global plugin,
+harvest, injection and proxy settings remain authoritative. Legacy account scope is preserved.
 This experimental HTTP/SSE plugin does not handle WebSocket, and candidate tickets
 do not prove model quality. Harvesting creates additional upstream requests.

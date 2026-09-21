@@ -599,7 +599,19 @@ func (server *Server) createAccount(c *gin.Context) {
 		server.writeAccountLifecycleError(c, "create account", err)
 		return
 	}
-	httpi18n.JSON(c, http.StatusCreated, gin.H{"message": i18n.M("admin.cpa_account_created_and_runtime_probes_passed"), "account": result})
+	// Account creation and OAuth must not be rolled back because a plugin
+	// download or compatibility check fails. Use the same serialized runtime
+	// job as a manual install and return its separate, visible outcome.
+	ticket := runtimeops.PluginJobStatus{Status: "unavailable"}
+	if server.runtimeJobs != nil && server.extensions != nil {
+		submission, submitErr := server.runtimeJobs.Submit("plugin-update", result.Account.ID)
+		if submitErr == nil {
+			ticket = runtimeops.PluginJobStatus{ID: submission.Job.ID, Status: submission.Job.Status}
+		} else {
+			ticket.Status = "submission_failed"
+		}
+	}
+	httpi18n.JSON(c, http.StatusCreated, gin.H{"message": i18n.M("admin.cpa_account_created_and_runtime_probes_passed"), "account": result, "ticket": ticket})
 }
 
 func (server *Server) updateAccount(c *gin.Context) {

@@ -387,7 +387,8 @@ for (const viewport of [viewports[0], viewports[1], viewports[2]]) {
     await login(page, "/admin/configuration", "保存配置");
     const response = await page.request.get("/admin/api/settings/configuration");
     const catalog = await response.json();
-    const expectedKeys = catalog.groups.flatMap((group: { fields: Array<{ key: string }> }) => group.fields.map((field) => field.key));
+    // The legacy scope key remains API-compatible; account enrollment moved to Account Management.
+    const expectedKeys = catalog.groups.flatMap((group: { fields: Array<{ key: string }> }) => group.fields.map((field) => field.key)).filter((key: string) => key !== "plugins.codex_ticket.accounts");
     const seen: string[] = [];
     const categories = ["品牌与身份", "系统设置", "CPA 容器", "请求与账号", "用量与额度", "通知设置", "数据与审计"];
     const expandCategory = async (category: string) => {

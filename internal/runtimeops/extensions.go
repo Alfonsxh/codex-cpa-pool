@@ -51,6 +51,8 @@ type PluginAccountStatus struct {
 	Selected     bool                   `json:"selected"`
 	Enabled      bool                   `json:"enabled"`
 	Installation cpaplugin.Installation `json:"installation"`
+	Runtime      *TicketRuntimeStatus   `json:"runtime,omitempty"`
+	Job          *PluginJobStatus       `json:"job,omitempty"`
 }
 type ExtensionStatus struct {
 	BundledVersion string                  `json:"bundled_version"`
@@ -194,6 +196,7 @@ func (e *Extensions) Status(ctx context.Context) (ExtensionStatus, error) {
 		if _, err = e.Store.ReadRuntimeState(ctx, cpaplugin.StatePrefix+account.ID, &row.Installation); err != nil {
 			return s, err
 		}
+		row.Selected = row.Selected || row.Installation.Managed
 		s.Accounts = append(s.Accounts, row)
 	}
 	return s, nil
@@ -350,12 +353,12 @@ func (e *Extensions) UpdatePlugin(ctx context.Context, target string, output io.
 	}
 	eligible := false
 	for _, a := range status.Accounts {
-		if a.Account == target && a.Enabled && a.Running && a.Selected {
+		if a.Account == target && a.Enabled && a.Running {
 			eligible = true
 		}
 	}
 	if !eligible {
-		return result, errors.New("select an enabled, running account in plugin configuration")
+		return result, errors.New("select an enabled, running account")
 	}
 	// Ensure native plugin API exists before downloading or touching a config.
 	var existing struct {
@@ -405,7 +408,7 @@ func (e *Extensions) UpdatePlugin(ctx context.Context, target string, output io.
 	if _, err = e.Store.ReadRuntimeState(ctx, cpaplugin.StatePrefix+target, &previous); err != nil {
 		return result, err
 	}
-	next := cpaplugin.Installation{Version: config.Version, SHA256: checksum, InstalledAt: time.Now().Unix(), Staging: true}
+	next := cpaplugin.Installation{Version: config.Version, SHA256: checksum, InstalledAt: time.Now().Unix(), Staging: true, Managed: true}
 	if err = e.Store.WriteRuntimeState(ctx, cpaplugin.StatePrefix+target, next); err != nil {
 		return result, err
 	}

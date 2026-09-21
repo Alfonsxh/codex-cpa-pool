@@ -145,6 +145,47 @@ func TestPluginUpgradeStagesBeforeEnabling(t *testing.T) {
 		t.Fatalf("installation=%+v runtime=%+v stages=%v", got, r, p.stages)
 	}
 }
+
+func TestAccountInstallEnrollsWithoutChangingLegacyScope(t *testing.T) {
+	e, s, r, _ := newExtensionsFixture(t)
+	s.settings[cpaplugin.Prefix+"accounts"] = "another-account"
+	if _, err := e.UpdatePlugin(context.Background(), "alpha", io.Discard); err != nil {
+		t.Fatal(err)
+	}
+	status, err := e.Status(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	row := status.Accounts[0]
+	if !row.Selected || !row.Installation.Managed || s.settings[cpaplugin.Prefix+"accounts"] != "another-account" || r.restarts != 1 {
+		t.Fatalf("account enrollment failed: %+v", row)
+	}
+}
+
+func TestTicketStatusIsReadOnlySanitizedAndSkipsStoppedAccount(t *testing.T) {
+	e, s, r, _ := newExtensionsFixture(t)
+	calls := 0
+	e.managementHTTP = &http.Client{Transport: extensionRoundTrip(func(req *http.Request) (*http.Response, error) {
+		calls++
+		if req.Method != http.MethodGet {
+			t.Fatal("status mutated upstream")
+		}
+		if strings.HasSuffix(req.URL.Path, "/plugins") {
+			return extensionResponse([]byte(`{"plugins":[{"id":"codex-ticket","registered":true,"metadata":{"version":"0.2.0"}}]}`)), nil
+		}
+		return extensionResponse([]byte(`{"harvest_active":true,"inject_active":true,"cached_count":0,"harvest_reason":"ready","inject_reason":"private-secret","turn_state":"opaque-secret","entries":[{"model":"gpt-6-astra","last_http":200,"last_length":312,"reason":"length_mismatch","backoff_seconds":600,"injected_count":0,"ticket":"opaque-secret","auth_index":"private-auth"}]}`)), nil
+	})}
+	row := PluginAccountStatus{Account: "alpha", Running: true, Enabled: true}
+	status := e.TicketStatus(context.Background(), row)
+	encoded, _ := json.Marshal(status)
+	if status.State != "ready" || status.CachedCount != 0 || len(status.Entries) != 1 || status.Entries[0].LastLength != 312 || status.InjectReason != "other" || strings.Contains(string(encoded), "secret") || strings.Contains(string(encoded), "private-auth") {
+		t.Fatalf("unexpected status: %s", encoded)
+	}
+	row.Running = false
+	if e.TicketStatus(context.Background(), row).State != "stopped" || calls != 2 || s.writes != 0 || r.restarts != 0 {
+		t.Fatal("status had side effects")
+	}
+}
 func TestPluginFailureRestoresPreviousVersion(t *testing.T) {
 	e, s, r, _ := newExtensionsFixture(t)
 	old := cpaplugin.Installation{Version: "v0.1.0", SHA256: "old"}

@@ -1321,6 +1321,11 @@ paths:
       tags: [admin-runtime]
       security:
         - adminSession: []
+      parameters:
+        - name: account
+          in: query
+          description: Read sanitized live Ticket status for one catalogued account; never triggers harvesting.
+          schema: { type: string }
       responses:
         "200":
           description: Scheduled version checks and pinned per-account plugin installations
@@ -2671,6 +2676,7 @@ components:
         message: { type: string }
         message_key: { type: string, description: Stable authored message identifier }
         message_params: { type: object, additionalProperties: true }
+        ticket: { $ref: "#/components/schemas/PluginJobStatus" }
         account: { $ref: "#/components/schemas/AccountCreateResult" }
     AccountUpdateRequest:
       type: object
@@ -2953,6 +2959,8 @@ components:
               running: { type: boolean }
               selected: { type: boolean }
               enabled: { type: boolean }
+              runtime: { $ref: "#/components/schemas/TicketRuntimeStatus" }
+              job: { $ref: "#/components/schemas/PluginJobStatus" }
               installation:
                 type: object
                 required: [version, sha256, installed_at, staging]
@@ -2961,6 +2969,40 @@ components:
                   sha256: { type: string }
                   installed_at: { type: integer, format: int64 }
                   staging: { type: boolean }
+                  managed: { type: boolean }
+    PluginJobStatus:
+      type: object
+      required: [id, status]
+      properties:
+        id: { type: string }
+        status: { type: string }
+        error: { type: string }
+    TicketRuntimeStatus:
+      type: object
+      required: [state, checked_at, registered, version, harvest_active, inject_active, harvest_reason, inject_reason, cached_count, inflight_count, entries]
+      properties:
+        state: { type: string, enum: [ready, unavailable, stopped, not_loaded] }
+        checked_at: { type: integer, format: int64 }
+        registered: { type: boolean }
+        version: { type: string }
+        harvest_active: { type: boolean }
+        inject_active: { type: boolean }
+        harvest_reason: { type: string }
+        inject_reason: { type: string }
+        cached_count: { type: integer }
+        inflight_count: { type: integer }
+        entries:
+          type: array
+          items:
+            type: object
+            required: [model, last_http, last_length, reason, backoff_seconds, injected_count]
+            properties:
+              model: { type: string }
+              last_http: { type: integer }
+              last_length: { type: integer }
+              reason: { type: string }
+              backoff_seconds: { type: integer }
+              injected_count: { type: integer, format: int64 }
     RuntimeJobRequest:
       type: object
       additionalProperties: false

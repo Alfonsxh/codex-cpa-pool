@@ -187,7 +187,7 @@ func (renderer *Renderer) buildFiles(
 				return nil, err
 			}
 			ticketProxy := ""
-			if plugin.Selected(account.ID) {
+			if plugin.Selected(account.ID) || installed.Managed {
 				if plugin.ProxySource == "custom" {
 					ticketProxy, _, err = renderer.Store.ReadSecret(ctx, cpaplugin.ProxySecretName)
 					if err != nil {
@@ -203,7 +203,7 @@ func (renderer *Renderer) buildFiles(
 					return nil, fmt.Errorf("%w: invalid Ticket proxy for %s", ErrInvalidProjection, account.ID)
 				}
 			}
-			if ticketProxy == "" && plugin.Enabled && plugin.Selected(account.ID) && account.GroupEnabled && !installed.Staging && (plugin.Harvest || plugin.Inject) {
+			if ticketProxy == "" && plugin.Enabled && (plugin.Selected(account.ID) || installed.Managed) && account.GroupEnabled && !installed.Staging && (plugin.Harvest || plugin.Inject) {
 				return nil, fmt.Errorf("%w: configure a Ticket proxy for %s before enabling harvesting or injection", ErrInvalidProjection, account.ID)
 			}
 			// A blank line keeps paused output valid but remains unconfigured to

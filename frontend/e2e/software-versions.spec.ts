@@ -56,7 +56,7 @@ async function login(page: Page, section = "software") {
 
 for (const viewport of [{ name: "desktop", width: 1440, height: 1000 }, { name: "mobile", width: 390, height: 844 }]) {
   for (const theme of ["light", "dark"] as const) {
-    test(`Ticket 单页保存安装与停止账号保护 ${viewport.name} ${theme}`, async ({ page }, testInfo) => {
+    test(`Ticket 通用参数与版本检查 ${viewport.name} ${theme}`, async ({ page }, testInfo) => {
       await page.setViewportSize(viewport);
       await page.addInitScript(value => localStorage.setItem("cpa-ui-theme", value), theme);
       const { saves, submitted } = await setupTicket(page);
@@ -70,15 +70,8 @@ for (const viewport of [{ name: "desktop", width: 1440, height: 1000 }, { name: 
       await page.screenshot({ path: testInfo.outputPath(`ticket-settings-${viewport.name}-${theme}.png`), animations: "disabled" });
       await page.locator('[data-configuration-field="plugins.codex_ticket.proxy_url"]').scrollIntoViewIfNeeded();
       await page.screenshot({ path: testInfo.outputPath(`ticket-proxy-${viewport.name}-${theme}.png`), animations: "disabled" });
-      const row = (account: string) => page.locator(`.ticket-account-row[data-account="${account}"]`);
-      await expect(row("stopped").getByRole("button")).toBeDisabled();
-      await expect(row("disabled").getByRole("button")).toBeDisabled();
-      await expect(row("new-account").getByRole("button")).toBeDisabled();
-      await expect(row("qdata-new2")).toContainText("已是目标版本");
-      await row("new-account").getByRole("checkbox").check();
-      await expect(row("new-account").getByRole("button")).toBeDisabled();
-      await expect(row("alpha").getByRole("button")).toBeDisabled();
-      await expect(page.getByText("请先保存配置，再安装或升级插件。")).toBeVisible();
+      await expect(page.locator(".ticket-account-table")).toHaveCount(0);
+      await expect(page.getByRole("button", { name: "安装插件", exact: true })).toHaveCount(0);
       await page.getByRole("button", { name: "检查插件更新", exact: true }).click();
       await expect.poll(() => submitted.length).toBe(1);
       expect(submitted[0]).toEqual({ action: "version-check", target: "all", confirm: "version-check:all" });
@@ -86,37 +79,13 @@ for (const viewport of [{ name: "desktop", width: 1440, height: 1000 }, { name: 
       await expect(page.locator(".ticket-version-settings .software-task-details")).toHaveCount(0);
       await expect(page.getByText("Version metadata checked; no software was installed.", { exact: true })).toHaveCount(0);
       await page.locator(".ticket-version-settings .software-release-inline").screenshot({ path: testInfo.outputPath(`ticket-check-${viewport.name}-${theme}.png`), animations: "disabled" });
-      await expect(row("new-account").getByRole("checkbox")).toBeChecked();
-      await page.getByRole("button", { name: "保存配置", exact: true }).click();
-      await expect.poll(() => saves.length).toBe(1);
-      expect(saves[0]).toEqual({ confirm: "save", values: { "plugins.codex_ticket.accounts": "qdata-new2,alpha,stopped,disabled,new-account" } });
-      await expect(row("new-account").getByRole("button")).toBeEnabled();
-      expect(submitted).toHaveLength(1);
-      await row("new-account").getByRole("button").click();
-      await expect(page.getByRole("dialog")).toContainText("将为 new-account 安装 v0.2.0");
-      await page.getByRole("button", { name: "取消", exact: true }).click();
-      expect(submitted).toHaveLength(1);
-      await page.getByRole("textbox", { name: "搜索账号", exact: true }).fill("alpha");
-      await expect(page.locator(".ticket-account-row")).toHaveCount(1);
-      await row("alpha").getByRole("button").click();
-      await page.getByRole("dialog").getByRole("button", { name: "确定", exact: true }).click();
-      await expect.poll(() => submitted.length).toBe(2);
-      expect(submitted[1]).toEqual({ action: "plugin-update", target: "alpha", confirm: "plugin-update:alpha" });
-      await expect(page.locator(".ticket-account-task")).toContainText("插件加载失败，已恢复原配置。");
-      await page.getByRole("textbox", { name: "搜索账号", exact: true }).clear();
-      await expect(row("stopped").getByRole("button")).toBeDisabled();
-      await expect(row("disabled").getByRole("button")).toBeDisabled();
-      await page.locator(".ticket-accounts").scrollIntoViewIfNeeded();
+      expect(saves).toHaveLength(0);
       expect(await page.evaluate(() => document.body.scrollWidth)).toBeLessThanOrEqual(viewport.width);
-      expect(await page.locator(".settings-workspace-content").evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
-      await page.screenshot({ path: testInfo.outputPath(`ticket-accounts-${viewport.name}-${theme}.png`), animations: "disabled" });
-      await page.reload();
-      await expect(row("new-account").getByRole("checkbox")).toBeChecked();
       await page.goto("/admin/configuration?section=provisioning");
       await expect(page.getByText("CLIProxyAPI", { exact: true })).toBeVisible();
       await expect(page.getByText("最近检查失败；保留上次成功结果。")).toBeVisible();
       await expect(page.getByLabel("自动检查 CPA 版本", { exact: true })).toBeChecked();
-      expect(submitted.filter(item => item.action === "plugin-update")).toHaveLength(1);
+      expect(submitted.filter(item => item.action === "plugin-update")).toHaveLength(0);
     });
   }
 }
@@ -173,7 +142,7 @@ test("Ticket 高级字段旧链接与账号加载失败恢复", async ({ page })
   await expect(page.getByText("无法读取版本状态，请重试。")).toBeVisible();
   fail = false;
   await page.getByRole("button", { name: "刷新当前页", exact: true }).click();
-  await expect(page.locator('.ticket-account-row[data-account="alpha"]')).toBeVisible();
+  await expect(page.getByText("无法读取版本状态，请重试。")).toHaveCount(0);
 });
 
 test("Ticket 模型标签编辑与放弃修改不安装软件", async ({ page }) => {
@@ -184,10 +153,8 @@ test("Ticket 模型标签编辑与放弃修改不安装软件", async ({ page })
   await models.press("Enter");
   await expect(page.locator('[data-configuration-field="plugins.codex_ticket.models"]')).toContainText("gpt-5.6-sol");
   expect(saves).toHaveLength(0);
-  await page.locator('.ticket-account-row[data-account="alpha"]').getByRole("checkbox").uncheck();
   await page.getByRole("button", { name: "撤销未保存修改", exact: true }).click();
   await expect(page.locator('[data-configuration-field="plugins.codex_ticket.models"]')).not.toContainText("gpt-5.6-sol");
-  await expect(page.locator('.ticket-account-row[data-account="alpha"]').getByRole("checkbox")).toBeChecked();
   expect(saves).toHaveLength(0);
   expect(submitted).toHaveLength(0);
 });

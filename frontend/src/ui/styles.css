@@ -1402,7 +1402,7 @@ html[lang="en"] .top-bar-actions { max-width: 100%; flex-wrap: wrap; }
 .account-last-used { display: block; font: 10px/1.5 var(--mono); font-variant-numeric: tabular-nums; text-align: center; white-space: pre-line; }
 .account-expanded-panel { padding: 14px 16px 16px 42px; display: grid; gap: 12px; border-bottom: 1px solid var(--line); }
 .account-detail-facts { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
-.account-runtime-facts { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.account-runtime-facts { grid-template-columns: repeat(7, minmax(0, 1fr)); }
 .account-runtime-facts > div { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; text-align: left; }
 .account-usage-facts { grid-template-columns: repeat(7, minmax(0, 1fr)); }
 .account-detail-facts > div { min-width: 0; padding: 12px; }

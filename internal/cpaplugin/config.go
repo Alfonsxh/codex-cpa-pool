@@ -31,6 +31,9 @@ type Installation struct {
 	InstalledAt int64  `json:"installed_at"`
 	// Staging denies harvest/injection during installation and after a crash.
 	Staging bool `json:"staging"`
+	// Managed enrolls installations requested from account management. Legacy
+	// installations retain their existing configured account scope.
+	Managed bool `json:"managed,omitempty"`
 }
 
 type Config struct {
@@ -137,7 +140,7 @@ func (c Config) YAML(id string, groupEnabled bool, installed Installation) map[s
 	if !VersionPattern.MatchString(installed.Version) && installed.Version != LegacyVersion {
 		return nil
 	}
-	enabled := c.Enabled && c.Selected(id) && groupEnabled
+	enabled := c.Enabled && (c.Selected(id) || installed.Managed) && groupEnabled
 	return map[string]any{"enabled": enabled, "dir": "/CLIProxyAPI/account-config/plugins/" + installed.Version, "configs": map[string]any{"codex-ticket": map[string]any{
 		"enabled": enabled, "priority": 10, "harvest_enabled": enabled && c.Harvest && !installed.Staging, "inject_enabled": enabled && c.Inject && !installed.Staging,
 		"proxy_file": "/CLIProxyAPI/account-config/codex-ticket-proxy.url", "host_config_file": "/CLIProxyAPI/account-config/config.yaml",

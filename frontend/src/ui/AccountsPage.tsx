@@ -95,6 +95,8 @@ import { useAdminToolbar } from "./AdminToolbarContext";
 import { LegacyToastRegion, useLegacyToasts } from "./components/LegacyToast";
 import { LegacyEnhancedSelect } from "./components/LegacyEnhancedSelect";
 import { ManagementUsageTimeFilter } from "./components/ManagementUsageTimeFilter";
+import { AccountTicketDrawer, AccountTicketLink } from "./components/AccountTicket";
+import { softwareVersionsQueryKey } from "./components/SoftwareVersions";
 import { AccountModelTestModal } from "./components/AccountModelTestModal";
 import { WideSelect } from "./components/WideSelect";
 import { formatTokenAmount } from "./formatters";
@@ -183,6 +185,7 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
   const [runtimeOperation, setRuntimeOperation] = useState<PendingAccountRuntimeOperation | null>(null);
   const [imageUpdateTarget, setImageUpdateTarget] = useState<PendingImageUpdate | null>(null);
   const [modelTestAccount, setModelTestAccount] = useState<Account | null>(null);
+  const [ticketAccount, setTicketAccount] = useState<Account | null>(null);
   const [logTarget, setLogTarget] = useState<string | null>(null);
   const [rebalanceTarget, setRebalanceTarget] = useState<Account | null>(null);
   const [oauthAccount, setOAuthAccount] = useState<Account | null>(null);
@@ -209,6 +212,7 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
   });
   const refreshAccountCatalog = useCallback(async () => {
     void queryClient.refetchQueries({ queryKey: cpaImageStatusQueryKey, exact: true });
+    void queryClient.invalidateQueries({ queryKey: softwareVersionsQueryKey });
     try {
       const catalog = await refreshAccountList(
         queryClient, accountsQueryKey, accountListQueryKey(usageRange),
@@ -274,7 +278,12 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
         case "delete": return deleteAccount(command.request, csrfToken);
       }
     },
-    onSuccess: async (result) => {
+    onSuccess: async (result, command) => {
+      if (command.kind === "create" && "ticket" in result) {
+        setExpandedAccountIDs([command.request.id]);
+        if (result.ticket?.status === "unavailable" || result.ticket?.status === "submission_failed") showToast(t("admin.account_ticket_submission_failed"), "error");
+      }
+      void queryClient.invalidateQueries({ queryKey: softwareVersionsQueryKey });
       setEditorAccount(null);
       setPendingAccountUpdate(null);
       setPolicyAccount(null);
@@ -680,6 +689,7 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
               expandedRowRender: (account) => (
                 <AccountExpandedRow
                   account={account}
+                  onOpenTicket={setTicketAccount}
                   usageRange={usageRange}
                   onModelTest={setModelTestAccount}
                   imageStatus={imageStatus}
@@ -712,6 +722,7 @@ export function AccountsPage({ csrfToken }: { csrfToken: string }) {
       </div>
 
       {modelTestAccount ? <AccountModelTestModal account={modelTestAccount} csrfToken={csrfToken} onClose={() => setModelTestAccount(null)} /> : null}
+      <AccountTicketDrawer account={ticketAccount} csrfToken={csrfToken} onClose={() => setTicketAccount(null)} />
       <CustomUsageRangeModal
         open={customUsageRangeOpen}
         title={t("admin.custom_account_usage_range")}
@@ -1104,6 +1115,7 @@ function AccountFilter({
 
 function AccountExpandedRow({
   account,
+  onOpenTicket,
   usageRange,
   imageStatus,
   onEdit,
@@ -1116,6 +1128,7 @@ function AccountExpandedRow({
   onUpdateImage
 }: {
   account: Account;
+  onOpenTicket: (account: Account) => void;
   usageRange: AccountUsageRange;
   imageStatus: UseQueryResult<CpaImageStatus>;
   onEdit: (account: Account) => void;
@@ -1179,6 +1192,10 @@ function AccountExpandedRow({
           label={t("admin.outbound_proxy")}
           value={account.proxy_source === "account" ? t("admin.account_override") : account.proxy_source === "default" ? t("admin.control_plane_default") : t("admin.direct_connection")}
           note={account.proxy_display || "direct"}
+        />
+        <AccountDetailFact
+          label={t("admin.account_ticket_plugin")}
+          value={<AccountTicketLink account={account.id} onOpen={() => onOpenTicket(account)} />}
         />
       </div>
 
@@ -1824,6 +1841,7 @@ function AccountEditorModal({
               <span>{t("admin.create_authentication_directory")}</span>
               <span>{t("admin.link_existing_user_keys_in_the_background")}</span>
               <span>{t("admin.start_container_refresh_routes")}</span>
+              <span>{t("admin.account_ticket_auto_install")}</span>
             </div>
             <div className="account-inline-notice">{t("admin.after_creation_all_existing_users_unified_keys_are_linked_in")}</div>
           </>
